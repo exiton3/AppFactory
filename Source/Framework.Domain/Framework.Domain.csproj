@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{502E19B9-F26B-4A7A-89C9-E432A6E39036}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Framework.Domain</RootNamespace>
+    <AssemblyName>Framework.Domain</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\Source\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MatchingRelease|AnyCPU'">
+    <OutputPath>bin\MatchingRelease\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Matching_Azure|AnyCPU'">
+    <OutputPath>bin\Matching_Azure\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Dev_Test|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Dev_Test\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Performance|AnyCPU'">
+    <OutputPath>bin\Performance\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AggregateRoot.cs" />
+    <Compile Include="Entity.cs" />
+    <Compile Include="EntityWithTypedId.cs" />
+    <Compile Include="Events\Event.cs" />
+    <Compile Include="Events\IEventBus.cs" />
+    <Compile Include="Events\IEventBusSyncWrapper.cs" />
+    <Compile Include="Events\IEventHandler.cs" />
+    <Compile Include="Events\IEventHandlerAsync.cs" />
+    <Compile Include="Events\IEventPublisher.cs" />
+    <Compile Include="Events\IEvent.cs" />
+    <Compile Include="IAggregateRoot.cs" />
+    <Compile Include="ICommand.cs" />
+    <Compile Include="ICommandDispatcher.cs" />
+    <Compile Include="ICommandHandler.cs" />
+    <Compile Include="Infrastructure\AppVersion.cs" />
+    <Compile Include="Infrastructure\Check.cs" />
+    <Compile Include="Infrastructure\Extensions\CollectionExtension.cs" />
+    <Compile Include="Infrastructure\Extensions\DateTimeExtension.cs" />
+    <Compile Include="Infrastructure\Extensions\EnumerableExtensions.cs" />
+    <Compile Include="Infrastructure\Extensions\EnumExtension.cs" />
+    <Compile Include="Infrastructure\Extensions\IntExtension.cs" />
+    <Compile Include="Infrastructure\Extensions\LinkedListExtension.cs" />
+    <Compile Include="Infrastructure\Extensions\ListExtension.cs" />
+    <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
+    <Compile Include="Infrastructure\Extensions\StreamExtension.cs" />
+    <Compile Include="Infrastructure\Extensions\StringExtension.cs" />
+    <Compile Include="Infrastructure\Extensions\XElementExtension.cs" />
+    <Compile Include="Infrastructure\FastPropertyFactory.cs" />
+    <Compile Include="Infrastructure\Graph\Edge.cs" />
+    <Compile Include="Infrastructure\Graph\Graph.cs" />
+    <Compile Include="Infrastructure\Graph\Node.cs" />
+    <Compile Include="Infrastructure\Graph\Path.cs" />
+    <Compile Include="Infrastructure\GroupedContainer.cs" />
+    <Compile Include="Infrastructure\IdValueModel.cs" />
+    <Compile Include="Infrastructure\PrivateReflectionDynamicObject.cs" />
+    <Compile Include="Infrastructure\CompiledMethodInfo.cs" />
+    <Compile Include="Infrastructure\PrivateReflectionDynamicObjectExtensions.cs" />
+    <Compile Include="Infrastructure\PropertyExpressionHelper.cs" />
+    <Compile Include="OperationResult.cs" />
+    <Compile Include="Paging\Filter.cs" />
+    <Compile Include="Paging\FilterBuilder.cs" />
+    <Compile Include="Paging\FilterItem.cs" />
+    <Compile Include="Paging\FilterOperands.cs" />
+    <Compile Include="Paging\FiltersSet.cs" />
+    <Compile Include="Paging\IFilter.cs" />
+    <Compile Include="Paging\SearchRequestModel.cs" />
+    <Compile Include="Paging\PagedResult.cs" />
+    <Compile Include="Paging\PagingSettings.cs" />
+    <Compile Include="Paging\SearchRequest.cs" />
+    <Compile Include="Paging\SimplePagedResult.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReadModel\IReadModel.cs" />
+    <Compile Include="ReadModel\IReadModelRepository.cs" />
+    <Compile Include="ReadModel\ReadModelBase.cs" />
+    <Compile Include="Repositories\IRepository.cs" />
+    <Compile Include="Repositories\IRepositoryWithTypeId.cs" />
+    <Compile Include="Repositories\ISearchRepository.cs" />
+    <Compile Include="Repositories\IUnitOfWork.cs" />
+    <Compile Include="Repositories\SortingRule.cs" />
+    <Compile Include="Repositories\SortingSettings.cs" />
+    <Compile Include="Repositories\SortOrder.cs" />
+    <Compile Include="Repositories\TableInfo.cs" />
+    <Compile Include="Specifications\AndSpecification.cs" />
+    <Compile Include="Specifications\ContainsSpecification.cs" />
+    <Compile Include="Specifications\CustomSpecificationsRegistry.cs" />
+    <Compile Include="Specifications\DateFromSpecification.cs" />
+    <Compile Include="Specifications\DateGreaterThanOrEqualSpecificationDecorator.cs" />
+    <Compile Include="Specifications\DateGreaterThanSpecificationDecorator.cs" />
+    <Compile Include="Specifications\DateLessThanOrEqualSpecificationDecorator.cs" />
+    <Compile Include="Specifications\DateLessThanSpecificationDecorator.cs" />
+    <Compile Include="Specifications\DateToSpecification.cs" />
+    <Compile Include="Specifications\DefaultFalseSpecification.cs" />
+    <Compile Include="Specifications\EqualsSpecification.cs" />
+    <Compile Include="Specifications\FilterExpressionExtension.cs" />
+    <Compile Include="Specifications\FilterSpecificationInfo.cs" />
+    <Compile Include="Specifications\GreaterThanOrEqualSpecification.cs" />
+    <Compile Include="Specifications\GreaterThanSpecification.cs" />
+    <Compile Include="Specifications\ICustomSpecificationsRegistry.cs" />
+    <Compile Include="Specifications\ISearchRequestFactory.cs" />
+    <Compile Include="Specifications\ISpecificationBuilder.cs" />
+    <Compile Include="Specifications\ISpecificationFactory.cs" />
+    <Compile Include="Specifications\LessThanOrEqualSpecification.cs" />
+    <Compile Include="Specifications\LessThanSpecification.cs" />
+    <Compile Include="Specifications\InRangeSpecification.cs" />
+    <Compile Include="Specifications\NotEqualsSpecification.cs" />
+    <Compile Include="Specifications\ParameterUpdateVisitor.cs" />
+    <Compile Include="Specifications\PropertyExpressionHelper.cs" />
+    <Compile Include="Specifications\DefaultSpecification.cs" />
+    <Compile Include="Specifications\ISpecification.cs" />
+    <Compile Include="Specifications\NotSpecification.cs" />
+    <Compile Include="Specifications\OrSpecification.cs" />
+    <Compile Include="Specifications\SearchRequestFactory.cs" />
+    <Compile Include="Specifications\SpecificationBase.cs" />
+    <Compile Include="Specifications\SpecificationBuilder.cs" />
+    <Compile Include="Specifications\SpecificationFactory.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
