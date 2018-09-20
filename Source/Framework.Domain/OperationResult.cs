@@ -2,7 +2,7 @@
 using System.Linq;
 using Framework.Domain.Infrastructure;
 
-namespace Drawback.Domain
+namespace Framework.Domain
 {
     public class OperationResult
     {
