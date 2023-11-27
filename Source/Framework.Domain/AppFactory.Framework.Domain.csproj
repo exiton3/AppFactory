@@ -6,11 +6,13 @@
     <RestorePackages>true</RestorePackages>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyTitle>AppFactory.Framework.Domain</AssemblyTitle>
-    <Company>exiton</Company>
+    <Company>Exiton</Company>
     <Product>AppFactory.Framework.Domain</Product>
-    <Copyright>Copyright © exiton 2023</Copyright>
+    <Copyright>Copyright © Exiton 2023</Copyright>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
+    <PackageTags>cqrs;clean architecture;ddd;framework;</PackageTags>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MatchingRelease|AnyCPU'">
     <OutputPath>bin\MatchingRelease\</OutputPath>

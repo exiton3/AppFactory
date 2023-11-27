@@ -14,12 +14,12 @@
     <tags>CQRS DDD Framework DataLayer</tags>
     <dependencies>
       <dependency id="AppFactory.Domain" version="2.0.0" />      	  
-	  <dependency id="Autofac" version="4.8.1" />
-      <dependency id="AutoMapper" version="5.2.0"  />
-      <dependency id="EntityFramework" version="6.2.0"  />
+	  <dependency id="Autofac" version="7.0.1" />
+      <dependency id="AutoMapper" version="12.0.1"  />
+      <dependency id="Microsoft.EntityFrameworkCore" version="8.0.0"  />
     </dependencies>
   </metadata>
      <files>
-	<file src="..\Framework.DataLayer\bin\Release\Framework.DataLayer.dll" target="lib\net451\Framework.DataLayer.dll"> </file>
+	<file src="..\AppFactory.Framework.DataLayer\bin\Release\AppFactory.Framework.DataLayer.dll" target="lib\net8.0\AppFactory.Framework.DataLayer.dll"> </file>
  </files>
 </package>
