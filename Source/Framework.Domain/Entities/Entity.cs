@@ -1,7 +1,7 @@
-﻿namespace AppFactory.Framework.Domain
+﻿namespace AppFactory.Framework.Domain.Entities
 {
     public abstract class Entity : EntityWithTypedId<int>
     {
-      
+
     }
 }

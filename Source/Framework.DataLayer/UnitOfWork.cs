@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AppFactory.Framework.Domain;
+using AppFactory.Framework.Domain.Entities;
 using AppFactory.Framework.Domain.Events;
 using AppFactory.Framework.Domain.Infrastructure.Extensions;
 using AppFactory.Framework.Domain.Repositories;

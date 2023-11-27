@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AppFactory.Framework.Domain.Entities;
 using AppFactory.Framework.Domain.Paging;
 using AppFactory.Framework.Domain.Specifications;
 

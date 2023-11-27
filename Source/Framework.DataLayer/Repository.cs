@@ -1,4 +1,4 @@
-﻿using AppFactory.Framework.Domain;
+﻿using AppFactory.Framework.Domain.Entities;
 
 namespace AppFactory.Framework.DataLayer
 {

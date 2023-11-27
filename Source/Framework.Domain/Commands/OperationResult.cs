@@ -2,7 +2,7 @@
 using System.Linq;
 using AppFactory.Framework.Domain.Infrastructure;
 
-namespace AppFactory.Framework.Domain
+namespace AppFactory.Framework.Domain.Commands
 {
     public class OperationResult
     {

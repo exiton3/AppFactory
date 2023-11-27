@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AppFactory.Framework.Domain;
+using AppFactory.Framework.Domain.Entities;
 using AppFactory.Framework.Domain.Paging;
 using AppFactory.Framework.Domain.Repositories;
 using AppFactory.Framework.Domain.Specifications;
