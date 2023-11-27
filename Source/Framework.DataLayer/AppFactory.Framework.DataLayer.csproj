@@ -5,9 +5,9 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\Source\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AssemblyTitle>Framework.DataLayer</AssemblyTitle>
+    <AssemblyTitle>AppFactory.Framework.DataLayer</AssemblyTitle>
     <Company>exiton</Company>
-    <Product>Framework.DataLayer</Product>
+    <Product>AppFactory.Framework.DataLayer</Product>
     <Copyright>Copyright © exiton 2023</Copyright>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
@@ -33,7 +33,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Framework.Domain\Framework.Domain.csproj" />
+    <ProjectReference Include="..\Framework.Domain\AppFactory.Framework.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="7.1.0" />

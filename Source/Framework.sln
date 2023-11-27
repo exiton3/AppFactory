@@ -1,15 +1,14 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2043
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.DataLayer", "Framework.DataLayer\Framework.DataLayer.csproj", "{40E2F1E2-0F84-4436-9352-D76A6B6A2FC7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.DataLayer", "Framework.DataLayer\AppFactory.Framework.DataLayer.csproj", "{40E2F1E2-0F84-4436-9352-D76A6B6A2FC7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1.DataLayer", "1.DataLayer", "{07D217B8-A8E0-4BD2-B3D9-5649003FAD37}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.Model", "2.Model", "{F07B8955-0F01-47D5-AC83-BE4EFA472368}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Domain", "Framework.Domain\Framework.Domain.csproj", "{502E19B9-F26B-4A7A-89C9-E432A6E39036}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.Domain", "Framework.Domain\AppFactory.Framework.Domain.csproj", "{502E19B9-F26B-4A7A-89C9-E432A6E39036}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -5,9 +5,9 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\Source\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AssemblyTitle>Framework.Domain</AssemblyTitle>
+    <AssemblyTitle>AppFactory.Framework.Domain</AssemblyTitle>
     <Company>exiton</Company>
-    <Product>Framework.Domain</Product>
+    <Product>AppFactory.Framework.Domain</Product>
     <Copyright>Copyright © exiton 2023</Copyright>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
