@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Framework.Domain.ReadModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace Framework.DataLayer.ReadModel
 {

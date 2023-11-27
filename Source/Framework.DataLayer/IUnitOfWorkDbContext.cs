@@ -1,5 +1,5 @@
-﻿using System.Data.Entity;
-using Framework.Domain.Repositories;
+﻿using Framework.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Framework.DataLayer
 {

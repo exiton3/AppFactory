@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Framework.Domain;
 using Framework.Domain.Paging;
-using Framework.Domain.ReadModel;
 using Framework.Domain.Repositories;
 using Framework.Domain.Specifications;
 
@@ -26,8 +25,9 @@ namespace Framework.DataLayer
         public IEnumerable<TEntityDto> GetAll<TEntityDto>() where TEntityDto : class
         {
             var entityDtos = Set.ProjectTo<TEntityDto>(Mapper.ConfigurationProvider);
-            Console.WriteLine(entityDtos.ToString());
+          //  Console.WriteLine(entityDtos.ToString());
             var resultItems = entityDtos.ToList();
+
             return resultItems;
         }
 
@@ -47,7 +47,7 @@ namespace Framework.DataLayer
             if (request.PagingSettings != null)
                 entityDtos = entityDtos.ToPage(request.PagingSettings);
 
-            Console.WriteLine(entityDtos.ToString());
+            //Console.WriteLine(entityDtos.ToString());
             var resultItems = entityDtos.ToList();
 
             var result = MakePagedResult(request.PagingSettings, resultItems, projectTo.Count());
@@ -56,12 +56,12 @@ namespace Framework.DataLayer
 
         public async Task<TableInfo> GetTotalRowsAsync(string tableName)
         {
-            string sql = @"select sum (spart.rows) as [RowCount] " +
-                         "from sys.partitions spart " +
-                         string.Format("where spart.object_id = object_id('{0}')", tableName) +
-                         " and spart.index_id < 2";
+            var sql = @"select sum (spart.rows) as [RowCount] " +
+                      "from sys.partitions spart " +
+                      $"where spart.object_id = object_id('{tableName}')" +
+                      " and spart.index_id < 2";
 
-            var result = await UnitOfWork.Context.Database.SqlQuery<TableInfo>(sql).SingleAsync();
+            var result = await UnitOfWork.Context.Database.SqlQueryRaw<TableInfo>(sql).SingleAsync();
 
             return result;
         }
