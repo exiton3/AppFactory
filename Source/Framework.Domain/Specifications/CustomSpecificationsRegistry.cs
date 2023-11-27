@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Framework.Domain.Paging;
+using AppFactory.Framework.Domain.Paging;
 
-namespace Framework.Domain.Specifications
+namespace AppFactory.Framework.Domain.Specifications
 {
 
     //TODO Delete if will be not used

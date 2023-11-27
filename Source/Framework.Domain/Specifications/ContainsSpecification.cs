@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Framework.Domain.Specifications
+namespace AppFactory.Framework.Domain.Specifications
 {
     public class ContainsSpecification<T> : SpecificationBase<T> where T : class
     {

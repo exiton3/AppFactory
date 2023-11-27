@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Framework.Domain.Events
+namespace AppFactory.Framework.Domain.Events
 {
     public interface IEvent
     {

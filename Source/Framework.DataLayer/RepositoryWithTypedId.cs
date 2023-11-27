@@ -3,11 +3,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Framework.Domain;
-using Framework.Domain.Repositories;
+using AppFactory.Framework.Domain;
+using AppFactory.Framework.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace Framework.DataLayer
+namespace AppFactory.Framework.DataLayer
 {
     public abstract class RepositoryWithTypedId<TEntity, TId> : IRepositoryWithTypeId<TEntity, TId>
         where TEntity : EntityWithTypedId<TId>

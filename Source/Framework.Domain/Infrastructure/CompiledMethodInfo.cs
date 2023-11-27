@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Framework.Domain.Infrastructure
+namespace AppFactory.Framework.Domain.Infrastructure
 {
     internal class CompiledMethodInfo
     {

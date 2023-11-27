@@ -1,6 +1,6 @@
-﻿using Framework.Domain;
+﻿using AppFactory.Framework.Domain;
 
-namespace Framework.DataLayer
+namespace AppFactory.Framework.DataLayer
 {
     public abstract class Repository<TEntity> : RepositoryWithTypedId<TEntity, int> where TEntity :Entity
     {

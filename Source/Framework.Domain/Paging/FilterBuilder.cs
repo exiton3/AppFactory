@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Framework.Domain.Infrastructure;
+using AppFactory.Framework.Domain.Infrastructure;
 
-namespace Framework.Domain.Paging
+namespace AppFactory.Framework.Domain.Paging
 {
    public class FilterBuilder
     {

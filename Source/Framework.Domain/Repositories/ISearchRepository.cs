@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Framework.Domain.Paging;
-using Framework.Domain.Specifications;
+using AppFactory.Framework.Domain.Paging;
+using AppFactory.Framework.Domain.Specifications;
 
-namespace Framework.Domain.Repositories
+namespace AppFactory.Framework.Domain.Repositories
 {
     public interface ISearchRepository
     {

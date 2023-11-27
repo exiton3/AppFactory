@@ -1,7 +1,7 @@
-﻿using Framework.Domain.Repositories;
-using Framework.Domain.Specifications;
+﻿using AppFactory.Framework.Domain.Repositories;
+using AppFactory.Framework.Domain.Specifications;
 
-namespace Framework.Domain.Paging
+namespace AppFactory.Framework.Domain.Paging
 {
     public class SearchRequest
     {

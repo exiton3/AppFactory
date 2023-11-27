@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Framework.Domain
+namespace AppFactory.Framework.Domain
 {
 	public abstract class EntityWithTypedId<TId>
 	{

@@ -1,4 +1,4 @@
-namespace Framework.Domain.Events
+namespace AppFactory.Framework.Domain.Events
 {
     public interface IEventHandler<in TEvent> where TEvent : IEvent
     {

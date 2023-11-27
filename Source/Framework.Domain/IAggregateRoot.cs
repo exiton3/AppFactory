@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Framework.Domain.Events;
+using AppFactory.Framework.Domain.Events;
 
-namespace Framework.Domain
+namespace AppFactory.Framework.Domain
 {
     public interface IAggregateRoot
     {

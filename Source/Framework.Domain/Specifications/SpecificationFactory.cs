@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Framework.Domain.Infrastructure;
-using Framework.Domain.Paging;
+using AppFactory.Framework.Domain.Infrastructure;
+using AppFactory.Framework.Domain.Paging;
 
-namespace Framework.Domain.Specifications
+namespace AppFactory.Framework.Domain.Specifications
 {
     public class SpecificationFactory : ISpecificationFactory
     {

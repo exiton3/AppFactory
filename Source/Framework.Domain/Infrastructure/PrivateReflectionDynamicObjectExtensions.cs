@@ -1,4 +1,4 @@
-namespace Framework.Domain.Infrastructure
+namespace AppFactory.Framework.Domain.Infrastructure
 {
     internal static class PrivateReflectionDynamicObjectExtensions
     {

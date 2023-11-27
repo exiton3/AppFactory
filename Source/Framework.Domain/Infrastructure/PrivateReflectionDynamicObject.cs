@@ -4,7 +4,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 
-namespace Framework.Domain.Infrastructure
+namespace AppFactory.Framework.Domain.Infrastructure
 {
     internal class PrivateReflectionDynamicObject : DynamicObject
     {

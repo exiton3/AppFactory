@@ -1,8 +1,8 @@
 ﻿using System.Linq;
-using Framework.Domain.Infrastructure;
-using Framework.Domain.Paging;
+using AppFactory.Framework.Domain.Infrastructure;
+using AppFactory.Framework.Domain.Paging;
 
-namespace Framework.Domain.Specifications
+namespace AppFactory.Framework.Domain.Specifications
 {
     public class SearchRequestFactory : ISearchRequestFactory
     {

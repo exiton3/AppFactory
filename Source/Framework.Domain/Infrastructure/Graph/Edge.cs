@@ -1,4 +1,4 @@
-namespace Framework.Domain.Infrastructure.Graph
+namespace AppFactory.Framework.Domain.Infrastructure.Graph
 {
     public class Edge<T>
     {

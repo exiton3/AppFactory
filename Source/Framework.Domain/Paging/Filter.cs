@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Framework.Domain.Infrastructure;
+using AppFactory.Framework.Domain.Infrastructure;
 
-namespace Framework.Domain.Paging
+namespace AppFactory.Framework.Domain.Paging
 {
     public class Filter : IFilter
     {

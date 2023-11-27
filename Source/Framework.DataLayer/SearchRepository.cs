@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
+using AppFactory.Framework.Domain;
+using AppFactory.Framework.Domain.Paging;
+using AppFactory.Framework.Domain.Repositories;
+using AppFactory.Framework.Domain.Specifications;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Framework.Domain;
-using Framework.Domain.Paging;
-using Framework.Domain.Repositories;
-using Framework.Domain.Specifications;
+using Microsoft.EntityFrameworkCore;
 
-namespace Framework.DataLayer
+namespace AppFactory.Framework.DataLayer
 {
     public abstract class SearchRepository<TEntity> : Repository<TEntity>, ISearchRepository<TEntity> where TEntity : Entity
     {

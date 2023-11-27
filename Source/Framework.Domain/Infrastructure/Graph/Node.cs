@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Framework.Domain.Infrastructure.Graph
+namespace AppFactory.Framework.Domain.Infrastructure.Graph
 {
     public class Node<T>
     {

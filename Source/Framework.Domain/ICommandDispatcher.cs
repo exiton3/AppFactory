@@ -1,4 +1,4 @@
-namespace Framework.Domain
+namespace AppFactory.Framework.Domain
 {
     public interface ICommandDispatcher
     {

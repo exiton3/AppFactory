@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Framework.Domain.Repositories
+namespace AppFactory.Framework.Domain.Repositories
 {
     public class SortingSettings
     {

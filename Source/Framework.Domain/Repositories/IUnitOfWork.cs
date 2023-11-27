@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Framework.Domain.Repositories
+namespace AppFactory.Framework.Domain.Repositories
 {
     public interface IUnitOfWork : IDisposable
     {

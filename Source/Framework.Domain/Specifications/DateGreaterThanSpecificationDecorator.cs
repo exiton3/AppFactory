@@ -3,7 +3,7 @@ using System.Data.SqlTypes;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Framework.Domain.Specifications
+namespace AppFactory.Framework.Domain.Specifications
 {
     public class DateGreaterThanSpecificationDecorator<T> : SpecificationBase<T> where T : class
     {

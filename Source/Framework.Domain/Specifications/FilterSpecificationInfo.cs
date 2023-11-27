@@ -1,7 +1,7 @@
 using System;
-using Framework.Domain.Paging;
+using AppFactory.Framework.Domain.Paging;
 
-namespace Framework.Domain.Specifications
+namespace AppFactory.Framework.Domain.Specifications
 {
     class FilterSpecificationInfo<TEntity> where TEntity: class
     {

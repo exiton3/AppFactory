@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Autofac;
 
-namespace Framework.DataLayer
+namespace AppFactory.Framework.DataLayer
 {
     public class UnitOfWorkFactory : IUnitOfWorkFactory
     {

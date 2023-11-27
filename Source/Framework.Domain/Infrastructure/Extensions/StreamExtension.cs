@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace Framework.Domain.Infrastructure.Extensions
+namespace AppFactory.Framework.Domain.Infrastructure.Extensions
 {
     public static class StreamExtension
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-namespace Framework.Domain.Infrastructure.Extensions
+namespace AppFactory.Framework.Domain.Infrastructure.Extensions
 {
     public static class EnumExtension
     {

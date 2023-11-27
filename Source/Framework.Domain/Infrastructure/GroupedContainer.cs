@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace Framework.Domain.Infrastructure
+namespace AppFactory.Framework.Domain.Infrastructure
 {
     public class GroupedContainer<TKey, TValue> : ConcurrentDictionary<TKey, BlockingCollection<TValue>>
         where TKey : class

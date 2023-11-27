@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace Framework.Domain.Infrastructure.Extensions
+namespace AppFactory.Framework.Domain.Infrastructure.Extensions
 {
     public static class QueryableExtensions
     {

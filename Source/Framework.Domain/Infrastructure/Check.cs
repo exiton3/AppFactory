@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Framework.Domain.Infrastructure
+namespace AppFactory.Framework.Domain.Infrastructure
 {
     public static class Check
     {

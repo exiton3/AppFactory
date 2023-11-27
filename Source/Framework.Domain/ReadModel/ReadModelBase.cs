@@ -1,4 +1,4 @@
-﻿namespace Framework.Domain.ReadModel
+﻿namespace AppFactory.Framework.Domain.ReadModel
 {
     public abstract class ReadModelBase : IReadModel
     {

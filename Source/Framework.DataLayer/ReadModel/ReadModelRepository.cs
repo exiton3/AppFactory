@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Framework.Domain.ReadModel;
+using AppFactory.Framework.Domain.ReadModel;
 using Microsoft.EntityFrameworkCore;
 
-namespace Framework.DataLayer.ReadModel
+namespace AppFactory.Framework.DataLayer.ReadModel
 {
     public abstract class ReadModelRepository<TReadModel> : IReadModelRepository<TReadModel>
         where TReadModel : class, IReadModel

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Framework.Domain.Infrastructure.Extensions;
+using AppFactory.Framework.Domain.Infrastructure.Extensions;
 
-namespace Framework.Domain.Infrastructure.Graph
+namespace AppFactory.Framework.Domain.Infrastructure.Graph
 {
     public class Path<T>
     {

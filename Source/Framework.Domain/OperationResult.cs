@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Framework.Domain.Infrastructure;
+using AppFactory.Framework.Domain.Infrastructure;
 
-namespace Framework.Domain
+namespace AppFactory.Framework.Domain
 {
     public class OperationResult
     {

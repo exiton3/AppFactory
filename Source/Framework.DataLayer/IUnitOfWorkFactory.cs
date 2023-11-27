@@ -1,4 +1,4 @@
-﻿namespace Framework.DataLayer
+﻿namespace AppFactory.Framework.DataLayer
 {
     public interface IUnitOfWorkFactory
     {

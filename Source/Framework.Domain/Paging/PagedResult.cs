@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Framework.Domain.Paging
+namespace AppFactory.Framework.Domain.Paging
 {
     public class PagedResult<T>
     {

@@ -1,7 +1,7 @@
-﻿using Framework.Domain.Repositories;
+﻿using AppFactory.Framework.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace Framework.DataLayer
+namespace AppFactory.Framework.DataLayer
 {
     public interface IUnitOfWorkDbContext : IUnitOfWork
     {

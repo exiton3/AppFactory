@@ -2,7 +2,7 @@
 using System.IO;
 using System.Reflection;
 
-namespace Framework.Domain.Infrastructure
+namespace AppFactory.Framework.Domain.Infrastructure
 {
     public static class AppVersion
     {

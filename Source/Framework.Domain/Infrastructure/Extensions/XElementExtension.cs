@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace Framework.Domain.Infrastructure.Extensions
+namespace AppFactory.Framework.Domain.Infrastructure.Extensions
 {
     public static class XElementExtension
     {

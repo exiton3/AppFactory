@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Framework.DataLayer
+namespace AppFactory.Framework.DataLayer
 {
     public interface IDbContextFactory<T> where T:DbContext
     {

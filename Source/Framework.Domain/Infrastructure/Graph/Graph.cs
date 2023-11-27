@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Framework.Domain.Infrastructure.Graph
+namespace AppFactory.Framework.Domain.Infrastructure.Graph
 {
     //Tests coverage note: covered by functional tests in BomLoopCheckingServiceFuncTests
     public class Graph<T> where T : class

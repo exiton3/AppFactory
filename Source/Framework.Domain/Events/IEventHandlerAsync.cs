@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Framework.Domain.Events
+namespace AppFactory.Framework.Domain.Events
 {
     public interface IEventHandlerAsync<in TEvent> : IEventHandlerAsync where TEvent : IEvent
     {

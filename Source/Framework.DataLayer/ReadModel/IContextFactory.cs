@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Framework.DataLayer.ReadModel
+namespace AppFactory.Framework.DataLayer.ReadModel
 {
     public interface IContextFactory
     {

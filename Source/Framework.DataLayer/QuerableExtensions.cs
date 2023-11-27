@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using System.Linq.Expressions;
-using Framework.Domain.Paging;
-using Framework.Domain.Repositories;
+using AppFactory.Framework.Domain.Paging;
+using AppFactory.Framework.Domain.Repositories;
 
-namespace Framework.DataLayer
+namespace AppFactory.Framework.DataLayer
 {
     public static class QuerableExtensions
     {

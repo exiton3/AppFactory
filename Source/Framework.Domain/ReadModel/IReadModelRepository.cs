@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Framework.Domain.ReadModel
+namespace AppFactory.Framework.Domain.ReadModel
 {
     public interface IReadModelRepository<TReadModel> where TReadModel : class, IReadModel
     {

@@ -4,13 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Framework.Domain;
-using Framework.Domain.Events;
-using Framework.Domain.Infrastructure.Extensions;
-using Framework.Domain.Repositories;
+using AppFactory.Framework.Domain;
+using AppFactory.Framework.Domain.Events;
+using AppFactory.Framework.Domain.Infrastructure.Extensions;
+using AppFactory.Framework.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace Framework.DataLayer
+namespace AppFactory.Framework.DataLayer
 {
     public class UnitOfWork<T> : IUnitOfWork where T : DbContext
     {

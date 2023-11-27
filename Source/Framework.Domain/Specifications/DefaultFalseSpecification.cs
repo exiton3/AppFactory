@@ -1,7 +1,7 @@
 using System;
 using System.Linq.Expressions;
 
-namespace Framework.Domain.Specifications
+namespace AppFactory.Framework.Domain.Specifications
 {
     public class DefaultFalseSpecification<TEntity> : SpecificationBase<TEntity> where TEntity : class
     {
