@@ -2,15 +2,15 @@
 <package >
   <metadata>
     <id>Appfactory.Domain</id>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <authors>Sergey Kichuk</authors>
     <owners>Sergey Kichuk</owners>
     <licenseUrl>https://github.com/exiton3/AppFactory/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/exiton3/AppFactory</projectUrl>    
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Package contains Framework for creating applications using DDD/CQRS approach</description>
-    <releaseNotes>Initial release</releaseNotes>
-    <copyright>Copyright 2018</copyright>
+    <releaseNotes>Migration to .NET 8</releaseNotes>
+    <copyright>Copyright 2023</copyright>
     <tags>CQRS DDD Framework</tags>
     <dependencies>
      

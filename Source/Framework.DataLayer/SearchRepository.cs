@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Framework.Domain;
 using Framework.Domain.Paging;
@@ -14,23 +15,26 @@ namespace Framework.DataLayer
 {
     public abstract class SearchRepository<TEntity> : Repository<TEntity>, ISearchRepository<TEntity> where TEntity : Entity
     {
-        protected SearchRepository(IUnitOfWorkFactory unitOfWork) : base(unitOfWork)
+        protected IMapper Mapper { get; }
+
+        protected SearchRepository(IUnitOfWorkFactory unitOfWork, IMapper mapper) : base(unitOfWork)
         {
+            Mapper = mapper;
         }
 
 
         public IEnumerable<TEntityDto> GetAll<TEntityDto>() where TEntityDto : class
         {
-            var entityDtos = Set.ProjectTo<TEntityDto>();
+            var entityDtos = Set.ProjectTo<TEntityDto>(Mapper.ConfigurationProvider);
             Console.WriteLine(entityDtos.ToString());
             var resultItems = entityDtos.ToList();
             return resultItems;
         }
 
-        [Obsolete("Use GetAllOrederAsync instead")]
+        [Obsolete("Use GetAllOrderedAsync instead")]
         public PagedResult<TEntityDto> GetAll<TEntityDto>(SearchRequest request) where TEntityDto : class
         {
-            var projectTo = Set.ProjectTo<TEntityDto>();
+            var projectTo = Set.ProjectTo<TEntityDto>(Mapper.ConfigurationProvider);
 
             if (request.Specification != null)
             {
@@ -65,7 +69,7 @@ namespace Framework.DataLayer
 
         public async Task<int> GetTotalMatchesAsync<TDto>(SearchRequest request) where TDto : class
         {
-            var projectTo = Set.ProjectTo<TDto>();
+            var projectTo = Set.ProjectTo<TDto>(Mapper.ConfigurationProvider);
 
             if (request.Specification != null)
             {
@@ -78,13 +82,14 @@ namespace Framework.DataLayer
 
         public async Task<SimplePagedResult<TEntityDto>> GetAllAsync<TEntityDto>(SearchRequest request) where TEntityDto : class
         {
-            request.SortingSettings = new SortingSettings(new SortingRule(){Field = "Id", SortOrder = SortOrder.Asc});
-            return await SearchOnAsync(Set.ProjectTo<TEntityDto>(), request);
+            request.SortingSettings = new SortingSettings(new SortingRule{Field = "Id", SortOrder = SortOrder.Asc});
+
+            return await SearchOnAsync(Set.ProjectTo<TEntityDto>(Mapper.ConfigurationProvider), request);
         }
 
         public async Task<SimplePagedResult<TEntityDto>> GetAllOrderedAsync<TEntityDto>(SearchRequest request) where TEntityDto : class
         {
-            return await SearchOnAsync(Set.ProjectTo<TEntityDto>(), request);
+            return await SearchOnAsync(Set.ProjectTo<TEntityDto>(Mapper.ConfigurationProvider), request);
         }
 
         protected async Task<SimplePagedResult<TDto>> SearchOnAsync<TDto>(IQueryable<TDto> source, SearchRequest request) where TDto : class
@@ -135,7 +140,7 @@ namespace Framework.DataLayer
 
         public IEnumerable<TEntityDto> GetAll<TEntityDto>(ISpecification specification, int limit = 10000) where TEntityDto : class
         {
-            var projectTo = Set.ProjectTo<TEntityDto>();
+            var projectTo = Set.ProjectTo<TEntityDto>(Mapper.ConfigurationProvider);
 
             if (specification != null)
             {

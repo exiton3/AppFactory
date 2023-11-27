@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using Microsoft.Build.Framework;
 
 namespace Framework.Domain.Infrastructure
 {
@@ -18,11 +17,9 @@ namespace Framework.Domain.Infrastructure
         }
 
         [DataMember]
-        [Required]
         public object Id { get; set; }
 
         [DataMember]
-        [Required]
         public string Value { get; set; }
 
         #region Overrides of Object
@@ -66,7 +63,6 @@ namespace Framework.Domain.Infrastructure
         { }
 
         [DataMember]
-        [Required]
         public new TId Id
         {
             get { return (TId)base.Id; }
