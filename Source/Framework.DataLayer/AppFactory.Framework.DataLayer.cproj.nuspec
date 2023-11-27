@@ -20,6 +20,6 @@
     </dependencies>
   </metadata>
      <files>
-	<file src="..\AppFactory.Framework.DataLayer\bin\Release\AppFactory.Framework.DataLayer.dll" target="lib\net8.0\AppFactory.Framework.DataLayer.dll"> </file>
+	<file src="..\Framework.DataLayer\bin\Release\AppFactory.Framework.DataLayer.dll" target="lib\net8.0\AppFactory.Framework.DataLayer.dll"> </file>
  </files>
 </package>

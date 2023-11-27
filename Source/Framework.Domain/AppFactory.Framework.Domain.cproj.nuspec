@@ -17,6 +17,6 @@
     </dependencies>
   </metadata>
    <files>
-	<file src="..\AppFactory.Framework.Domain\bin\Release\AppFactory.Framework.Domain.dll" target="lib\net8.0\Framework.Domain.dll"> </file>
+	<file src="..\Framework.Domain\bin\Release\net8.0\AppFactory.Framework.Domain.dll" target="lib\net8.0\Framework.Domain.dll"> </file>
  </files>
 </package>
