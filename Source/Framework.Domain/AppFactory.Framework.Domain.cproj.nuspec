@@ -16,7 +16,7 @@
 		<copyright>Copyright 2023</copyright>
 		<tags>CQRS DDD Framework</tags>
 		<dependencies>
-
+			<dependency id="Autofac" version="7.1.0" />
 		</dependencies>
 	</metadata>
 	<files>

@@ -35,6 +35,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Autofac" Version="7.1.0" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="docs\README.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
