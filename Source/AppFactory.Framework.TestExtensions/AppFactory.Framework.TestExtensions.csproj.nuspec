@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<package>
+	<metadata>
+		<id>AppFactory.TestExtensions</id>
+		<version>1.0.0</version>
+		<authors>Sergey Kichuk</authors>
+		<owners>Sergey Kichuk</owners>
+		<license type="expression">MIT</license>
+		<readme>docs\README.md</readme>
+		<projectUrl>https://github.com/exiton3/AppFactory</projectUrl>
+		<repository type="git" url="https://github.com/exiton3/AppFactory" />
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Package contains Framework unit test extensions to write fluent asserts</description>
+		<releaseNotes>Initial release</releaseNotes>
+		<copyright>Copyright 2023</copyright>
+		<tags>unit tests xunit</tags>
+		<dependencies>
+			<dependency id="xunit.abstractions" version="2.0.3" />
+			<dependency id="xunit.assert" version="2.6.2" />
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="..\AppFactory.Framework.TestExtensions\bin\Release\net8.0\AppFactory.Framework.TestExtensions.dll"
+		      target="lib\net8.0\AppFactory.Framework.TestExtensions.dll">
+		</file>
+
+		<file src="..\AppFactory.Framework.TestExtensions\bin\Release\net8.0\docs\README.md" target="docs\" />
+	</files>
+</package>
