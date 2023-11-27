@@ -1,25 +1,33 @@
 <?xml version="1.0"?>
-<package >
-  <metadata>
-    <id>AppFactory.DataLayer.EF</id>
-    <version>2.0.0</version>
-     <authors>Sergey Kichuk</authors>
-    <owners>Sergey Kichuk</owners>
-    <licenseUrl>https://github.com/exiton3/AppFactory/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/exiton3/AppFactory</projectUrl>    
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Package contains Framework for creating applications using DDD/CQRS approach</description>
-    <releaseNotes>Migration to .NET 8</releaseNotes>
-    <copyright>Copyright 2023</copyright>
-    <tags>CQRS DDD Framework DataLayer</tags>
-    <dependencies>
-      <dependency id="AppFactory.Domain" version="2.0.0" />      	  
-	  <dependency id="Autofac" version="7.0.1" />
-      <dependency id="AutoMapper" version="12.0.1"  />
-      <dependency id="Microsoft.EntityFrameworkCore" version="8.0.0"  />
-    </dependencies>
-  </metadata>
-     <files>
-	<file src="..\Framework.DataLayer\bin\Release\AppFactory.Framework.DataLayer.dll" target="lib\net8.0\AppFactory.Framework.DataLayer.dll"> </file>
- </files>
+
+<package>
+	<metadata>
+		<id>AppFactory.DataLayer.EF</id>
+		<version>2.0.0</version>
+		<authors>Sergey Kichuk</authors>
+		<owners>Sergey Kichuk</owners>
+		<license type="expression">MIT</license>
+		<readme>docs\README.md</readme>
+		<projectUrl>https://github.com/exiton3/AppFactory</projectUrl>
+		<repository type="git" url="https://github.com/exiton3/AppFactory" />
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Package contains Framework for creating applications using DDD/CQRS approach</description>
+		<releaseNotes>Migration to .NET 8</releaseNotes>
+		<copyright>Copyright 2023</copyright>
+		<tags>CQRS DDD Framework DataLayer</tags>
+		<dependencies>
+			<dependency id="AppFactory.Domain" version="2.0.0" />
+			<dependency id="Autofac" version="7.0.1" />
+			<dependency id="AutoMapper" version="12.0.1" />
+			<dependency id="Microsoft.EntityFrameworkCore" version="8.0.0" />
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="..\Framework.DataLayer\bin\Release\AppFactory.Framework.DataLayer.dll"
+		      target="lib\net8.0\AppFactory.Framework.DataLayer.dll">
+		</file>
+
+		<file src="..\Framework.DataLayer\bin\Release\net8.0\docs\README.md" target="docs\" />
+
+	</files>
 </package>

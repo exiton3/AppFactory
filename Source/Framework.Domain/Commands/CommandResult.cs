@@ -4,36 +4,36 @@ using AppFactory.Framework.Domain.Infrastructure;
 
 namespace AppFactory.Framework.Domain.Commands
 {
-    public class OperationResult
+    public class CommandResult
     {
         internal const string DefaultPropertyName = "N/A";
 
-        public static OperationResult Ok => new OperationResult();
+        public static CommandResult Ok => new CommandResult();
 
-        public static OperationResult Failed(string message)
+        public static CommandResult Failed(string message)
         {
-            return new OperationResult(message);
+            return new CommandResult(message);
         }
 
         private readonly List<OperationResultError> _errors = new List<OperationResultError>();
 
-        public OperationResult()
+        public CommandResult()
         { }
 
-        public OperationResult(string errorText)
+        public CommandResult(string errorText)
             : this(DefaultPropertyName, errorText)
         { }
 
-        public OperationResult(IEnumerable<OperationResultError> failures)
+        public CommandResult(IEnumerable<OperationResultError> failures)
         {
             _errors = failures.ToList();
         }
 
-        public OperationResult(OperationResult businnessResult)
-            : this(businnessResult.Errors)
+        public CommandResult(CommandResult result)
+            : this(result.Errors)
         { }
 
-        public OperationResult(string propertyName, string errorText, object attemptedValue = null)
+        public CommandResult(string propertyName, string errorText, object attemptedValue = null)
         {
             if (!string.IsNullOrWhiteSpace(errorText))
             {
@@ -56,7 +56,7 @@ namespace AppFactory.Framework.Domain.Commands
             _errors.Add(validationFailure);
         }
 
-        public void Merge(OperationResult validationResult)
+        public void Merge(CommandResult validationResult)
         {
             Check.NotNull(validationResult, "validationResult");
             Merge(validationResult.Errors);
@@ -92,38 +92,38 @@ namespace AppFactory.Framework.Domain.Commands
     }
 
 
-    public class OperationResult<TValue> : OperationResult
+    public class CommandResult<TValue> : CommandResult
     {
-        public OperationResult()
+        public CommandResult()
         { }
 
-        public OperationResult(IEnumerable<OperationResultError> failures)
+        public CommandResult(IEnumerable<OperationResultError> failures)
             : base(failures)
         { }
 
-        public OperationResult(OperationResult businnessResult)
-            : base(businnessResult.Errors)
+        public CommandResult(CommandResult result)
+            : base(result.Errors)
         { }
 
-        public OperationResult(string propertyName, string error, object attemptedValue = null)
+        public CommandResult(string propertyName, string error, object attemptedValue = null)
             : base(propertyName, error, attemptedValue)
         { }
 
-        public OperationResult(TValue value)
+        public CommandResult(TValue value)
         {
             Value = value;
         }
 
         public TValue Value { get; set; }
 
-        public new static OperationResult<TValue> Ok
+        public new static CommandResult<TValue> Ok
         {
-            get { return new OperationResult<TValue>(); }
+            get { return new CommandResult<TValue>(); }
         }
 
-        public new static OperationResult<TValue> Failed(string message)
+        public new static CommandResult<TValue> Failed(string message)
         {
-            return new OperationResult<TValue>(DefaultPropertyName, message);
+            return new CommandResult<TValue>(DefaultPropertyName, message);
         }
     }
 }

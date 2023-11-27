@@ -1,22 +1,29 @@
 <?xml version="1.0"?>
-<package >
-  <metadata>
-    <id>Appfactory.Domain</id>
-    <version>2.0.0</version>
-    <authors>Sergey Kichuk</authors>
-    <owners>Sergey Kichuk</owners>
-    <licenseUrl>https://github.com/exiton3/AppFactory/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/exiton3/AppFactory</projectUrl>    
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Package contains Framework for creating applications using DDD/CQRS approach</description>
-    <releaseNotes>Migration to .NET 8</releaseNotes>
-    <copyright>Copyright 2023</copyright>
-    <tags>CQRS DDD Framework</tags>
-    <dependencies>
-     
-    </dependencies>
-  </metadata>
-   <files>
-	<file src="..\Framework.Domain\bin\Release\net8.0\AppFactory.Framework.Domain.dll" target="lib\net8.0\Framework.Domain.dll"> </file>
- </files>
+
+<package>
+	<metadata>
+		<id>AppFactory.Domain</id>
+		<version>2.0.2</version>
+		<authors>Sergey Kichuk</authors>
+		<owners>Sergey Kichuk</owners>
+		<license type="expression">MIT</license>
+		<readme>docs\README.md</readme>
+		<projectUrl>https://github.com/exiton3/AppFactory</projectUrl>
+		<repository type="git" url="https://github.com/exiton3/AppFactory" />
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Package contains Framework for creating applications using DDD/CQRS approach</description>
+		<releaseNotes>Migration to .NET 8</releaseNotes>
+		<copyright>Copyright 2023</copyright>
+		<tags>CQRS DDD Framework</tags>
+		<dependencies>
+
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="..\Framework.Domain\bin\Release\net8.0\AppFactory.Framework.Domain.dll"
+		      target="lib\net8.0\Framework.Domain.dll">
+		</file>
+
+		<file src="..\Framework.Domain\bin\Release\net8.0\docs\README.md" target="docs\" />
+	</files>
 </package>
