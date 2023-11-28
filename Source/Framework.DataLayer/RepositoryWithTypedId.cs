@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AppFactory.Framework.DataLayer
 {
     public abstract class RepositoryWithTypedId<TEntity, TId> : IRepositoryWithTypeId<TEntity, TId>
-        where TEntity : EntityWithTypedId<TId>
+        where TEntity : EntityWithTypedId<TId>, new()
     {
         private readonly IUnitOfWorkFactory _unitOfWorkfactory;
         protected DbSet<TEntity> Set { get { return UnitOfWork.Context.Set<TEntity>(); } }
@@ -22,9 +22,9 @@ namespace AppFactory.Framework.DataLayer
             Debug.WriteLine("UoW - {0} in - {1} ", UnitOfWork.GetHashCode(), GetType().Name);
         }
 
-        public virtual TEntity Get(TId id)
+        public virtual async Task<TEntity> Get(TId id)
         {
-            return Set.Find(id);
+            return await Set.FindAsync(id);
         }
 
         public virtual void Add(TEntity entity)
@@ -62,12 +62,14 @@ namespace AppFactory.Framework.DataLayer
 
         public virtual void DeleteById(TId id)
         {
-            Delete(Get(id));
+            var entity = new TEntity { Id = id };
+            Set.Attach(entity);
+            Set.Remove(entity);
         }
 
-        public IEnumerable<TEntity> GetAll()
+        public async Task<IEnumerable<TEntity>> GetAll()
         {
-            return Set.ToList();
+            return await Set.ToListAsync();
         }
 
         public IEnumerable<TEntity> GetList(IEnumerable<TId> idsList)

@@ -6,7 +6,7 @@ namespace AppFactory.Framework.Domain.Repositories
 {
     public interface IRepositoryWithTypeId<TEntity, in TId> where TEntity : class
     {
-        TEntity Get(TId id);
+        Task<TEntity> Get(TId id);
 
         void Add(TEntity entity);
 
@@ -20,7 +20,7 @@ namespace AppFactory.Framework.Domain.Repositories
 
         void DeleteById(TId id);
 
-        IEnumerable<TEntity> GetAll();
+        Task<IEnumerable<TEntity>> GetAll();
 
         IEnumerable<TEntity> GetList(IEnumerable<TId> idsList);
 

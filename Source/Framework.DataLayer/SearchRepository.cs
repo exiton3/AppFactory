@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AppFactory.Framework.DataLayer
 {
-    public abstract class SearchRepository<TEntity> : Repository<TEntity>, ISearchRepository<TEntity> where TEntity : Entity
+    public abstract class SearchRepository<TEntity> : Repository<TEntity>, ISearchRepository<TEntity> where TEntity : Entity, new()
     {
         protected IMapper Mapper { get; }
 
