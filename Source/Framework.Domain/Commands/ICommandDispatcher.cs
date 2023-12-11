@@ -1,11 +1,12 @@
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Autofac;
 
 namespace AppFactory.Framework.Domain.Commands
 {
     public interface ICommandDispatcher
     {
-        CommandResult Dispatch<TCommand>(TCommand command) where TCommand : ICommand;
+        Task<CommandResult> Dispatch<TCommand>(TCommand command) where TCommand : ICommand;
     }
 
     class CommandDispatcher : ICommandDispatcher
@@ -19,11 +20,11 @@ namespace AppFactory.Framework.Domain.Commands
             Debug.Write($"Created instance {GetHashCode()}");
         }
 
-        public CommandResult Dispatch<TCommand>(TCommand command) where TCommand : ICommand
+        public async Task<CommandResult> Dispatch<TCommand>(TCommand command) where TCommand : ICommand
         {
             var commandHandler = _container.Resolve<ICommandHandler<TCommand>>();
             Debug.Write($"Resolved handler {commandHandler.GetHashCode()}");
-            return commandHandler.Handle(command);
+            return await commandHandler.Handle(command);
         }
     }
 }
