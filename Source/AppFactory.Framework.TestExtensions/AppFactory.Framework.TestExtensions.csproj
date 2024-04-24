@@ -4,6 +4,18 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Authors>Sergey Kichuk</Authors>
+    <Company />
+    <Description>Useful exteinsions for Unit tests</Description>
+    <Copyright>Copyright © Sergey Kichuk 2024</Copyright>
+    <PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/exiton3/AppFactory</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>unit tests; cqrs; xunit</PackageTags>
+    <PackageId>AppFactory.TestExtensions</PackageId>
+    <Title>AppFactory.TestExtensions</Title>
+    <Version>1.0.1</Version>
+    <Product>AppFactory.TestExtensions</Product>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,12 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="docs\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="docs\README.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
 
