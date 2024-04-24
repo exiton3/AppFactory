@@ -6,7 +6,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.DataLa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.Domain", "Framework.Domain\AppFactory.Framework.Domain.csproj", "{502E19B9-F26B-4A7A-89C9-E432A6E39036}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.TestExtensions", "AppFactory.Framework.TestExtensions\AppFactory.Framework.TestExtensions.csproj", "{68AF2865-0656-41DD-B9B1-49CB466353D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.TestExtensions", "AppFactory.Framework.TestExtensions\AppFactory.TestExtensions.csproj", "{68AF2865-0656-41DD-B9B1-49CB466353D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
