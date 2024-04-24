@@ -8,7 +8,8 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-
+env:
+  SolutionFilePath: './Source/Framework.sln'
 jobs:
   build:
 
@@ -20,9 +21,9 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet ./Source/Framework.sln restore
+    # - name: Restore dependencies
+    #   run: dotnet  restore
     - name: Build
-      run: dotnet ./Source/Framework.sln build --no-restore
+      run: dotnet build ${{ env.SolutionFilePath}} --no-restore
     - name: Test
       run: dotnet ./Source/Framework.sln test --no-build --verbosity normal
