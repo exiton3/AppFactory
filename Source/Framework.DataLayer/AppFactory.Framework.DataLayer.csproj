@@ -6,11 +6,17 @@
     <RestorePackages>true</RestorePackages>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyTitle>AppFactory.Framework.DataLayer</AssemblyTitle>
-    <Company>exiton</Company>
+    <Company>Exiton</Company>
     <Product>AppFactory.Framework.DataLayer</Product>
-    <Copyright>Copyright © exiton 2023</Copyright>
+    <Copyright>Copyright © Sergey Kichuk 2024</Copyright>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
+    <Authors>Sergey Kichuk</Authors>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/exiton3/AppFactory</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>CQRS; DDD; Framework;DataLayer; Clean Architecture</PackageTags>
+    <PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MatchingRelease|AnyCPU'">
     <OutputPath>bin\MatchingRelease\</OutputPath>
@@ -42,5 +48,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="docs\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 </Project>
