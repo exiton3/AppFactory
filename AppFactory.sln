@@ -25,6 +25,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.DataAc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.Shared", "src\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj", "{A5BE8132-BB8B-45D6-B8F3-2F25939C415E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1B2D8DEC-F7CD-43D7-8EB1-759AC879DDA2}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		logo-large.png = logo-large.png
+		logo.png = logo.png
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

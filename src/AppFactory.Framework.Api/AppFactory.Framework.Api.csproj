@@ -14,11 +14,16 @@
 		<Title>AppFactory Framework Shared</Title>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageIcon>logo.png</PackageIcon>
 	</PropertyGroup>
 	<ItemGroup>
 		<None Include="..\..\LICENSE" Link="LICENSE">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\..\logo.png">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
 		</None>
 		<None Include="..\..\README.md" Link="README.md">
 			<Pack>True</Pack>
@@ -32,6 +37,7 @@
     <PackageReference Include="AppFactory.Framework.DependencyInjection" Version="1.0.0" />
     <PackageReference Include="AppFactory.Framework.Domain" Version="1.0.0" />
     <PackageReference Include="AppFactory.Framework.Logging" Version="1.0.0" />
+    <PackageReference Include="AppFactory.Framework.Shared" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
   </ItemGroup>
 
@@ -44,6 +50,6 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
+	  <Content Include="..\..\logo.png" Link="logo.png" />
 	</ItemGroup>
 </Project>
