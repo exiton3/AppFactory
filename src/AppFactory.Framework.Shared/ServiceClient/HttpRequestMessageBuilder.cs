@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace AppFactory.Framework.Infrastructure.ServiceClient;
+namespace AppFactory.Framework.Shared.ServiceClient;
 
 public class HttpRequestMessageBuilder
 {

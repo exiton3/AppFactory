@@ -43,4 +43,7 @@
 			<_Parameter1>AppFactory.Framework.Api.UnitTests</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
+	</ItemGroup>
 </Project>

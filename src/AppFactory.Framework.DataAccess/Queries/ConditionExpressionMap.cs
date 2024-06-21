@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using AppFactory.Framework.DataAccess.Models;
 using AppFactory.Framework.DataAccess.Queries.Expressions;
-using AppFactory.Framework.Infrastructure;
+using AppFactory.Framework.Shared;
 
 namespace AppFactory.Framework.DataAccess.Queries;
 

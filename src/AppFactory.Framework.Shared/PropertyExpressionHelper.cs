@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace AppFactory.Framework.Infrastructure;
+namespace AppFactory.Framework.Shared;
 
 public static class PropertyExpressionHelper
 {

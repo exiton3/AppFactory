@@ -2,7 +2,7 @@
 using AppFactory.Framework.Api.Parsing.Configurations;
 using AppFactory.Framework.Api.Parsing.Converters;
 using AppFactory.Framework.Api.Parsing.Mappers;
-using AppFactory.Framework.Infrastructure.Serialization;
+using AppFactory.Framework.Shared.Serialization;
 using AppFactory.Framework.TestExtensions;
 using Moq;
 using Xunit;

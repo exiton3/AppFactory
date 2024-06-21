@@ -1,5 +1,5 @@
 ﻿using AppFactory.Framework.Api.Parsing.Configurations;
-using AppFactory.Framework.Infrastructure.Serialization;
+using AppFactory.Framework.Shared.Serialization;
 
 namespace AppFactory.Framework.Api.Parsing.Mappers;
 

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace AppFactory.Framework.Infrastructure.Serialization;
+namespace AppFactory.Framework.Shared.Serialization;
 
 public class DefaultJsonSerializer : IJsonSerializer
 {

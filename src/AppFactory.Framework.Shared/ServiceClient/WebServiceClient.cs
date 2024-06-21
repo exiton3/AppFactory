@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using AppFactory.Framework.Logging;
 
-namespace AppFactory.Framework.Infrastructure.ServiceClient;
+namespace AppFactory.Framework.Shared.ServiceClient;
 
 public class WebServiceClient : IWebServiceClient
 {

@@ -1,4 +1,4 @@
-﻿namespace AppFactory.Framework.Infrastructure;
+﻿namespace AppFactory.Framework.Shared;
 
 public static class StringExtensions
 {

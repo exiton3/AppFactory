@@ -1,5 +1,5 @@
 ﻿using Amazon;
-using AppFactory.Framework.Infrastructure.Config;
+using AppFactory.Framework.Shared.Config;
 
 namespace AppFactory.Framework.DataAccess.Configuration;
 

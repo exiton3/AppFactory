@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace AppFactory.Framework.Infrastructure.ServiceClient;
+namespace AppFactory.Framework.Shared.ServiceClient;
 
 public interface IWebServiceClient
 {

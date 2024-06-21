@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace AppFactory.Framework.Infrastructure.Serialization;
+namespace AppFactory.Framework.Shared.Serialization;
 
 public interface IJsonSerializer
 {

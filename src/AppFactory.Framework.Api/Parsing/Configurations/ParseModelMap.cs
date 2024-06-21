@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using AppFactory.Framework.Infrastructure;
+using AppFactory.Framework.Shared;
 
 namespace AppFactory.Framework.Api.Parsing.Configurations
 {

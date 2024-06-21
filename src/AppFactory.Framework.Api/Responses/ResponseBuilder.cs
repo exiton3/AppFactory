@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Amazon.Lambda.APIGatewayEvents;
 using AppFactory.Framework.Domain.ServiceResult;
-using AppFactory.Framework.Infrastructure.Serialization;
+using AppFactory.Framework.Shared.Serialization;
 
 namespace AppFactory.Framework.Api.Responses;
 

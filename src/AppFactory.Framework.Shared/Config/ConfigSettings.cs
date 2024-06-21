@@ -1,4 +1,4 @@
-﻿namespace AppFactory.Framework.Infrastructure.Config;
+﻿namespace AppFactory.Framework.Shared.Config;
 
 public class ConfigSettings : IConfigSettings
 {

@@ -1,4 +1,4 @@
-﻿using AppFactory.Framework.Infrastructure.ServiceClient;
+﻿using AppFactory.Framework.Shared.ServiceClient;
 using AppFactory.Framework.TestExtensions;
 using Xunit;
 

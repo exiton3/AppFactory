@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using System.Xml.Serialization;
 
-namespace AppFactory.Framework.Infrastructure.Serialization;
+namespace AppFactory.Framework.Shared.Serialization;
 
 public class MessageXMLSerializer : IMessageXmlSerializer
 {

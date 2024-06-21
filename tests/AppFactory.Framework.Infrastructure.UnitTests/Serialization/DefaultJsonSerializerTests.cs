@@ -1,4 +1,4 @@
-﻿using AppFactory.Framework.Infrastructure.Serialization;
+﻿using AppFactory.Framework.Shared.Serialization;
 using AppFactory.Framework.TestExtensions;
 using Xunit;
 

@@ -4,8 +4,8 @@ using AppFactory.Framework.Api.Parsing;
 using AppFactory.Framework.Api.Responses;
 using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Domain.ServiceResult;
-using AppFactory.Framework.Infrastructure.Serialization;
 using AppFactory.Framework.Logging;
+using AppFactory.Framework.Shared.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AppFactory.Framework.Api.LambdaFunctionHandlers;
