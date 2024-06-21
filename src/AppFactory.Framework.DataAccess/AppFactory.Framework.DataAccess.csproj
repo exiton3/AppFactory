@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AppFactory.Framework.Domain" Version="1.0.0" />
+    <PackageReference Include="AppFactory.Framework.Logging" Version="1.0.0" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.303.25" />
   </ItemGroup>
 
@@ -16,9 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
     <ProjectReference Include="..\AppFactory.Framework.Infrastructure\AppFactory.Framework.Infrastructure.csproj" />
-    <ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
   </ItemGroup>
 
 </Project>
