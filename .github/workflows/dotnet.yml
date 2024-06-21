@@ -21,9 +21,11 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    # - name: Restore dependencies
-    #   run: dotnet  restore
+    - name: Restore dependencies
+      run: dotnet  restore
     - name: Build
-      run: dotnet build ${{ env.SolutionFilePath}}
-    # - name: Test
-    #   run: dotnet ./Source/Framework.sln test --no-build --verbosity normal
+      run: |
+        dotnet build ${{ env.SolutionFilePath}} --configuration Release --no-restore
+    - name: Unit Tests
+      run: |
+          dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance"

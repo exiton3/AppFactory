@@ -42,7 +42,7 @@ public static class Check
         }
     }
 
-    public static void NotEqual<TArg>(TArg value, string name, TArg restrictedValue, string? message = null) where TArg : IComparable<TArg>
+    public static void NotEqual<TArg>(TArg value, string name, TArg restrictedValue, string message = null) where TArg : IComparable<TArg>
     {
         if (restrictedValue.CompareTo(value) == 0)
         {
@@ -50,7 +50,7 @@ public static class Check
         }
     }
 
-    public static void InRange<TArg>(TArg value, string name, TArg min, TArg max, string? message = null) where TArg : IComparable<TArg>
+    public static void InRange<TArg>(TArg value, string name, TArg min, TArg max, string message = null) where TArg : IComparable<TArg>
     {
         if (min.CompareTo(value) > 0 || max.CompareTo(value) < 0)
         {
