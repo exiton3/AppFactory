@@ -9,7 +9,7 @@ on:
   pull_request:
     branches: [ "master" ]
 env:
-  SolutionFilePath: './Source/Framework.sln'
+  SolutionFilePath: 'AppFactory.sln'
 jobs:
   build:
 
