@@ -32,10 +32,10 @@ jobs:
     strategy:
       matrix:
         project:
-        - AppFactory.Framework.Domain
-        - AppFactory.Framework.DependencyInjection
-        - AppFactory.Framework.Logging
-        # - AppFactory.Framework.Infrastructure
+        # - AppFactory.Framework.Domain
+        # - AppFactory.Framework.DependencyInjection
+        # - AppFactory.Framework.Logging
+        - AppFactory.Framework.Infrastructure
         # - AppFactory.Framework.DataAccess
         # - AppFactory.Framework.Api
     steps:
