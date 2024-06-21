@@ -32,10 +32,10 @@ jobs:
     strategy:
       matrix:
         project:
-        - AppFactory.Framework.Domain
-        - AppFactory.Framework.DependencyInjection
-        - AppFactory.Framework.Logging
-        - AppFactory.Framework.Shared
+        # - AppFactory.Framework.Domain
+        # - AppFactory.Framework.DependencyInjection
+        # - AppFactory.Framework.Logging
+        # - AppFactory.Framework.Shared
         - AppFactory.Framework.DataAccess
         - AppFactory.Framework.Api
     steps:
@@ -72,7 +72,7 @@ jobs:
   
       - name: Publish ${{ matrix.project }} package
         run: |
-          nuget push **\*.nupkg -NoSymbols -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_APIKEY}} --skip-duplicate
+          nuget push **\*.nupkg -NoSymbols -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_APIKEY}} 
 
       - name: Upload Package
         uses: actions/upload-artifact@main
