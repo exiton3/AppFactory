@@ -20,13 +20,13 @@ jobs:
         run: |
           dotnet build --configuration Release --no-restore
 
-      # - name: Unit Tests
-      #   run: |
-      #     dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance"
+      - name: Unit Tests
+        run: |
+          dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance"
 
   deploy:
-    #needs:
-     # - unit_tests
+    needs:
+     - unit_tests
     if: github.event.base_ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     strategy:
@@ -72,7 +72,7 @@ jobs:
   
       - name: Publish ${{ matrix.project }} package
         run: |
-          nuget push **\*.nupkg -NoSymbols -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+          nuget push **\*.nupkg -NoSymbols -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_APIKEY}}
 
       - name: Upload Package
         uses: actions/upload-artifact@main
