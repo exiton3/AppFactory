@@ -1,0 +1,81 @@
+name: Release Package Version
+on:
+  push:
+    tags:
+      - "**"
+jobs:
+  unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+      - name: Setup .NET
+        uses: actions/setup-dotnet@main
+        with:
+          dotnet-version: |
+            8.0.x
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: |
+          dotnet build --configuration Release --no-restore
+
+      # - name: Unit Tests
+      #   run: |
+      #     dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance"
+
+  deploy:
+    #needs:
+     # - unit_tests
+    if: github.event.base_ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project:
+        - AppFactory.Framework.Domain
+        - AppFactory.Framework.DependencyInjection
+        - AppFactory.Framework.Logging
+        # - AppFactory.Framework.Infrastructure
+        # - AppFactory.Framework.DataAccess
+        # - AppFactory.Framework.Api
+    steps:
+      - name: Print tag ref
+        run: echo $GITHUB_REF
+
+      - name: Extract version number
+        uses: actions-ecosystem/action-regex-match@v2
+        id: regex-match
+        with:
+          text: ${{ github.ref }}
+          regex: "([0-9.-]+)$"
+
+      - name: Print version number
+        run: echo '${{ steps.regex-match.outputs.match }}'
+
+      - uses: actions/checkout@main
+      - name: Setup .NET
+        uses: actions/setup-dotnet@main
+        with:
+          dotnet-version: |
+            8.0.x
+
+      - name: Restore ${{ matrix.project }} dependencies
+        run: dotnet restore ./src/${{ matrix.project }}/${{ matrix.project }}.csproj
+
+      - name: Build
+        run: |
+          dotnet build ./src/${{ matrix.project }}/${{ matrix.project }}.csproj --configuration Release --no-restore
+
+      - name: Pack ${{ matrix.project }}       
+        run: |
+          dotnet pack ./src/${{ matrix.project }}/${{ matrix.project }}.csproj --output packages
+  
+      - name: Publish ${{ matrix.project }} package
+        run: |
+          nuget push **\*.nupkg -NoSymbols -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+
+      - name: Upload Package
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{ matrix.project }}.v${{ steps.regex-match.outputs.match }}
+          path: packages/
