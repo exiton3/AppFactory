@@ -8,4 +8,7 @@ public interface ILogger
     ITimeLogger LogPerformance(string message);
     void LogError(Exception exception, string messageTemplate);
     void LogInfo(string messageTemplate, params object[] propertyValues);
+    void LogDebug(string context, object value, string message , params object[] propertyValues);
+    void LogDebug(string context, object value, string message);
+    void SetContext(string context);
 }
