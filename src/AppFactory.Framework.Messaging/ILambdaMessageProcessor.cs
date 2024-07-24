@@ -1,6 +1,6 @@
 ﻿namespace AppFactory.Framework.Messaging;
 
-internal interface ILambdaMessageProcessor<T>
+public interface ILambdaMessageProcessor<T> where T : Message
 {
     Task Handle(T @event);
 }
