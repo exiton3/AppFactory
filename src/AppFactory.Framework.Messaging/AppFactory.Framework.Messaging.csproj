@@ -29,7 +29,9 @@
 			<PackagePath>\</PackagePath>
 		</None>
 	</ItemGroup>
-
+	<ItemGroup>
+		<Content Include="..\..\logo.png" Link="logo.png" />
+	</ItemGroup>
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.Core" Version="2.2.0" />
     <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
