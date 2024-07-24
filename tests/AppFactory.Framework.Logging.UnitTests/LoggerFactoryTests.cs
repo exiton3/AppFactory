@@ -1,15 +1,12 @@
 ﻿using AppFactory.Framework.TestExtensions;
-using Serilog;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace AppFactory.Framework.Logging.UnitTests;
 
 public class LoggerFactoryTests
 {
     private readonly ITestOutputHelper _testOutput;
-    private readonly SerilogLogger _logger;
     private LoggerFactory _factory;
 
     public LoggerFactoryTests(ITestOutputHelper testOutput)
