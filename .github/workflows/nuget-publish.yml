@@ -34,7 +34,7 @@ jobs:
         project:
         # - AppFactory.Framework.Domain
         # - AppFactory.Framework.DependencyInjection
-        #  - AppFactory.Framework.Logging
+          - AppFactory.Framework.Logging
           - AppFactory.Framework.Messaging
         # - AppFactory.Framework.Shared
         # - AppFactory.Framework.DataAccess
@@ -49,7 +49,7 @@ jobs:
         id: regex-match
         with:
           text: ${{ github.ref }}
-          regex: "([0-9.-]+)$"
+          regex: "([0-9][0-9.-]+)$"
 
       - name: Print version number
         run: echo '${{ steps.regex-match.outputs.match }}'
