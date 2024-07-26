@@ -11,7 +11,7 @@ namespace AppFactory.Framework.Messaging;
 /// Base class for Lambda handler to handle messages from SQS queue
 /// </summary>
 /// <typeparam name="TMessage">message</typeparam>
-public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Message
+public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Message, new()
 {
     protected ServiceProvider ServiceProvider;
     protected IJsonSerializer JsonSerializer;
@@ -81,8 +81,6 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
 
                 await _processor.Process(message);
             }
-               
-            await Task.CompletedTask;
         }
         catch (Exception e)
         {
@@ -96,12 +94,12 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
 
     private TMessage MapMessage(SQSEvent.SQSMessage sqsMessage)
     {
-        var message = new Message
+        var message = new TMessage
         {
             Body = sqsMessage.Body,
             MessageId = sqsMessage.MessageId,
             Source = sqsMessage.EventSource
         };
-        return (TMessage) message;
+        return message;
     }
 }
