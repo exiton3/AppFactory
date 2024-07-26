@@ -2,5 +2,5 @@
 
 public interface ILambdaMessageProcessor<T> where T : Message
 {
-    Task Handle(T @event);
+    Task Process(T message);
 }

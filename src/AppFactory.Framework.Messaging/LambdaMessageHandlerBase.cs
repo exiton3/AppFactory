@@ -7,12 +7,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AppFactory.Framework.Messaging;
 
+/// <summary>
+/// Base class for Lambda handler to handle messages from SQS queue
+/// </summary>
+/// <typeparam name="TMessage">message</typeparam>
 public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Message
 {
     protected ServiceProvider ServiceProvider;
     protected IJsonSerializer JsonSerializer;
-    private ILambdaMessageProcessor<TMessage> _handler;
-    private ILogger _log;
+    private ILambdaMessageProcessor<TMessage> _processor;
+    private ILogger _logger;
     private IStartup _startup;
     protected LambdaMessageHandlerBase(IStartup startup = null)
     {
@@ -27,8 +31,8 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
         ConfigureServicesInt(services);
         ServiceProvider = services.BuildServiceProvider();
         JsonSerializer = ServiceProvider.GetRequiredService<IJsonSerializer>();
-        _log = ServiceProvider.GetRequiredService<ILogger>();
-        _log.LogInfo($"New instance of Lambda EventHandler {GetHashCode()} created");
+        _logger = ServiceProvider.GetRequiredService<ILogger>();
+        _logger.LogInfo($"New instance of Lambda EventHandler {GetHashCode()} created");
     }
 
     private void ConfigureServicesInt(IServiceCollection services)
@@ -42,7 +46,7 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
     protected abstract IStartup GetStartup();
     public async Task Handle(SQSEvent @event, ILambdaContext context)
     {
-        _log.AddTraceId(context.AwsRequestId);
+        _logger.AddTraceId(context.AwsRequestId);
 
         try
         {
@@ -54,38 +58,47 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
         }
         catch (Exception e)
         {
-            _log.LogError(e, $"{e.Message} -- {e.StackTrace}");
+            _logger.LogError(e, $"{e.Message} -- {e.StackTrace}");
+
+            throw;
         }
     }
-    private async Task ProcessMessageAsync(SQSEvent.SQSMessage message, ILambdaContext context)
+    private async Task ProcessMessageAsync(SQSEvent.SQSMessage sqsMessage, ILambdaContext context)
     {
         try
         {
-            context.Logger.LogInformation($"Processed message {message.Body}");
-
-            var eventDetail = JsonSerializer.Serialize(message.Body);
-            _log.LogInfo($"Message {message.MessageId} from {message.EventSource} received {eventDetail}");
+            context.Logger.LogInformation($"Processed message {sqsMessage.Body}");
+            
+            _logger.LogInfo($"Message {sqsMessage.MessageId} from {sqsMessage.EventSource} received {sqsMessage.Body}");
 
             using var scope = ServiceProvider.CreateScope();
-            _handler = scope.ServiceProvider.GetRequiredService<ILambdaMessageProcessor<TMessage>>();
+            _processor = scope.ServiceProvider.GetRequiredService<ILambdaMessageProcessor<TMessage>>();
 
-            _log.LogTrace($" SQS EventHandler #{_handler.GetHashCode()} {_handler.GetType().Name} started");
-            using (_log.LogPerformance($"Processor #{_handler.GetHashCode()} {_handler.GetType().Name}"))
+            _logger.LogTrace($"SQS Message Processor #{_processor.GetHashCode()} {_processor.GetType().Name} started");
+            using (_logger.LogPerformance($"Processor #{_processor.GetHashCode()} {_processor.GetType().Name}"))
             {
-                var deserializedMessage = JsonSerializer.Deserialize<TMessage>(message.Body);
+                var message = MapMessage(sqsMessage);
 
-                await _handler.Handle(deserializedMessage);
+                await _processor.Process(message);
             }
                
             await Task.CompletedTask;
         }
         catch (Exception e)
         {
-            //You can use Dead Letter Queue to handle failures. By configuring a Lambda DLQ.
-            context.Logger.LogError($"An error occurred");
+            //TODO: use Dead Letter Queue to handle failures. By configuring a Lambda DLQ.
+            context.Logger.LogError($"An error occurred {e.StackTrace}");
+            _logger.LogError(e, "Unhandled exception");
             throw;
         }
 
     }
 
+    private TMessage MapMessage(SQSEvent.SQSMessage message)
+    {
+        var deserializedMessage = JsonSerializer.Deserialize<TMessage>(message.Body);
+        deserializedMessage.MessageId = message.MessageId;
+        deserializedMessage.Source = message.EventSource;
+        return deserializedMessage;
+    }
 }
