@@ -34,7 +34,7 @@ jobs:
         project:
         # - AppFactory.Framework.Domain
         # - AppFactory.Framework.DependencyInjection
-          - AppFactory.Framework.Logging
+        # - AppFactory.Framework.Logging
           - AppFactory.Framework.Messaging
         # - AppFactory.Framework.Shared
         # - AppFactory.Framework.DataAccess
@@ -70,7 +70,7 @@ jobs:
 
       - name: Pack ${{ matrix.project }}       
         run: |
-          dotnet pack ./src/${{ matrix.project }}/${{ matrix.project }}.csproj  -p:PackageVersion='${{ steps.regex-match.outputs.match }} --output packages
+          dotnet pack ./src/${{ matrix.project }}/${{ matrix.project }}.csproj  -p:PackageVersion='${{ steps.regex-match.outputs.match }}' --output packages
   
       - name: Publish ${{ matrix.project }} package
         run: |
