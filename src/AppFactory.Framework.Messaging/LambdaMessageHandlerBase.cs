@@ -94,11 +94,14 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
 
     }
 
-    private TMessage MapMessage(SQSEvent.SQSMessage message)
+    private TMessage MapMessage(SQSEvent.SQSMessage sqsMessage)
     {
-        var deserializedMessage = JsonSerializer.Deserialize<TMessage>(message.Body);
-        deserializedMessage.MessageId = message.MessageId;
-        deserializedMessage.Source = message.EventSource;
-        return deserializedMessage;
+        var message = new Message
+        {
+            Body = sqsMessage.Body,
+            MessageId = sqsMessage.MessageId,
+            Source = sqsMessage.EventSource
+        };
+        return (TMessage) message;
     }
 }

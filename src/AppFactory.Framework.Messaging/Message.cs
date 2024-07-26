@@ -9,5 +9,6 @@ namespace AppFactory.Framework.Messaging
         public DateTime Timestamp { get; set; }
 
         public string Source { get; set; }
+        public string Body { get; set; }
     }
 }
