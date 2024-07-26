@@ -34,7 +34,7 @@ jobs:
         project:
         # - AppFactory.Framework.Domain
         # - AppFactory.Framework.DependencyInjection
-          - AppFactory.Framework.Logging
+        # - AppFactory.Framework.Logging
           - AppFactory.Framework.Messaging
         # - AppFactory.Framework.Shared
         # - AppFactory.Framework.DataAccess
