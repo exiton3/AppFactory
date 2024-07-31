@@ -8,10 +8,11 @@ public class MessagePublisher : IMessagePublisher
 {
     private readonly ILogger _logger;
     private string SQSQueueUrl = "default";
-    private IAmazonSqsClientFactory _clientFactory; 
-    public MessagePublisher(ILogger logger, IConfigSettings config)
+    private readonly IAmazonSqsClientFactory _clientFactory; 
+    public MessagePublisher(ILogger logger, IConfigSettings config, IAmazonSqsClientFactory clientFactory)
     {
         _logger = logger;
+        _clientFactory = clientFactory;
         SQSQueueUrl = config.GetValue("sqs_queue_url");
     }
     public async Task<PublishResponse> Publish<TMessage>(TMessage message, CancellationToken token = default) where TMessage : MessageBase
