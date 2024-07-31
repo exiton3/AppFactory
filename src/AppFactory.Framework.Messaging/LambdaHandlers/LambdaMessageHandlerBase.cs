@@ -5,7 +5,7 @@ using AppFactory.Framework.Logging;
 using AppFactory.Framework.Shared.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AppFactory.Framework.Messaging;
+namespace AppFactory.Framework.Messaging.LambdaHandlers;
 
 /// <summary>
 /// Base class for Lambda handler to handle messages from SQS queue
@@ -54,7 +54,7 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
             {
                 await ProcessMessageAsync(message, context);
             }
-               
+
         }
         catch (Exception e)
         {
@@ -68,7 +68,7 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
         try
         {
             context.Logger.LogInformation($"Processed message {sqsMessage.Body}");
-            
+
             _logger.LogInfo($"Message {sqsMessage.MessageId} from {sqsMessage.EventSource} received {sqsMessage.Body}");
 
             using var scope = ServiceProvider.CreateScope();

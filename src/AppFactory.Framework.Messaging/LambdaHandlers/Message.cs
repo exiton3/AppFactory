@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AppFactory.Framework.Messaging
+﻿namespace AppFactory.Framework.Messaging.LambdaHandlers
 {
     public class Message
     {

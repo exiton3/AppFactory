@@ -1,5 +1,6 @@
 ﻿using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Logging;
+using AppFactory.Framework.Messaging.Publishers;
 using AppFactory.Framework.Shared.Config;
 using AppFactory.Framework.Shared.Serialization;
 using AppFactory.Framework.Shared.ServiceClient;
@@ -17,7 +18,6 @@ public class DependencyModule : IDependencyRegistrationModule
         //  services.AddSingleton<IEntityIdProvider, EntityIdProvider>();
         // services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
         services.AddScoped<IWebServiceClient, WebServiceClient>();
-        // services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IServiceProvider>(x => x);
 
     }

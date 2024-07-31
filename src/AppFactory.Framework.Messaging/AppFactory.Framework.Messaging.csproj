@@ -36,9 +36,13 @@
     <PackageReference Include="Amazon.Lambda.Core" Version="2.2.0" />
     <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
     <PackageReference Include="AppFactory.Framework.DependencyInjection" Version="1.0.0" />
-    <PackageReference Include="AppFactory.Framework.Logging" Version="1.0.0" />
+    <PackageReference Include="AppFactory.Framework.Logging" Version="1.0.2" />
     <PackageReference Include="AppFactory.Framework.Shared" Version="1.0.0" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.400.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Publishers\" />
   </ItemGroup>
 
 </Project>
