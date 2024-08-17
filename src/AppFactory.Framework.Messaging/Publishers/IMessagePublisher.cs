@@ -9,4 +9,6 @@ public interface IMessagePublisher
 public class MessageBase
 {
     public string Body { get; set; }
+
+    public Dictionary<string,string> Attributes { get; set; }
 }

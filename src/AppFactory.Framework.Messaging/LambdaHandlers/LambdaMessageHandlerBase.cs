@@ -98,8 +98,10 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
         {
             Body = sqsMessage.Body,
             MessageId = sqsMessage.MessageId,
-            Source = sqsMessage.EventSource
+            Source = sqsMessage.EventSource,
+            Attributes = sqsMessage.Attributes
         };
+
         return message;
     }
 }

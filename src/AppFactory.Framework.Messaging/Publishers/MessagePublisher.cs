@@ -20,21 +20,31 @@ public class MessagePublisher : IMessagePublisher
         var sqsClient = _clientFactory.Create();
         _logger.LogInfo($"Publishing the message of type '{typeof(TMessage)}'");
 
-        var messageRequest = CreateSendMessageRequest(SQSQueueUrl, message.Body);
+        var messageRequest = CreateSendMessageRequest(SQSQueueUrl, message.Body, message.Attributes);
         var response = await sqsClient.SendMessageAsync(messageRequest, token);
         _logger.LogTrace($"The message with MessageId:{response.MessageId}  has been pushed to SQS.");
 
         return new PublishResponse { MessageId = response.MessageId };
     }
 
-    private SendMessageRequest CreateSendMessageRequest(string queueUrl, string messageBody)
+    private SendMessageRequest CreateSendMessageRequest(string queueUrl, string messageBody, Dictionary<string,string> attributes)
     {
         var request = new SendMessageRequest
         {
             QueueUrl = queueUrl,
             MessageBody = messageBody,
+            MessageAttributes = MapAttributes(attributes)
         };
 
         return request;
+    }
+
+    private Dictionary<string, MessageAttributeValue> MapAttributes(Dictionary<string, string> attributes)
+    {
+        return attributes.ToDictionary(item => item.Key, item => new MessageAttributeValue
+        {
+            DataType = "String", 
+            StringValue = item.Value
+        });
     }
 }
