@@ -70,7 +70,9 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
             context.Logger.LogInformation($"Processed message {sqsMessage.Body}");
 
             _logger.LogInfo($"Message {sqsMessage.MessageId} from {sqsMessage.EventSource} received {sqsMessage.Body}");
-
+            _logger.LogTrace(
+                $"Message {sqsMessage.MessageId} from {sqsMessage.EventSource} received {sqsMessage.Body} Attributes ,{sqsMessage.MessageAttributes.Keys.Count}");
+            
             using var scope = ServiceProvider.CreateScope();
             _processor = scope.ServiceProvider.GetRequiredService<ILambdaMessageProcessor<TMessage>>();
 
@@ -99,7 +101,7 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
             Body = sqsMessage.Body,
             MessageId = sqsMessage.MessageId,
             Source = sqsMessage.EventSource,
-            Attributes = sqsMessage.Attributes
+            Attributes = sqsMessage.MessageAttributes.ToDictionary(x=>x.Key, v=>v.Value.StringValue)
         };
 
         return message;
