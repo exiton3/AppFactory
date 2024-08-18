@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Copyright>Copyright © Sergey Kichuk. All rights reserved. Licensed under the MIT License.</Copyright>
+		<Authors>Sergey Kichuk</Authors>
+		<Description>AppFactory Framework AWS EventBridge inmplementation of EventBus</Description>
+		<PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/exiton3/AppFactory</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>AppFactory;Framework;EventBus;AWS;EventBridge</PackageTags>
+		<Title>AppFactory Framework AWS EventBridge inmplementation of EventBus</Title>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageIcon>logo.png</PackageIcon>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="..\..\LICENSE" Link="LICENSE">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\..\README.md" Link="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\..\logo.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>	
+
+  <ItemGroup>
+    <Folder Include="EventBus\" />
+    <Folder Include="LambdaHandlers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.CloudWatchEvents" Version="4.3.0" />
+    <PackageReference Include="Amazon.Lambda.Core" Version="2.1.0" />
+    <PackageReference Include="AppFactory.Framework.DependencyInjection" Version="1.0.0" />
+    <PackageReference Include="AppFactory.Framework.Logging" Version="1.0.2" />
+    <PackageReference Include="AppFactory.Framework.Shared" Version="1.0.0" />
+    <PackageReference Include="AWSSDK.EventBridge" Version="3.7.200.18" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AppFactory.Framework.EventBus\AppFactory.Framework.EventBus.csproj" />
+  </ItemGroup>
+
+</Project>

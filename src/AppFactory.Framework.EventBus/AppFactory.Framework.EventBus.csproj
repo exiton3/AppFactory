@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Copyright>Copyright © Sergey Kichuk. All rights reserved. Licensed under the MIT License.</Copyright>
+		<Authors>Sergey Kichuk</Authors>
+		<Description>AppFactory Framework Abstract EventBus</Description>
+		<PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/exiton3/AppFactory</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>AppFactory;Framework;EventBus</PackageTags>
+		<Title>AppFactory Abstract EventBus</Title>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageIcon>logo.png</PackageIcon>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="..\..\LICENSE" Link="LICENSE">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\..\README.md" Link="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\..\logo.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="EventBus\Events\" />
+  </ItemGroup>
+
+</Project>
