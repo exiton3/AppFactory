@@ -40,14 +40,11 @@
     <PackageReference Include="Amazon.Lambda.CloudWatchEvents" Version="4.3.0" />
     <PackageReference Include="Amazon.Lambda.Core" Version="2.1.0" />
     <PackageReference Include="AppFactory.Framework.DependencyInjection" Version="1.0.0" />
+    <PackageReference Include="AppFactory.Framework.EventBus" Version="1.0.8" />
     <PackageReference Include="AppFactory.Framework.Logging" Version="1.0.2" />
     <PackageReference Include="AppFactory.Framework.Shared" Version="1.0.0" />
     <PackageReference Include="AWSSDK.EventBridge" Version="3.7.200.18" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\AppFactory.Framework.EventBus\AppFactory.Framework.EventBus.csproj" />
   </ItemGroup>
 
 </Project>
