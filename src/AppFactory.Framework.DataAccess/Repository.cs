@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
@@ -19,6 +20,7 @@ public abstract class Repository : IDisposable
     protected string TableName;
     private readonly IAmazonDynamoDB _dynamoDb;
     private readonly IDynamoDBClientFactory _dynamoDbFactory;
+    private readonly JsonSerializerOptions _defaultOptions;
 
     protected Repository(IDynamoDBClientFactory dynamoDbFactory, IAWSSettings awsSettings,ILogger logger)
     {
@@ -27,6 +29,15 @@ public abstract class Repository : IDisposable
         _dynamoDb = dynamoDbFactory.Create();
         TableName = awsSettings.GetTableName();
         Logger.LogTrace($"Repository {GetType().Name} #{GetHashCode()} created");
+
+        _defaultOptions = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+            }
+        };
     }
 
     protected IAmazonDynamoDB DynamoDb => _dynamoDb ?? _dynamoDbFactory.Create();
@@ -157,18 +168,18 @@ public abstract class Repository : IDisposable
         return models;
     }
 
-    private static TModel? MapModelFromAttributes<TModel>(Dictionary<string, AttributeValue> item) where TModel : ModelBase
+    private  TModel? MapModelFromAttributes<TModel>(Dictionary<string, AttributeValue> item) where TModel : ModelBase
     {
         var itemAsDocument = Document.FromAttributeMap(item);
 
-        var model = JsonSerializer.Deserialize<TModel>(itemAsDocument.ToJson());
+        var model = JsonSerializer.Deserialize<TModel>(itemAsDocument.ToJson(), _defaultOptions);
 
         return model;
     }
 
-    private static Dictionary<string, AttributeValue> MapToAttributes<TModel>(TModel item) where TModel : ModelBase
+    private  Dictionary<string, AttributeValue> MapToAttributes<TModel>(TModel item) where TModel : ModelBase
     {
-        var modelJson = JsonSerializer.Serialize(item);
+        var modelJson = JsonSerializer.Serialize(item, _defaultOptions);
         var modelDoc = Document.FromJson(modelJson);
 
         var attributeMap = modelDoc.ToAttributeMap();

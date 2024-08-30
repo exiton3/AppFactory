@@ -39,8 +39,8 @@ jobs:
         #  - AppFactory.Framework.EventBus
         #  - AppFactory.Framework.EventBus.Aws
         # - AppFactory.Framework.Shared
-        # - AppFactory.Framework.DataAccess
-          - AppFactory.Framework.Api
+         - AppFactory.Framework.DataAccess
+        # - AppFactory.Framework.Api
 
     steps:
       - name: Print tag ref
