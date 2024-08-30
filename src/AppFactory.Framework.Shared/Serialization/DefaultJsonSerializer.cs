@@ -18,8 +18,7 @@ public class DefaultJsonSerializer : IJsonSerializer
             {
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
-            NumberHandling = JsonNumberHandling.AllowReadingFromString ,
-            
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
     }
     public TValue? Deserialize<TValue>(string json, JsonSerializerOptions? options = null)
