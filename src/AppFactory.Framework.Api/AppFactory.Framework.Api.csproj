@@ -6,12 +6,12 @@
 		<Nullable>disable</Nullable>
 		<Copyright>Copyright © Sergey Kichuk. All rights reserved. Licensed under the MIT License.</Copyright>
 		<Authors>Sergey Kichuk</Authors>
-		<Description>AppFactory Framework Shared</Description>
+		<Description>AppFactory Framework API</Description>
 		<PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/exiton3/AppFactory</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>AppFactory;Framework;CQRS</PackageTags>
-		<Title>AppFactory Framework Shared</Title>
+		<Title>AppFactory Framework API</Title>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
