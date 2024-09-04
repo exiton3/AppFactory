@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.DynamoDBv2.Model;
+﻿using Amazon.DynamoDBv2.Model;
 using AppFactory.Framework.DataAccess.AmazonDbServices;
 using AppFactory.Framework.DataAccess.Models;
 using AppFactory.Framework.Logging;
@@ -11,41 +8,24 @@ namespace AppFactory.Framework.DataAccess;
 public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> where TModel : class
 {
     protected readonly ILogger Logger;
-    private readonly JsonSerializerOptions _defaultOptions;
     private readonly DynamoDbModelConfig<TModel> _config;
     private readonly IDynamoDbClient _dynamoDbClient;
-
+    private readonly IModelMapper<TModel> _mapper;
     protected RepositoryBase(IDynamoDBClientFactory dynamoDbFactory,ILogger logger, IModelConfig<TModel> modelConfig)
     {
         Logger = logger;
         _dynamoDbClient = dynamoDbFactory.CreateClient();
         Logger.LogTrace($"Repository {GetType().Name} #{GetHashCode()} created");
-
-        _defaultOptions = GetJsonDefaultOptions();
          _config = new DynamoDbModelConfig<TModel>();
          modelConfig.Configure(_config);
-         
+         _mapper = new ModelMapper<TModel>(_config);
     }
-
-    private static JsonSerializerOptions GetJsonDefaultOptions()
-    {
-        return new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters =
-            {
-                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-            }
-        };
-    }
-
 
     protected async Task<TModel?> GetByPrimaryKey(PrimaryKey primaryKey)
     {
         var item = await _dynamoDbClient.GetByPrimaryKey(primaryKey);
 
-        return item == default ? default : MapModelFromAttributes(item);
+        return item == default ? default : _mapper.MapModelFromAttributes(item);
     }
 
     public async Task<TModel?> GetById<TKey>(TKey key)
@@ -55,28 +35,27 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
 
     protected async Task<bool> Insert(TModel model) 
     {
-        var items = MapToAttributes(model);
+        var items = _mapper.MapToAttributes(model);
 
-        var response = await _dynamoDbClient.PutItemAsync( new DynamoDbItem(items));
+        var response = await _dynamoDbClient.PutItemAsync(items);
 
         return response;
     }
 
     public async Task<bool> Add(TModel model)
     {
-        var items = MapToAttributes(model);
+        var items = _mapper.MapToAttributes(model);
 
-        var response = await _dynamoDbClient.PutItemAsync(new DynamoDbItem(items));
+        var response = await _dynamoDbClient.PutItemAsync(items);
 
         return response;
     }
 
-
     public async Task<bool> Update(TModel model)
     {
-        var items = MapToAttributes(model);
+        var items = _mapper.MapToAttributes(model);
 
-        var response = await _dynamoDbClient.PutItemAsync(new DynamoDbItem(items));
+        var response = await _dynamoDbClient.PutItemAsync(items);
 
         return response;
     }
@@ -89,9 +68,8 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
         {
             foreach (var model in models)
             {
-                var attributeMap = MapToAttributes(model);
-                var dynamoDbItem = new DynamoDbItem(attributeMap);
-                dynamoDbItems.Add(dynamoDbItem);
+                var item = _mapper.MapToAttributes(model);
+                dynamoDbItems.Add(item);
             }
         }
 
@@ -114,46 +92,12 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
 
         foreach (var item in items)
         {
-            var model = MapModelFromAttributes(item);
+            var model = _mapper.MapModelFromAttributes(item);
 
             models.Add(model);
         }
 
         return models;
-    }
-
-    private  TModel? MapModelFromAttributes(Dictionary<string, AttributeValue> item)
-    {
-        item.Remove(DynamoDBConstants.PK);
-        item.Remove(DynamoDBConstants.SK);
-
-        var itemAsDocument = Document.FromAttributeMap(item);
-
-        var model = JsonSerializer.Deserialize<TModel>(itemAsDocument.ToJson(), _defaultOptions);
-
-        return model;
-    }
-
-    private  Dictionary<string, AttributeValue> MapToAttributes(TModel item)
-    {
-        var modelJson = JsonSerializer.Serialize(item, _defaultOptions);
-        var modelDoc = Document.FromJson(modelJson);
-
-        var primaryKey = _config.GetPrimaryKey(item);
-
-        var attributeMap = GetMergedAttributeValues(primaryKey, modelDoc);
-
-        return attributeMap;
-    }
-
-    private static Dictionary<string, AttributeValue> GetMergedAttributeValues(PrimaryKey primaryKey, Document modelDoc)
-    {
-        var keyAttributes = primaryKey.ToAttributeValues();
-
-        var attributeMap = modelDoc.ToAttributeMap();
-
-        attributeMap = keyAttributes.Union(attributeMap).ToDictionary(k => k.Key, v => v.Value);
-        return attributeMap;
     }
 
     public void Dispose()
