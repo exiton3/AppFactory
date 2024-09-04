@@ -2,8 +2,8 @@
 using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
-using AppFactory.Framework.DataAccess.AmazonDbServices;
 using AppFactory.Framework.DataAccess.Configuration;
+using AppFactory.Framework.DataAccess.DynamoDb;
 
 namespace AppFactory.Framework.DataAccess.Mapping;
 

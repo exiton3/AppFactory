@@ -1,6 +1,6 @@
 ﻿using Amazon.DynamoDBv2.Model;
 
-namespace AppFactory.Framework.DataAccess.AmazonDbServices;
+namespace AppFactory.Framework.DataAccess.DynamoDb;
 
 public class DynamoDbItem : Dictionary<string, AttributeValue>
 {

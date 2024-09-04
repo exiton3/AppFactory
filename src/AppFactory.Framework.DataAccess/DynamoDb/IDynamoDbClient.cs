@@ -1,7 +1,7 @@
 ﻿using Amazon.DynamoDBv2.Model;
 using AppFactory.Framework.DataAccess.Configuration;
 
-namespace AppFactory.Framework.DataAccess.AmazonDbServices;
+namespace AppFactory.Framework.DataAccess.DynamoDb;
 
 public interface IDynamoDbClient : IDisposable
 {

@@ -2,7 +2,7 @@
 using AppFactory.Framework.DataAccess.Settings;
 using AppFactory.Framework.Logging;
 
-namespace AppFactory.Framework.DataAccess.AmazonDbServices
+namespace AppFactory.Framework.DataAccess.DynamoDb
 {
     public class DynamoDbClientFactory : IDynamoDBClientFactory
     {

@@ -1,4 +1,4 @@
-﻿using AppFactory.Framework.DataAccess.AmazonDbServices;
+﻿using AppFactory.Framework.DataAccess.DynamoDb;
 
 namespace AppFactory.Framework.DataAccess.Mapping;
 

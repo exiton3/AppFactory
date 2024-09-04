@@ -1,5 +1,5 @@
-﻿using AppFactory.Framework.DataAccess.AmazonDbServices;
-using AppFactory.Framework.DataAccess.Configuration;
+﻿using AppFactory.Framework.DataAccess.Configuration;
+using AppFactory.Framework.DataAccess.DynamoDb;
 using AppFactory.Framework.DataAccess.Settings;
 using Microsoft.Extensions.DependencyInjection;
 
