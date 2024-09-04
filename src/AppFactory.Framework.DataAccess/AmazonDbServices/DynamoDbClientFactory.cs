@@ -6,18 +6,28 @@ namespace AppFactory.Framework.DataAccess.AmazonDbServices
 {
     public class DynamoDbClientFactory : IDynamoDBClientFactory
     {
-        private readonly IAWSSettings _offersSettings;
+        private readonly IAWSSettings _settings;
         private readonly ILogger _logger;
 
-        public DynamoDbClientFactory(IAWSSettings offersSettings, ILogger logger)
+        public DynamoDbClientFactory(IAWSSettings settings, ILogger logger)
         {
-            _offersSettings = offersSettings;
+            _settings = settings;
             _logger = logger;
         }
+
         public IAmazonDynamoDB Create()
         {
-            var client = new AmazonDynamoDBClient(_offersSettings.GetAWSRegion());
-            
+            var client = new AmazonDynamoDBClient(_settings.GetAWSRegion());
+
+            _logger.LogTrace($"Db Client #{client.GetHashCode()} created");
+
+            return client;
+        }
+
+        public IDynamoDbClient CreateClient()
+        {
+            var client = new DynamoDbClient(_settings, _logger);
+
             _logger.LogTrace($"Db Client #{client.GetHashCode()} created");
 
             return client;

@@ -5,5 +5,6 @@ namespace AppFactory.Framework.DataAccess.AmazonDbServices
     public interface IDynamoDBClientFactory
     {
         IAmazonDynamoDB Create();
+        IDynamoDbClient CreateClient();
     }
 }

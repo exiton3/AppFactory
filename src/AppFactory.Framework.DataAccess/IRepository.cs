@@ -2,7 +2,7 @@
 
 namespace AppFactory.Framework.DataAccess;
 
-public interface IRepository2<TModel> where TModel : class
+public interface IRepository<TModel> where TModel : class
 {
     Task<TModel> GetById<TKey>(TKey key);
     Task<bool> Add(TModel model);

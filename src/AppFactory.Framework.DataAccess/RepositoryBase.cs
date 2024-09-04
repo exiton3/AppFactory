@@ -1,235 +1,164 @@
-﻿using System.Net;
-using System.Text.Json;
-using Amazon.DynamoDBv2;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using AppFactory.Framework.DataAccess.AmazonDbServices;
-using AppFactory.Framework.DataAccess.Configuration;
-using AppFactory.Framework.DataAccess.Mappers;
 using AppFactory.Framework.DataAccess.Models;
-using AppFactory.Framework.Domain.Entities;
-using AppFactory.Framework.Domain.Repositories;
 using AppFactory.Framework.Logging;
 
 namespace AppFactory.Framework.DataAccess;
 
-public abstract class RepositoryBase<TEntity,TModel> : IRepositoryBase<TEntity> where TEntity : Entity where TModel : ModelBase
+public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> where TModel : class
 {
     protected readonly ILogger Logger;
-    protected string TableName;
-    private readonly IAmazonDynamoDB _dynamoDb;
-    private readonly IDynamoDBClientFactory _dynamoDbFactory;
-    protected readonly IModelMapper<TEntity, TModel> Mapper;
-    protected RepositoryBase(IDynamoDBClientFactory dynamoDbFactory, IAWSSettings awsSettings,ILogger logger, IModelMapper<TEntity, TModel> mapper)
+    private readonly JsonSerializerOptions _defaultOptions;
+    private readonly DynamoDbModelConfig<TModel> _config;
+    private readonly IDynamoDbClient _dynamoDbClient;
+
+    protected RepositoryBase(IDynamoDBClientFactory dynamoDbFactory,ILogger logger, IModelConfig<TModel> modelConfig)
     {
         Logger = logger;
-        Mapper = mapper;
-        _dynamoDbFactory = dynamoDbFactory;
-        _dynamoDb = dynamoDbFactory.Create();
-        TableName = awsSettings.GetTableName();
+        _dynamoDbClient = dynamoDbFactory.CreateClient();
         Logger.LogTrace($"Repository {GetType().Name} #{GetHashCode()} created");
+
+        _defaultOptions = GetJsonDefaultOptions();
+         _config = new DynamoDbModelConfig<TModel>();
+         modelConfig.Configure(_config);
+         
     }
 
-
-    public async Task Add(TEntity entity, CancellationToken cancellationToken = default)
+    private static JsonSerializerOptions GetJsonDefaultOptions()
     {
-        var model = Mapper.MapToModel(entity);
-
-        await Insert(model);
-
-        Logger.LogInfo($@"The {entity.GetType().Name} with id #{entity.Id} added to repository");
-    }
-
-    public async Task<bool> Update(TEntity entity, CancellationToken cancellation = default)
-    {
-        var model = Mapper.MapToModel(entity);
-
-        var result = await Update(model);
-
-        Logger.LogInfo($"{entity.GetType().Name} #{entity.Id} updated in repository");
-
-        return result;
-    }
-
-    public async Task<TEntity> GetById(string id)
-    {
-        var model = await GetByPrimaryKey<TModel>(GetPrimaryKey(id));
-
-        if (model is null)
+        return new JsonSerializerOptions
         {
-            Logger.LogInfo($"{typeof(TEntity).Name} with Id {id} not found");
-
-            return null;
-        }
-
-        return Mapper.MapFromModel(model);
-    }
-
-    public  Task Add(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
-    {
-        var models = entities.Select(x => Mapper.MapToModel(x)).ToList();
-
-       return BatchAddItemsAsync(models);
-    }
-
-
-    public async Task<bool> Delete(string id)
-    {
-        return await Delete(GetPrimaryKey(id));
-    }
-    protected abstract PrimaryKey GetPrimaryKey(string id);
-    
-
-    protected IAmazonDynamoDB DynamoDb => _dynamoDb ?? _dynamoDbFactory.Create();
-
-    protected async Task<TModel?> GetByPrimaryKey<TModel>(PrimaryKey primaryKey) where TModel : ModelBase
-    {
-        //  Query.GetItem.From(TableName).PrimaryKey(primaryKey);
-
-        var request = new GetItemRequest
-        {
-            TableName = TableName,
-            Key = primaryKey.ToAttributeValues()
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+            }
         };
-
-        var response = await DynamoDb.GetItemAsync(request);
-
-        if (response.Item.Count == 0)
-        {
-            return null;
-        }
-
-        return MapModelFromAttributes<TModel>(response.Item);
-
     }
 
-    protected async Task<bool> Insert<TModel>(TModel model) where TModel : ModelBase
+
+    protected async Task<TModel?> GetByPrimaryKey(PrimaryKey primaryKey)
+    {
+        var item = await _dynamoDbClient.GetByPrimaryKey(primaryKey);
+
+        return item == default ? default : MapModelFromAttributes(item);
+    }
+
+    public async Task<TModel?> GetById<TKey>(TKey key)
+    {
+       return await GetByPrimaryKey(_config.GetPrimaryKey(key));
+    }
+
+    protected async Task<bool> Insert(TModel model) 
     {
         var items = MapToAttributes(model);
 
-        //var request = new TransactWriteItemsRequest();
-        //request.TransactItems.Add(new TransactWriteItem{ Put = new Put {}});
-        
-           
-        //await DynamoDb.TransactWriteItemsAsync(request);
+        var response = await _dynamoDbClient.PutItemAsync( new DynamoDbItem(items));
 
-        var response = await DynamoDb.PutItemAsync(new PutItemRequest { TableName = TableName, Item = items });
-
-        return response.HttpStatusCode == HttpStatusCode.OK;
+        return response;
     }
 
-
-    protected async Task<bool> Update<TModel>(TModel model) where TModel : ModelBase
+    public async Task<bool> Add(TModel model)
     {
         var items = MapToAttributes(model);
 
-        var response = await DynamoDb.PutItemAsync(new PutItemRequest { TableName = TableName, Item = items });
+        var response = await _dynamoDbClient.PutItemAsync(new DynamoDbItem(items));
 
-        return response.HttpStatusCode == HttpStatusCode.OK;
+        return response;
     }
 
-    protected async Task BatchAddItemsAsync<TModel>(IEnumerable<TModel> models) where TModel : ModelBase
+
+    public async Task<bool> Update(TModel model)
     {
-        var requests = new List<WriteRequest>();
+        var items = MapToAttributes(model);
+
+        var response = await _dynamoDbClient.PutItemAsync(new DynamoDbItem(items));
+
+        return response;
+    }
+
+    public async Task BatchAddItems(IEnumerable<TModel> models)
+    {
+        var dynamoDbItems = new List<DynamoDbItem>();
+
         using (Logger.LogPerformance("Serialize requests"))
         {
-            foreach (var item in models)
+            foreach (var model in models)
             {
-                var attributeMap = MapToAttributes(item);
-
-                var putRq = new PutRequest(attributeMap);
-
-                requests.Add(new WriteRequest(putRq));
+                var attributeMap = MapToAttributes(model);
+                var dynamoDbItem = new DynamoDbItem(attributeMap);
+                dynamoDbItems.Add(dynamoDbItem);
             }
         }
 
-        int pageSize = 25;
-        int itemsCount = requests.Count;
-        int pageNumber = 0;
-
-        do
+        using (Logger.LogPerformance("Batches Write requests"))
         {
-            var batchItems = requests.Skip(pageSize * pageNumber).Take(pageSize).ToList();
-
-            var batchRq = new Dictionary<string, List<WriteRequest>> { { TableName, batchItems } };
-            using (Logger.LogPerformance($"Batch number {pageNumber + 1}"))
-            {
-                var response = await DynamoDb.BatchWriteItemAsync(batchRq);
-            }
-
-            pageNumber++;
-
-            itemsCount -= batchItems.Count;
-
-        } while (itemsCount > 0);
+            await _dynamoDbClient.BatchWriteItemAsync(dynamoDbItems);
+        }
     }
 
-    protected async Task<bool> Delete(PrimaryKey key, CancellationToken cancellationToken = default)
+    public async Task<bool> Delete(PrimaryKey key, CancellationToken cancellationToken = default)
     {
-        var delItemRq = new DeleteItemRequest
-        {
-            TableName = TableName,
-            Key = key.ToAttributeValues()
-        };
-        var result = await DynamoDb.DeleteItemAsync(delItemRq, cancellationToken);
-
-        return result.HttpStatusCode == HttpStatusCode.OK;
+        return await _dynamoDbClient.DeleteItemAsync(key, cancellationToken);
     }
 
-    protected async Task<IEnumerable<TModel>> Query<TModel>(Func<QueryRequest> queryRequestFactory, CancellationToken cancellationToken) where TModel : ModelBase
+    protected async Task<IEnumerable<TModel>> Query(Func<QueryRequest> queryRequestFactory, CancellationToken cancellationToken)
     {
-        Dictionary<string, AttributeValue> lastKeyEvaluated = null;
+        var items = await _dynamoDbClient.QueryAsync(queryRequestFactory());
+
         var models = new List<TModel>();
-        int i = 0;
-        do
+
+        foreach (var item in items)
         {
-            var request = queryRequestFactory();
+            var model = MapModelFromAttributes(item);
 
-            request.ExclusiveStartKey = lastKeyEvaluated;
-            QueryResponse? queryResponse;
-           
-            using (Logger.LogPerformance($"Get Query number {++i}"))
-            {
-                queryResponse = await DynamoDb.QueryAsync(request, cancellationToken);
-                Logger.LogInfo($"Number of Items retrieved {queryResponse.Count} and size of {queryResponse.ContentLength}");
-            }
-
-            foreach (var item in queryResponse.Items)
-            {
-                var model = MapModelFromAttributes<TModel>(item);
-
-                models.Add(model);
-            }
-
-            lastKeyEvaluated = queryResponse.LastEvaluatedKey;
-
-        } while (lastKeyEvaluated != null && lastKeyEvaluated.Count != 0) ;
+            models.Add(model);
+        }
 
         return models;
     }
 
-    private static TModel? MapModelFromAttributes<TModel>(Dictionary<string, AttributeValue> item) where TModel : ModelBase
+    private  TModel? MapModelFromAttributes(Dictionary<string, AttributeValue> item)
     {
+        item.Remove(DynamoDBConstants.PK);
+        item.Remove(DynamoDBConstants.SK);
+
         var itemAsDocument = Document.FromAttributeMap(item);
 
-        var model = JsonSerializer.Deserialize<TModel>(itemAsDocument.ToJson());
+        var model = JsonSerializer.Deserialize<TModel>(itemAsDocument.ToJson(), _defaultOptions);
 
         return model;
     }
 
-    private static Dictionary<string, AttributeValue> MapToAttributes<TModel>(TModel item) where TModel : ModelBase
+    private  Dictionary<string, AttributeValue> MapToAttributes(TModel item)
     {
-        var modelJson = JsonSerializer.Serialize(item);
+        var modelJson = JsonSerializer.Serialize(item, _defaultOptions);
         var modelDoc = Document.FromJson(modelJson);
+
+        var primaryKey = _config.GetPrimaryKey(item);
+
+        var attributeMap = GetMergedAttributeValues(primaryKey, modelDoc);
+
+        return attributeMap;
+    }
+
+    private static Dictionary<string, AttributeValue> GetMergedAttributeValues(PrimaryKey primaryKey, Document modelDoc)
+    {
+        var keyAttributes = primaryKey.ToAttributeValues();
 
         var attributeMap = modelDoc.ToAttributeMap();
 
+        attributeMap = keyAttributes.Union(attributeMap).ToDictionary(k => k.Key, v => v.Value);
         return attributeMap;
     }
 
     public void Dispose()
     {
         Logger.LogTrace($"Disposed repository #{GetHashCode()}");
-        DynamoDb.Dispose();
+        _dynamoDbClient.Dispose();
     }
 }

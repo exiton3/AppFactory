@@ -2,37 +2,37 @@
 
 namespace AppFactory.Framework.DataAccess;
 
-public class DynamoDbModelConfig<TModel> where TModel : class
+public class DynamoDbModelConfig<TModel> : IModelConfigOptions<TModel> where TModel : class
 {
-    protected string PKPattern => $"{PKPrefix}{DynamoDBConstants.Separator}{{0}}";
-    protected string SKPattern => $"{SKPrefix}{DynamoDBConstants.Separator}{{0}}";
-    public string PKPrefix { get; set; }
-    public string SKPrefix { get; set; }
-    public Func<TModel, object> Id { get; set; }
+    protected string PKPattern => $"{_pkPrefix}{DynamoDBConstants.Separator}{{0}}";
+    protected string SKPattern => $"{_skPrefix}{DynamoDBConstants.Separator}{{0}}";
+    private string _pkPrefix;
+    private string _skPrefix;
+    private Func<TModel, object> _id;
 
-    public string GetPKValue(TModel model)
+    internal string GetPKValue(TModel model)
     {
-        return GetPKValue(Id(model));
+        return GetPKValue(_id(model));
     }
 
-    public string GetSKValue(TModel model)
+    internal string GetSKValue(TModel model)
     {
-        return GetSKValue(Id(model));
+        return GetSKValue(_id(model));
     }
 
-    public string GetPKValue(object key)
+    internal string GetPKValue(object key)
     {
-        return string.IsNullOrEmpty(PKPrefix) ? key.ToString() : string.Format(PKPattern, key);
+        return string.IsNullOrEmpty(_pkPrefix) ? key.ToString() : string.Format(PKPattern, key);
     }
 
-    public string GetSKValue(object key)
+    internal string GetSKValue(object key)
     {
-        return string.IsNullOrEmpty(SKPrefix) ? key.ToString() : string.Format(SKPattern, key);
+        return string.IsNullOrEmpty(_skPrefix) ? key.ToString() : string.Format(SKPattern, key);
     }
 
     public PrimaryKey GetPrimaryKey(TModel model)
     {
-       return GetPrimaryKey(Id(model));
+       return GetPrimaryKey(_id(model));
     }
 
     public PrimaryKey GetPrimaryKey(object key)
@@ -42,5 +42,26 @@ public class DynamoDbModelConfig<TModel> where TModel : class
             PK = GetPKValue(key),
             SK = GetSKValue(key)
         };
+    }
+
+    public IModelConfigOptions<TModel> PKPrefix(string prefix)
+    {
+        _pkPrefix = prefix;
+
+        return this;
+    }
+
+    public IModelConfigOptions<TModel> SKPrefix(string prefix)
+    {
+        _skPrefix = prefix;
+
+        return this;
+    }
+
+    public IModelConfigOptions<TModel> Id<TKey>(Func<TModel, TKey> id)
+    {
+        _id = o => id(o);
+
+        return this;
     }
 }

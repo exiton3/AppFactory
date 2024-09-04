@@ -1,22 +1,14 @@
-﻿using AppFactory.Framework.DataAccess.AmazonDbServices;
-using AppFactory.Framework.DataAccess.Configuration;
-using AppFactory.Framework.DataAccess.Queries;
-using AppFactory.Framework.Logging;
-using AppFactory.Framework.TestExtensions;
+﻿using AppFactory.Framework.TestExtensions;
 using Xunit;
 
 namespace AppFactory.Framework.DataAccess.UnitTests;
 
 
-class TestRepository:Repository2<TestModel>
+class TestModelConfig:IModelConfig<TestModel>
 {
-    public TestRepository(IDynamoDBClientFactory dynamoDbFactory, IAWSSettings awsSettings, ILogger logger) : base(dynamoDbFactory, awsSettings, logger)
+    public void Configure(IModelConfigOptions<TestModel> config)
     {
-    }
-
-    protected override void Configure(DynamoDBModelConfigBuilder<TestModel> builder)
-    {
-        builder
+        config
             .SKPrefix("SK")
             .PKPrefix("PK")
             .Id(x => x.Id);
@@ -25,67 +17,82 @@ class TestRepository:Repository2<TestModel>
 
 internal class TestModel
 {
-
     public string Id { get; set; }
 }
 
 public class DynamoDBModelConfigBuilderTests
 {
-    private DynamoDBModelConfigBuilder<TestModel> _builder;
+    private readonly DynamoDbModelConfig<TestModel> _config;
 
     public DynamoDBModelConfigBuilderTests()
     {
-        _builder = new DynamoDBModelConfigBuilder<TestModel>();
-    }
-
-    [Fact]
-    public void SetsPK_and_SK_PrefixesCorrectly()
-    {
-
-        _builder = _builder
-            .PKPrefix("PK")
-            .SKPrefix("SK");
-
-        var config = _builder.Build();
-
-        config.PKPrefix.ShouldBeEqualTo("PK");
-        config.SKPrefix.ShouldBeEqualTo("SK");
+        _config = new DynamoDbModelConfig<TestModel>();
     }
 
     [Fact]
     public void PK_ShouldBeSet()
     {
-
         TestModel model = new TestModel
         {
             Id = "1234"
         };
 
-        _builder = _builder
+        _config
+            .PKPrefix("PK")
             .SKPrefix("SK")
             .Id(x => x.Id);
+        var primaryKey = _config.GetPrimaryKey(model);
 
-        var config = _builder.Build();
+        primaryKey.PK.ShouldBeEqualTo("PK#1234");
+        primaryKey.SK.ShouldBeEqualTo("SK#1234");
+    }
 
-        config.GetPKValue(model).ShouldBeEqualTo("1234");
+    [Fact]
+    public void ConfigureModelConfig_ShouldSetPrimaryKeyProperties()
+    {
+        TestModel model = new TestModel
+        {
+            Id = "1234"
+        };
+
+        var modelConfig = new TestModelConfig();
+
+        modelConfig.Configure(_config);
+
+        var primaryKey = _config.GetPrimaryKey(model);
+
+        primaryKey.PK.ShouldBeEqualTo("PK#1234");
+        primaryKey.SK.ShouldBeEqualTo("SK#1234");
+    }
+
+    [Fact]
+    public void PrefixesNotSet_PKShouldBeEqualsToId()
+    {
+        TestModel model = new TestModel
+        {
+            Id = "1234"
+        };
+
+        _config
+            .Id(x => x.Id);
+
+        _config.GetPrimaryKey(model).PK.ShouldBeEqualTo("1234");
+        _config.GetPrimaryKey(model).SK.ShouldBeEqualTo("1234");
     }
 
     [Fact]
     public void SK_ShouldBeSetWithPrefix()
     {
-
         var model = new TestModel
         {
             Id = "1234"
         };
 
-        _builder = _builder
+         _config
             .SKPrefix("SK")
             .Id(x => x.Id);
 
-        var config = _builder.Build();
-
-        config.GetSKValue(model).ShouldBeEqualTo("SK#1234");
+        _config.GetPrimaryKey(model).SK.ShouldBeEqualTo("SK#1234");
     }
 
 
@@ -97,14 +104,14 @@ public class DynamoDBModelConfigBuilderTests
             Id = "1234"
         };
 
-        _builder = _builder
+        _config
             .SKPrefix("SK")
             .Id(x => x.Id);
 
-        var config = _builder.Build();
+        var primaryKey = _config.GetPrimaryKey(model);
 
-        config.GetPrimaryKey(model).PK.ShouldBeEqualTo("1234");
-        config.GetPrimaryKey(model).SK.ShouldBeEqualTo("SK#1234");
+        primaryKey.PK.ShouldBeEqualTo("1234");
+        primaryKey.SK.ShouldBeEqualTo("SK#1234");
     }
 
     [Fact]
@@ -115,12 +122,11 @@ public class DynamoDBModelConfigBuilderTests
             Id = "1234"
         };
 
-        _builder = _builder
+         _config
             .SKPrefix("SK")
             .Id(x => x.Id);
 
-        var config = _builder.Build();
-        var primaryKey = config.GetPrimaryKey(model.Id);
+        var primaryKey = _config.GetPrimaryKey(model.Id);
 
         primaryKey.PK.ShouldBeEqualTo("1234");
         primaryKey.SK.ShouldBeEqualTo("SK#1234");
