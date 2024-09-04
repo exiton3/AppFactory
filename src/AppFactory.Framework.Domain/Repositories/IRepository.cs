@@ -1,6 +1,4 @@
-﻿using AppFactory.Framework.DataAccess.Configuration;
-
-namespace AppFactory.Framework.DataAccess.Repositories;
+﻿namespace AppFactory.Framework.Domain.Repositories;
 
 public interface IRepository<TModel> where TModel : class
 {

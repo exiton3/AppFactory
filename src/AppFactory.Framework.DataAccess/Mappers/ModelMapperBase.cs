@@ -3,6 +3,7 @@ using AppFactory.Framework.Domain.Entities;
 
 namespace AppFactory.Framework.DataAccess.Mappers;
 
+[Obsolete("User RepositoryBase class and no need custom mappers")]
 public abstract class ModelMapperBase<TEntity, TModel> : IModelMapper<TEntity, TModel> where TEntity : Entity where TModel : ModelBase
 {
     public TModel MapToModel(TEntity entity)

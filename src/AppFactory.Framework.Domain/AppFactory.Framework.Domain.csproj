@@ -33,7 +33,6 @@
   <ItemGroup>
     <Folder Include="Commands\" />
     <Folder Include="Extensions\" />
-    <Folder Include="Repositories\" />
   </ItemGroup>
 
 </Project>
