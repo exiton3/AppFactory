@@ -3,11 +3,11 @@ using System.Text.Json.Serialization;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using AppFactory.Framework.DataAccess.AmazonDbServices;
-using AppFactory.Framework.DataAccess.Models;
+using AppFactory.Framework.DataAccess.Configuration;
 
-namespace AppFactory.Framework.DataAccess;
+namespace AppFactory.Framework.DataAccess.Mapping;
 
-class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
+internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
 {
     private readonly JsonSerializerOptions _defaultOptions;
     private readonly DynamoDbModelConfig<TModel> _config;
@@ -62,6 +62,7 @@ class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         var attributeMap = modelDoc.ToAttributeMap();
 
         attributeMap = keyAttributes.Union(attributeMap).ToDictionary(k => k.Key, v => v.Value);
+
         return attributeMap;
     }
 }

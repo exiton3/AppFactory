@@ -1,6 +1,4 @@
-﻿using AppFactory.Framework.DataAccess.Models;
-
-namespace AppFactory.Framework.DataAccess;
+﻿namespace AppFactory.Framework.DataAccess.Configuration;
 
 public class DynamoDbModelConfig<TModel> : IModelConfigOptions<TModel> where TModel : class
 {
@@ -32,7 +30,7 @@ public class DynamoDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
 
     public PrimaryKey GetPrimaryKey(TModel model)
     {
-       return GetPrimaryKey(_id(model));
+        return GetPrimaryKey(_id(model));
     }
 
     public PrimaryKey GetPrimaryKey(object key)

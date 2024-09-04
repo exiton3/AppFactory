@@ -2,7 +2,7 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using AppFactory.Framework.DataAccess.Configuration;
-using AppFactory.Framework.DataAccess.Models;
+using AppFactory.Framework.DataAccess.Settings;
 using AppFactory.Framework.Logging;
 
 namespace AppFactory.Framework.DataAccess.AmazonDbServices;

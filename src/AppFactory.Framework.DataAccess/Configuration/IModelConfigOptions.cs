@@ -1,4 +1,4 @@
-﻿namespace AppFactory.Framework.DataAccess;
+﻿namespace AppFactory.Framework.DataAccess.Configuration;
 
 public interface IModelConfigOptions<TModel> where TModel : class
 {

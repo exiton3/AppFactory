@@ -8,12 +8,14 @@ using Amazon.DynamoDBv2.Model;
 using AppFactory.Framework.DataAccess.AmazonDbServices;
 using AppFactory.Framework.DataAccess.Configuration;
 using AppFactory.Framework.DataAccess.Models;
+using AppFactory.Framework.DataAccess.Settings;
 using AppFactory.Framework.Logging;
 
 [assembly: ExcludeFromCodeCoverage]
 
-namespace AppFactory.Framework.DataAccess;
+namespace AppFactory.Framework.DataAccess.Repositories;
 
+[Obsolete("User RepositoryBase instead")]
 public abstract class Repository : IDisposable
 {
     protected readonly ILogger Logger;
@@ -22,7 +24,7 @@ public abstract class Repository : IDisposable
     private readonly IDynamoDBClientFactory _dynamoDbFactory;
     private readonly JsonSerializerOptions _defaultOptions;
 
-    protected Repository(IDynamoDBClientFactory dynamoDbFactory, IAWSSettings awsSettings,ILogger logger)
+    protected Repository(IDynamoDBClientFactory dynamoDbFactory, IAWSSettings awsSettings, ILogger logger)
     {
         Logger = logger;
         _dynamoDbFactory = dynamoDbFactory;
@@ -43,9 +45,9 @@ public abstract class Repository : IDisposable
 
     protected IAmazonDynamoDB DynamoDb => _dynamoDb ?? _dynamoDbFactory.Create();
 
-    protected async Task<TModel?> GetByPrimaryKey<TModel>(PrimaryKey primaryKey) where TModel : ModelBase
+    protected async Task<TModel> GetByPrimaryKey<TModel>(PrimaryKey primaryKey) where TModel : ModelBase
     {
-      //  Query.GetItem.From(TableName).PrimaryKey(primaryKey);
+        //  Query.GetItem.From(TableName).PrimaryKey(primaryKey);
 
         var request = new GetItemRequest
         {
@@ -70,8 +72,8 @@ public abstract class Repository : IDisposable
 
         //var request = new TransactWriteItemsRequest();
         //request.TransactItems.Add(new TransactWriteItem{ Put = new Put {}});
-        
-           
+
+
         //await DynamoDb.TransactWriteItemsAsync(request);
 
         var response = await DynamoDb.PutItemAsync(new PutItemRequest { TableName = TableName, Item = items });
@@ -147,12 +149,12 @@ public abstract class Repository : IDisposable
             var request = queryRequestFactory();
 
             request.ExclusiveStartKey = lastKeyEvaluated;
-            QueryResponse? queryResponse;
-           
+            QueryResponse queryResponse;
+
             using (Logger.LogPerformance($"Get Query number {++i}"))
             {
-                 queryResponse = await DynamoDb.QueryAsync(request, cancellationToken);
-                 Logger.LogInfo($"Number of Items retrieved {queryResponse.Count} and size of {queryResponse.ContentLength}");
+                queryResponse = await DynamoDb.QueryAsync(request, cancellationToken);
+                Logger.LogInfo($"Number of Items retrieved {queryResponse.Count} and size of {queryResponse.ContentLength}");
             }
 
             foreach (var item in queryResponse.Items)
@@ -164,12 +166,12 @@ public abstract class Repository : IDisposable
 
             lastKeyEvaluated = queryResponse.LastEvaluatedKey;
 
-        } while (lastKeyEvaluated != null && lastKeyEvaluated.Count != 0) ;
+        } while (lastKeyEvaluated != null && lastKeyEvaluated.Count != 0);
 
         return models;
     }
 
-    private  TModel? MapModelFromAttributes<TModel>(Dictionary<string, AttributeValue> item) where TModel : ModelBase
+    private TModel MapModelFromAttributes<TModel>(Dictionary<string, AttributeValue> item) where TModel : ModelBase
     {
         var itemAsDocument = Document.FromAttributeMap(item);
 
@@ -178,7 +180,7 @@ public abstract class Repository : IDisposable
         return model;
     }
 
-    private  Dictionary<string, AttributeValue> MapToAttributes<TModel>(TModel item) where TModel : ModelBase
+    private Dictionary<string, AttributeValue> MapToAttributes<TModel>(TModel item) where TModel : ModelBase
     {
         var modelJson = JsonSerializer.Serialize(item, _defaultOptions);
         var modelDoc = Document.FromJson(modelJson);

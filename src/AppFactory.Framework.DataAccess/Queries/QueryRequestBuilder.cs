@@ -1,5 +1,5 @@
 ﻿using Amazon.DynamoDBv2.Model;
-using AppFactory.Framework.DataAccess.Models;
+using AppFactory.Framework.DataAccess.Configuration;
 using AppFactory.Framework.DataAccess.Queries.Expressions;
 
 namespace AppFactory.Framework.DataAccess.Queries;
@@ -43,7 +43,7 @@ public class QueryRequestBuilder
 
     public QueryRequestBuilder SK(Action<ISKConditionOptions> keyCondition)
     {
-        var skCondition = new KeyConditionOptions(DynamoDbKeyConstants.SK, SkName);
+        var skCondition = new KeyConditionOptions(DynamoDBConstants.SK, SkName);
 
         keyCondition(skCondition);
 

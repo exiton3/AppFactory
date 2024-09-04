@@ -1,6 +1,6 @@
 ﻿using Amazon;
 
-namespace AppFactory.Framework.DataAccess.Configuration
+namespace AppFactory.Framework.DataAccess.Settings
 {
     public interface IAWSSettings
     {

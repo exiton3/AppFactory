@@ -1,4 +1,5 @@
-﻿using AppFactory.Framework.TestExtensions;
+﻿using AppFactory.Framework.DataAccess.Configuration;
+using AppFactory.Framework.TestExtensions;
 using Xunit;
 
 namespace AppFactory.Framework.DataAccess.UnitTests;

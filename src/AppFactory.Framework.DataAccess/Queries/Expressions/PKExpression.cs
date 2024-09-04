@@ -1,4 +1,4 @@
-﻿using AppFactory.Framework.DataAccess.Models;
+﻿using AppFactory.Framework.DataAccess.Configuration;
 
 namespace AppFactory.Framework.DataAccess.Queries.Expressions;
 
@@ -8,7 +8,7 @@ public class PKExpression : QueryExpressionBase
 
     public PKExpression(string pk = null)
     {
-        _pkName = pk?? DynamoDbKeyConstants.PK;
+        _pkName = pk?? DynamoDBConstants.PK;
     }
 
     public string PKValue => _pkName.ToLower() + "Value";

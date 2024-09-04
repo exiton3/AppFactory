@@ -1,9 +1,9 @@
 ﻿using Amazon;
 using AppFactory.Framework.Shared.Config;
 
-namespace AppFactory.Framework.DataAccess.Configuration;
+namespace AppFactory.Framework.DataAccess.Settings;
 
-public class AwsSettings : IAWSSettings
+internal class AwsSettings : IAWSSettings
 {
     private readonly IConfigSettings _config;
 
@@ -25,6 +25,6 @@ public class AwsSettings : IAWSSettings
 
     public string GetEventBusName()
     {
-       return _config.GetValue("eventbus_name");
+        return _config.GetValue("eventbus_name");
     }
 }

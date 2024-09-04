@@ -1,9 +1,10 @@
 ﻿using Amazon.DynamoDBv2.Model;
 using AppFactory.Framework.DataAccess.AmazonDbServices;
-using AppFactory.Framework.DataAccess.Models;
+using AppFactory.Framework.DataAccess.Configuration;
+using AppFactory.Framework.DataAccess.Mapping;
 using AppFactory.Framework.Logging;
 
-namespace AppFactory.Framework.DataAccess;
+namespace AppFactory.Framework.DataAccess.Repositories;
 
 public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> where TModel : class
 {
@@ -11,29 +12,30 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
     private readonly DynamoDbModelConfig<TModel> _config;
     private readonly IDynamoDbClient _dynamoDbClient;
     private readonly IModelMapper<TModel> _mapper;
-    protected RepositoryBase(IDynamoDBClientFactory dynamoDbFactory,ILogger logger, IModelConfig<TModel> modelConfig)
+
+    protected RepositoryBase(IDynamoDBClientFactory dynamoDbFactory, ILogger logger, IModelConfig<TModel> modelConfig)
     {
         Logger = logger;
         _dynamoDbClient = dynamoDbFactory.CreateClient();
         Logger.LogTrace($"Repository {GetType().Name} #{GetHashCode()} created");
-         _config = new DynamoDbModelConfig<TModel>();
-         modelConfig.Configure(_config);
-         _mapper = new ModelMapper<TModel>(_config);
+        _config = new DynamoDbModelConfig<TModel>();
+        modelConfig.Configure(_config);
+        _mapper = new ModelMapper<TModel>(_config);
     }
 
-    protected async Task<TModel?> GetByPrimaryKey(PrimaryKey primaryKey)
+    protected async Task<TModel> GetByPrimaryKey(PrimaryKey primaryKey)
     {
         var item = await _dynamoDbClient.GetByPrimaryKey(primaryKey);
 
         return item == default ? default : _mapper.MapModelFromAttributes(item);
     }
 
-    public async Task<TModel?> GetById<TKey>(TKey key)
+    public async Task<TModel> GetById<TKey>(TKey key)
     {
-       return await GetByPrimaryKey(_config.GetPrimaryKey(key));
+        return await GetByPrimaryKey(_config.GetPrimaryKey(key));
     }
 
-    protected async Task<bool> Insert(TModel model) 
+    protected async Task<bool> Insert(TModel model)
     {
         var items = _mapper.MapToAttributes(model);
 
