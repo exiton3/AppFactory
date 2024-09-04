@@ -11,4 +11,11 @@ public static class DependencyRegistrationExtensions
         services.AddSingleton<IDynamoDBClientFactory, DynamoDbClientFactory>();
         services.AddScoped<IAWSSettings, AwsSettings>();
     }
+
+    public static IServiceCollection RegisterModelConfig<TModelConfig,TModel>(this IServiceCollection services) where TModelConfig : IModelConfig<TModel> where TModel:class
+    {
+        services.AddSingleton(typeof(IModelConfig<TModel>), typeof(TModelConfig));
+
+        return services;
+    }
 }
