@@ -11,8 +11,8 @@ public class PrimaryKey
     {
         return new Dictionary<string, AttributeValue>
         {
-            [DynamoDBConstants.PK] = new() { S = PK },
-            [DynamoDBConstants.SK] = new() { S = SK }
+            [DynamoDbConstants.PK] = new() { S = PK },
+            [DynamoDbConstants.SK] = new() { S = SK }
         };
     }
 }

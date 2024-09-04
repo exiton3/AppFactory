@@ -8,7 +8,7 @@ public class PKExpression : QueryExpressionBase
 
     public PKExpression(string pk = null)
     {
-        _pkName = pk?? DynamoDBConstants.PK;
+        _pkName = pk?? DynamoDbConstants.PK;
     }
 
     public string PKValue => _pkName.ToLower() + "Value";

@@ -1,6 +1,6 @@
 ﻿namespace AppFactory.Framework.DataAccess.Configuration;
 
-public class DynamoDBConstants
+public class DynamoDbConstants
 {
     public const string PK = "PK";
     public const string SK = "SK";

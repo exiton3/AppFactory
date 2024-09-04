@@ -2,8 +2,8 @@
 
 public class DynamoDbModelConfig<TModel> : IModelConfigOptions<TModel> where TModel : class
 {
-    protected string PKPattern => $"{_pkPrefix}{DynamoDBConstants.Separator}{{0}}";
-    protected string SKPattern => $"{_skPrefix}{DynamoDBConstants.Separator}{{0}}";
+    protected string PKPattern => $"{_pkPrefix}{DynamoDbConstants.Separator}{{0}}";
+    protected string SKPattern => $"{_skPrefix}{DynamoDbConstants.Separator}{{0}}";
     private string _pkPrefix;
     private string _skPrefix;
     private Func<TModel, object> _id;

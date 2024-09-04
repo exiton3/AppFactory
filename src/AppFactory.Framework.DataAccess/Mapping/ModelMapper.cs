@@ -32,8 +32,8 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
 
     public TModel MapModelFromAttributes(DynamoDbItem item)
     {
-        item.Remove(DynamoDBConstants.PK);
-        item.Remove(DynamoDBConstants.SK);
+        item.Remove(DynamoDbConstants.PK);
+        item.Remove(DynamoDbConstants.SK);
 
         var itemAsDocument = Document.FromAttributeMap(item);
 

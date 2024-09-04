@@ -43,7 +43,7 @@ public class QueryRequestBuilder
 
     public QueryRequestBuilder SK(Action<ISKConditionOptions> keyCondition)
     {
-        var skCondition = new KeyConditionOptions(DynamoDBConstants.SK, SkName);
+        var skCondition = new KeyConditionOptions(DynamoDbConstants.SK, SkName);
 
         keyCondition(skCondition);
 
