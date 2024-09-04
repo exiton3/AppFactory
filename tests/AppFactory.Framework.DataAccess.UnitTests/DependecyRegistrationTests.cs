@@ -4,7 +4,7 @@ using Xunit;
 
 namespace AppFactory.Framework.DataAccess.UnitTests;
 
-public class DependecyRegistrationTests
+public class DependencyRegistrationTests
 {
     [Fact]
     public void RegisterModelConfig()
