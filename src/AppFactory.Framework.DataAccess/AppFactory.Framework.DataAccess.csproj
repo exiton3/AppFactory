@@ -33,7 +33,6 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AppFactory.Framework.Domain" Version="1.0.0" />
     <PackageReference Include="AppFactory.Framework.Logging" Version="1.0.2" />
     <PackageReference Include="AppFactory.Framework.Shared" Version="1.0.0" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.303.25" />
@@ -43,6 +42,10 @@
 
   <ItemGroup>
     <Folder Include="Mappers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
   </ItemGroup>
 
 </Project>

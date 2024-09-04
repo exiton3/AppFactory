@@ -2,6 +2,7 @@
 using AppFactory.Framework.DataAccess.Configuration;
 using AppFactory.Framework.DataAccess.DynamoDb;
 using AppFactory.Framework.DataAccess.Mapping;
+using AppFactory.Framework.Domain.Repositories;
 using AppFactory.Framework.Logging;
 
 namespace AppFactory.Framework.DataAccess.Repositories;
@@ -81,9 +82,11 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
         }
     }
 
-    public async Task<bool> Delete(PrimaryKey key, CancellationToken cancellationToken = default)
+    public async Task<bool> Delete<TKey>(TKey key, CancellationToken cancellationToken = default)
     {
-        return await _dynamoDbClient.DeleteItemAsync(key, cancellationToken);
+        var primaryKey = _config.GetPrimaryKey(key);
+
+        return await _dynamoDbClient.DeleteItemAsync(primaryKey, cancellationToken);
     }
 
     protected async Task<IEnumerable<TModel>> Query(Func<QueryRequest> queryRequestFactory, CancellationToken cancellationToken)
