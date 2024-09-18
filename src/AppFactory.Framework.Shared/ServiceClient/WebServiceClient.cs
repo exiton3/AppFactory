@@ -33,18 +33,30 @@ public class WebServiceClient : IWebServiceClient
             };
         }
     }
-
-    public async Task<string> PostRequestAsync(HttpRequestMessage message, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Sends Http Web request
+    /// </summary>
+    /// <param name="message">HttpMessage</param>
+    /// <param name="timeout">Timeout in seconds by default 60 sec</param>
+    /// <param name="cancellationToken">Cancelation token</param>
+    /// <returns></returns>
+    public async Task<ServiceResult> SendRequest(HttpRequestMessage message, double timeout = 60, CancellationToken cancellationToken = default)
     {
         try
         {
             using (var httpClient = new HttpClient())
             {
-                httpClient.Timeout = TimeSpan.FromSeconds(60);
+                httpClient.Timeout = TimeSpan.FromSeconds(timeout);
                 var response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseContentRead,
                     cancellationToken);
 
-                return await response.Content.ReadAsStringAsync(cancellationToken);
+                var result = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                return new ServiceResult
+                {
+                    StatusCode = response.StatusCode,
+                    Data = result
+                };
             }
         }
         catch (Exception ex)
