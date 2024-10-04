@@ -67,7 +67,7 @@ namespace AppFactory.Framework.Logging.UnitTests
             var message = new Message { Code = "1234", Number = 5678 };
 
             logger.LogDebug("Debug {@Message}",message);
-           // logger.LogInfo("Info {@Message}", message);
+            logger.LogInfo("Info {@Message}", message);
 
             //_testOutput.Output.ShouldBeEmpty();
             var levelSwitch = provider.GetService<LoggingLevelSwitch>();
