@@ -67,9 +67,9 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : Messag
     {
         try
         {
-            context.Logger.LogInformation($"Processed message {sqsMessage.Body}");
+            context.Logger.LogDebug($"Processed message {sqsMessage.Body}");
 
-            _logger.LogInfo($"Message {sqsMessage.MessageId} from {sqsMessage.EventSource} received {sqsMessage.Body}");
+            _logger.LogInfo($"Message {sqsMessage.MessageId} from {sqsMessage.EventSource} received");
             _logger.LogTrace(
                 $"Message {sqsMessage.MessageId} from {sqsMessage.EventSource} received {sqsMessage.Body} Attributes ,{sqsMessage.MessageAttributes.Keys.Count}");
             
