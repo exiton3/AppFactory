@@ -19,6 +19,8 @@ class TestModelConfig:IModelConfig<TestModel>
 internal class TestModel
 {
     public string Id { get; set; }
+    public string PK { get; set; }
+    public string SK { get; set; }
 }
 
 public class DynamoDBModelConfigBuilderTests
@@ -131,5 +133,25 @@ public class DynamoDBModelConfigBuilderTests
 
         primaryKey.PK.ShouldBeEqualTo("1234");
         primaryKey.SK.ShouldBeEqualTo("SK#1234");
+    }
+
+    [Fact]
+    public void GetPrimaryKey_PK_andSK_Set_ShouldReturn()
+    {
+        var model = new TestModel
+        {
+            PK = "123",
+            SK = "123"
+        };
+
+        _config
+            .SKPrefix("SK")
+            .PK(x => x.PK)
+            .SK(x => x.SK);
+
+        var primaryKey = _config.GetPrimaryKey(model);
+
+        primaryKey.PK.ShouldBeEqualTo("123");
+        primaryKey.SK.ShouldBeEqualTo("SK#123");
     }
 }

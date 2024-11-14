@@ -6,16 +6,17 @@ public class DynamoDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     protected string SKPattern => $"{_skPrefix}{DynamoDbConstants.Separator}{{0}}";
     private string _pkPrefix;
     private string _skPrefix;
-    private Func<TModel, object> _id;
+    private Func<TModel, object> _pk;
+    private Func<TModel, object> _sk;
 
     internal string GetPKValue(TModel model)
     {
-        return GetPKValue(_id(model));
+        return GetPKValue(_pk(model));
     }
 
     internal string GetSKValue(TModel model)
     {
-        return GetSKValue(_id(model));
+        return GetSKValue(_sk(model));
     }
 
     internal string GetPKValue(object key)
@@ -30,7 +31,7 @@ public class DynamoDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
 
     public PrimaryKey GetPrimaryKey(TModel model)
     {
-        return GetPrimaryKey(_id(model));
+        return GetPrimaryKey(_pk(model), _sk(model));
     }
 
     public PrimaryKey GetPrimaryKey(object key)
@@ -39,6 +40,15 @@ public class DynamoDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
         {
             PK = GetPKValue(key),
             SK = GetSKValue(key)
+        };
+    }
+
+    public PrimaryKey GetPrimaryKey(object pk, object sk)
+    {
+        return new PrimaryKey
+        {
+            PK = GetPKValue(pk),
+            SK = GetSKValue(sk)
         };
     }
 
@@ -56,9 +66,24 @@ public class DynamoDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
         return this;
     }
 
+    public IModelConfigOptions<TModel> PK<TKey>(Func<TModel, TKey> id)
+    {
+        _pk = o => id(o);
+
+        return this;
+    }
+
+    public IModelConfigOptions<TModel> SK<TKey>(Func<TModel, TKey> id)
+    {
+        _sk = o => id(o);
+
+        return this;
+    }
+
     public IModelConfigOptions<TModel> Id<TKey>(Func<TModel, TKey> id)
     {
-        _id = o => id(o);
+        _pk = o => id(o);
+        _sk = o => id(o);
 
         return this;
     }
