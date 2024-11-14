@@ -17,7 +17,6 @@ public class DependencyModule : IDependencyRegistrationModule
 {
     public void RegisterServices(IServiceCollection services)
     {
-        services.AddLogging();
         services.AddSingleton<IJsonSerializer, DefaultJsonSerializer>();
         services.AddSingleton<IConfigSettings, ConfigSettings>();
         services.AddSingleton<IParseModelMapRegistry, ParseModelMapRegistry>();
@@ -31,5 +30,6 @@ public class DependencyModule : IDependencyRegistrationModule
         services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
         services.AddScoped<IWebServiceClient, WebServiceClient>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddLogging(x => x.LogLevel = LogLevel.Debug);
     }
 }
