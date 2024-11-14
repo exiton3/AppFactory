@@ -34,12 +34,12 @@ jobs:
         project:
         # - AppFactory.Framework.Domain
         # - AppFactory.Framework.DependencyInjection
-         - AppFactory.Framework.Logging
+        # - AppFactory.Framework.Logging
         #  - AppFactory.Framework.Messaging
         #  - AppFactory.Framework.EventBus
          # - AppFactory.Framework.EventBus.Aws
         # - AppFactory.Framework.Shared
-          #- AppFactory.Framework.DataAccess
+          - AppFactory.Framework.DataAccess
           #- AppFactory.Framework.Api
 
     steps:
