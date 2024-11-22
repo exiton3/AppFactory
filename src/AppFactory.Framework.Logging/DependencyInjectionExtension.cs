@@ -8,9 +8,28 @@ public static class DependencyInjectionExtension
 {
     public static IServiceCollection AddLogging(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<ILogger, SerilogLogger>();
+        var logLevel = GetLogLevelFromEnvironmentOrDefault();
+
+        serviceCollection.AddLogging(x => x.LogLevel = logLevel);
         
         return serviceCollection;
+    }
+
+    private static LogLevel GetLogLevelFromEnvironmentOrDefault()
+    {
+       var logLevel = Environment.GetEnvironmentVariable("log_level");
+
+       if (string.IsNullOrEmpty(logLevel))
+       {
+           return LogLevel.Information;
+       }
+
+       if (Enum.TryParse(typeof(LogLevel), logLevel, true, out var parsedLogLevel))
+       {
+           return (LogLevel)parsedLogLevel;
+       }
+
+       return LogLevel.Information;
     }
 
     public static IServiceCollection AddLogging(this IServiceCollection serviceCollection, Action<LogConfig> configureLogger)

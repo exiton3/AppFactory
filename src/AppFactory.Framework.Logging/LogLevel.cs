@@ -1,5 +1,4 @@
-﻿using Serilog.Core;
-using Serilog.Events;
+﻿using Serilog.Events;
 
 namespace AppFactory.Framework.Logging;
 

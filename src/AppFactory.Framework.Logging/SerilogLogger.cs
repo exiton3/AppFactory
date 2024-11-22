@@ -2,13 +2,12 @@
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
-using System.Reflection.Metadata;
 
 namespace AppFactory.Framework.Logging;
 
 class SerilogLogger : ILogger
 {
-    private const string DefaultContext = "TraceId";
+    private const string DefaultContext = "traceId";
     private string _context = DefaultContext;
     private readonly Logger _logger;
     private string _traceId;
@@ -43,7 +42,7 @@ class SerilogLogger : ILogger
     }
     public void LogInfo(string messageTemplate, params object[] propertyValues)
     {
-        _logger.Information(messageTemplate, propertyValues);
+        _logger.ForContext(_context, _traceId).Information(messageTemplate, propertyValues);
     }
 
     public void LogTrace(string message)
@@ -53,12 +52,12 @@ class SerilogLogger : ILogger
 
     public void LogTrace(string message, params object[] propertyValues)
     {
-        _logger.Verbose(message, propertyValues);
+        _logger.ForContext(_context, _traceId).Verbose(message, propertyValues);
     }
 
     public void LogDebug(string messageTemplate, params object[] values)
     {
-        _logger.Debug(messageTemplate, values);
+        _logger.ForContext(_context, _traceId).Debug(messageTemplate, values);
     }
     public void LogDebug(string context, object value, string messageTemplate, params object[] values)
     {
@@ -82,6 +81,6 @@ class SerilogLogger : ILogger
 
     public void LogError(Exception exception, string messageTemplate, params object[] values)
     {
-        _logger.Error(exception, messageTemplate, values);
+        _logger.ForContext(_context, _traceId).Error(exception, messageTemplate, values);
     }
 }
