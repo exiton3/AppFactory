@@ -15,6 +15,6 @@ public class DependencyModule : IDependencyRegistrationModule
         services.AddSingleton<IConfigSettings, ConfigSettings>();
         services.AddScoped<IWebServiceClient, WebServiceClient>();
         services.AddSingleton<IServiceProvider>(x => x);
-        services.AddLogging(x => x.LogLevel = LogLevel.Debug);
+        services.AddLogging();
     }
 }

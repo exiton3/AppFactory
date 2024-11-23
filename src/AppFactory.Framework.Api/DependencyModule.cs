@@ -30,6 +30,6 @@ public class DependencyModule : IDependencyRegistrationModule
         services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
         services.AddScoped<IWebServiceClient, WebServiceClient>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-        services.AddLogging(x => x.LogLevel = LogLevel.Debug);
+        services.AddLogging();
     }
 }
