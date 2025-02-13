@@ -82,4 +82,55 @@ public class QueryRequestBuilderTests
         request.KeyConditionExpression.ShouldBeEqualTo("PK = :pkValue and begins_with(SK,:skValue)");
     }
 
+    [Fact]
+    public void Gsi_SupportedInQueryRequest()
+    {
+        var request = QueryRequestBuilder.From("TableName")
+            .GlobalIndex("indexName")
+            .Build();
+
+        request.IndexName.ShouldBeEqualTo("indexName");
+    }
+
+
+    [Fact]
+    public void QueryBy_Custom_KeyConditionExpression()
+    {
+        var request = QueryRequestBuilder.From("TableName")
+            .GlobalIndex("indexName")
+            .QueryBy<SampleModel>(x => x.Name, "someValue")
+            .Build();
+        request.ExpressionAttributeValues[":nameValue"].S.ShouldBeEqualTo("someValue");
+        request.KeyConditionExpression.ShouldBeEqualTo("name = :nameValue");
+    }
+
+    [Fact]
+    public void ThenBy_KeyConditionExpression()
+    {
+        var request = QueryRequestBuilder.From("TableName")
+            .GlobalIndex("indexName")
+            .QueryBy("fieldName", "someValue")
+            .ThenBy("name", x=>x.Equals("secondValue"))
+            .Build();
+        request.ExpressionAttributeValues[":nameValue"].S.ShouldBeEqualTo("secondValue");
+        request.KeyConditionExpression.ShouldBeEqualTo("fieldName = :fieldNameValue and name = :nameValue");
+    }
+
+    [Fact]
+    public void ThenByWithLambdaExpression_KeyConditionExpression()
+    {
+        var request = QueryRequestBuilder.From("TableName")
+            .GlobalIndex("indexName")
+            .QueryBy<SampleModel>(x=>x.Id, "someValue")
+            .ThenBy<SampleModel>(x=>x.Name, c => c.Equals("secondValue"))
+            .Build();
+        request.ExpressionAttributeValues[":nameValue"].S.ShouldBeEqualTo("secondValue");
+        request.KeyConditionExpression.ShouldBeEqualTo("id = :idValue and name = :nameValue");
+    }
+}
+
+class SampleModel
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
 }

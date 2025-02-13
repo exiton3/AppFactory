@@ -8,7 +8,7 @@ namespace AppFactory.Framework.DataAccess.Queries;
 public abstract class ConditionExpressionMap<TModel>: QueryModelExpression<TModel> where TModel : ModelBase
 {
     private readonly List<KeyConditionOptions> _conditions = new();
-    protected IKeyConditionOptions ConditionFor<TProp>(Expression<Func<TModel, TProp>> propertyExpression)
+    protected ISKConditionOptions ConditionFor<TProp>(Expression<Func<TModel, TProp>> propertyExpression)
     {
         var propName = PropertyExpressionHelper.GetPropertyName(propertyExpression);
 
@@ -33,5 +33,17 @@ public abstract class ConditionExpressionMap<TModel>: QueryModelExpression<TMode
        }
 
        return expression.Evaluate();
+    }
+}
+
+public class TestModel : ModelBase
+{
+    public string Name { get; set; }
+}
+public class ConditionExpressionMapImpl : ConditionExpressionMap<TestModel> 
+{
+    public ConditionExpressionMapImpl()
+    {
+        ConditionFor(x => x.Name).Equals("asdf");
     }
 }

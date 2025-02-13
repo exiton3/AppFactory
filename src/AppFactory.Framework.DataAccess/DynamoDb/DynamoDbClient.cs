@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using AppFactory.Framework.DataAccess.Configuration;
 using AppFactory.Framework.DataAccess.Settings;
@@ -122,7 +123,6 @@ public class DynamoDbClient : IDynamoDbClient
 
         return items;
     }
-
     public void Dispose()
     {
         _client?.Dispose();

@@ -4,6 +4,7 @@ public interface IQueryExpression
 {
     public string Evaluate();
     IQueryExpression And(IQueryExpression keyExpression);
+    
 }
 
 public abstract class QueryModelExpression<TModel> : IQueryExpression
@@ -46,5 +47,10 @@ public static class ConditionsExtensions
     public static IQueryExpression SK(this IQueryExpression condition)
     {
         return new SKExpression();
+    }
+
+    public static IQueryExpression Index(this IQueryExpression condition, string name)
+    {
+        return new IndexExpression(name);
     }
 }
