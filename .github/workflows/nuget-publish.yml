@@ -38,8 +38,8 @@ jobs:
         #  - AppFactory.Framework.Messaging
         #  - AppFactory.Framework.EventBus
         #  - AppFactory.Framework.EventBus.Aws
-        # - AppFactory.Framework.Shared
-          - AppFactory.Framework.DataAccess
+          - AppFactory.Framework.Shared
+        # - AppFactory.Framework.DataAccess
         # - AppFactory.Framework.Api
 
     steps:
