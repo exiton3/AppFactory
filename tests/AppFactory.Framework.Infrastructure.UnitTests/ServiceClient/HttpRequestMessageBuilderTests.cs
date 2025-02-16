@@ -1,10 +1,13 @@
-﻿using AppFactory.Framework.Shared.ServiceClient;
+﻿using System.Net;
+using System.Net.Mime;
+using AppFactory.Framework.Shared.ServiceClient;
 using AppFactory.Framework.TestExtensions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AppFactory.Framework.Infrastructure.UnitTests.ServiceClient;
 
-public class HttpRequestMessageBuilderTests
+public class HttpRequestMessageBuilderTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public void Post_SetHttpMethodAndRequestUri()
@@ -71,5 +74,50 @@ public class HttpRequestMessageBuilderTests
 
         message.Headers.Contains(name).ShouldBeTrue();
         message.Headers.First(x=>x.Key == name).Value.First().ShouldBeEqualTo(value);
+    }
+
+    [Fact]
+    public void AcceptHeader_ShouldAddHeaderWithMediaType()
+    {
+        var expectedUrl = @"http://someurl/";
+        var message = HttpRequestMessageBuilder
+            .Post(expectedUrl)
+            .Accept(MediaTypeNames.Application.Json)
+            .Build();
+
+        testOutputHelper.WriteLine(message.ToString());
+
+        message.Headers.Accept.First().MediaType.ShouldBeEqualTo("application/json");
+    }
+
+    [Fact]
+    public void BearerToken_AddsAuthorizationHeader()
+    {
+        var expectedUrl = @"http://someurl/";
+        var message = HttpRequestMessageBuilder
+            .Post(expectedUrl)
+            .BearerToken("some_token")
+            .Build();
+
+        var authorization = message.Headers.Authorization;
+
+        authorization.Scheme.ShouldBeEqualTo(AuthorizationScheme.Bearer);
+        authorization.Parameter.ShouldBeEqualTo("some_token");
+
+        testOutputHelper.WriteLine(message.ToString());
+    }
+
+    [Fact]
+    public void MessageNotSet_ContentShouldBeEmpty()
+    {
+        var expectedUrl = @"http://someurl/";
+        var message = HttpRequestMessageBuilder
+            .Post(expectedUrl)
+            .BearerToken("some_token")
+            .Build();
+
+        message.Content.ShouldBeNull();
+
+        testOutputHelper.WriteLine(message.ToString());
     }
 }
