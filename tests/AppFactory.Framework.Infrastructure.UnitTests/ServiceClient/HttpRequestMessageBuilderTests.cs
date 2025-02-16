@@ -108,7 +108,7 @@ public class HttpRequestMessageBuilderTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void MessageNotSet_ContentShouldBeEmpty()
+    public void MessageNotSet_ContentShouldNotBeEmpty()
     {
         var expectedUrl = @"http://someurl/";
         var message = HttpRequestMessageBuilder
@@ -116,7 +116,7 @@ public class HttpRequestMessageBuilderTests(ITestOutputHelper testOutputHelper)
             .BearerToken("some_token")
             .Build();
 
-        message.Content.ShouldBeNull();
+        message.Content.ShouldBeNotNull();
 
         testOutputHelper.WriteLine(message.ToString());
     }

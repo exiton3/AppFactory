@@ -77,10 +77,7 @@ public class HttpRequestMessageBuilder
 
     public HttpRequestMessage Build()
     {
-        if (!string.IsNullOrEmpty(_messageToSend))
-        {
-            _requestMessage.Content = new StringContent(_messageToSend, Encoding.UTF8, _contentType);
-        }
+        _requestMessage.Content = new StringContent(_messageToSend, Encoding.UTF8, _contentType);
 
         return _requestMessage;
     }
