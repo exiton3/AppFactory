@@ -4,4 +4,5 @@ public interface IWebServiceClient
 {
     Task<ServiceResult> SendRequest(string baseUri, string url, CancellationToken cancellationToken = default);
     Task<ServiceResult> SendRequest(HttpRequestMessage message, double timeout, CancellationToken cancellationToken = default);
+    Task<ServiceResult<TResponse>> SendRequest<TResponse>(HttpRequestMessage message, double timeout, CancellationToken cancellationToken = default);
 }
