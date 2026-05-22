@@ -12,7 +12,7 @@ jobs:
         uses: actions/setup-dotnet@main
         with:
           dotnet-version: |
-            8.0.x
+            10.0.x
       - name: Install dependencies
         run: dotnet restore
 
@@ -32,13 +32,14 @@ jobs:
     strategy:
       matrix:
         project:
-        # - AppFactory.Framework.Domain
-        # - AppFactory.Framework.DependencyInjection
-        #- AppFactory.Framework.Logging
+         - AppFactory.Framework.Domain
+         - AppFactory.Framework.DependencyInjection
+         - AppFactory.Framework.Logging
         #  - AppFactory.Framework.Messaging
         #  - AppFactory.Framework.EventBus
         #  - AppFactory.Framework.EventBus.Aws
-          - AppFactory.Framework.Shared
+         - AppFactory.Framework.Shared
+         - AppFactory.TestExtensions
         # - AppFactory.Framework.DataAccess
         # - AppFactory.Framework.Api
 
@@ -61,7 +62,7 @@ jobs:
         uses: actions/setup-dotnet@main
         with:
           dotnet-version: |
-            8.0.x
+            10.0.x
 
       - name: Restore ${{ matrix.project }} dependencies
         run: dotnet restore ./src/${{ matrix.project }}/${{ matrix.project }}.csproj
