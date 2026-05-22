@@ -35,6 +35,7 @@ jobs:
          - AppFactory.Framework.Domain
          - AppFactory.Framework.DependencyInjection
          - AppFactory.Framework.Logging
+         - AppFactory.Framework.Application
          - AppFactory.Framework.Shared
          - AppFactory.Framework.Messaging
          - AppFactory.Framework.EventBus
