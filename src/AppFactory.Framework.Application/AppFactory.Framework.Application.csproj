@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Description>AppFactory Framework Application Layer - CQRS, Use Cases, and Application Services</Description>
+		<PackageTags>AppFactory;Framework;CQRS;Application;UseCase</PackageTags>
+		<Title>AppFactory Framework Application</Title>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Repositories\" />
+	</ItemGroup>
+
+</Project>

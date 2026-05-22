@@ -73,6 +73,11 @@ Install the AppFactory NuGet packages:
 dotnet add package AppFactory.Framework.Domain
 ```
 
+**Application Layer (CQRS):**
+```bash
+dotnet add package AppFactory.Framework.Application
+```
+
 **For AWS Lambda API Development:**
 ```bash
 dotnet add package AppFactory.Framework.Api
@@ -102,6 +107,7 @@ Or via Package Manager Console:
 
 ```powershell
 Install-Package AppFactory.Framework.Domain
+Install-Package AppFactory.Framework.Application
 Install-Package AppFactory.Framework.Api
 Install-Package AppFactory.Framework.EventBus.Aws
 Install-Package AppFactory.Framework.Messaging
@@ -118,7 +124,7 @@ Commands represent operations that change the system state. They return a `Comma
 **Define a Command:**
 
 ```csharp
-using AppFactory.Framework.Domain.Commands;
+using AppFactory.Framework.Application.Commands;
 
 public class CreateUserCommand : ICommand
 {
@@ -161,7 +167,7 @@ Queries retrieve data without modifying system state.
 **Define a Query:**
 
 ```csharp
-using AppFactory.Framework.Domain.Queries;
+using AppFactory.Framework.Application.Queries;
 
 public class GetUserByIdQuery : IQueryRequest
 {
@@ -564,8 +570,8 @@ With AppFactory, you can:
 Here's a complete example showing a CQRS flow for an order processing system:
 
 ```csharp
-using AppFactory.Framework.Domain.Commands;
-using AppFactory.Framework.Domain.Queries;
+using AppFactory.Framework.Application.Commands;
+using AppFactory.Framework.Application.Queries;
 using AppFactory.Framework.Domain.Entities;
 using AppFactory.Framework.Domain.ServiceResult;
 
@@ -732,7 +738,79 @@ public class OrderService
 
 ## 🏛️ Architecture Principles
 
-AppFactory promotes clean architecture principles:
+AppFactory promotes clean architecture principles with a clear layered architecture:
+
+### 📐 Clean Architecture Layers
+
+AppFactory follows **Clean Architecture** principles with strict dependency rules ensuring maintainable, testable code:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Infrastructure Layer                     │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │           AppFactory.Framework.DataAccess.*            │  │
+│  │     (DynamoDB, CosmosDB Repository Implementations)    │  │
+│  └────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │            AppFactory.Framework.Api                    │  │
+│  │         (Lambda Handlers, API Gateway)                 │  │
+│  └────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │         AppFactory.Framework.EventBus.Aws              │  │
+│  │       (EventBridge, SQS Implementations)               │  │
+│  └────────────────────────────────────────────────────────┘  │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ depends on ↓
+┌──────────────────────┴──────────────────────────────────────┐
+│                    Application Layer                         │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │         AppFactory.Framework.Application               │  │
+│  │    (CQRS Handlers, Commands, Queries, Use Cases)       │  │
+│  └────────────────────────────────────────────────────────┘  │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ depends on ↓
+┌──────────────────────┴──────────────────────────────────────┐
+│                       Domain Layer                           │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │            AppFactory.Framework.Domain                 │  │
+│  │    (Entities, Value Objects, Domain Services,          │  │
+│  │     IRepository - following Dependency Inversion)      │  │
+│  └────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Layer Responsibilities:**
+
+#### 🏛️ Domain Layer (`AppFactory.Framework.Domain`)
+- **Pure business logic** - No infrastructure dependencies
+- **Entities & Value Objects** - Core domain models with behavior
+- **Domain Services** - Business logic that doesn't belong to a single entity
+- **Repository Interfaces** - Defines what persistence abstractions the domain needs (Dependency Inversion Principle)
+- **Domain Events** - Represent state changes in the domain
+- **Zero external dependencies** - Keeps business logic portable and testable
+
+#### 🎯 Application Layer (`AppFactory.Framework.Application`)
+- **Use Case Orchestration** - Coordinates domain objects to fulfill business use cases
+- **CQRS Infrastructure** - Commands, Queries, Handlers, and Dispatcher
+- **Application Services** - Application-specific business logic and workflows
+- **DTOs & Mapping** - Data transfer objects for cross-boundary communication
+- **Depends only on Domain** - One-way dependency ensures domain remains pure
+
+#### 🔌 Infrastructure Layer (DataAccess, API, EventBus)
+- **Repository Implementations** - Concrete implementations of `IRepository<T>` (DynamoDB, CosmosDB)
+- **External Service Integrations** - AWS Lambda, EventBridge, SQS, database clients
+- **Framework-Specific Code** - Dependency injection, configuration, logging
+- **Depends on Application & Domain** - Implements interfaces defined by inner layers
+
+**Dependency Rule:** Dependencies flow **inward only**. Infrastructure → Application → Domain. The domain layer has no knowledge of outer layers.
+
+**Key Benefits:**
+- ✅ **Testability** - Domain and Application layers are easily unit tested without infrastructure
+- ✅ **Flexibility** - Swap implementations (DynamoDB ↔ CosmosDB) without changing business logic
+- ✅ **Maintainability** - Clear separation of concerns makes changes predictable
+- ✅ **Independent Deployment** - Infrastructure can evolve independently of business rules
+
+---
 
 ### Separation of Concerns
 - **Commands** modify state and return results

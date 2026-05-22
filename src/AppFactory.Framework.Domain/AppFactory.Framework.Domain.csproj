@@ -1,13 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Description>AppFactory Framework Domain CQRS</Description>
-		<PackageTags>AppFactory;Framework;CQRS</PackageTags>
+		<Description>AppFactory Framework Domain - Pure Business Logic and Domain Models</Description>
+		<PackageTags>AppFactory;Framework;Domain;DDD</PackageTags>
 		<Title>AppFactory Framework Domain</Title>
 	</PropertyGroup>
-  <ItemGroup>
-    <Folder Include="Commands\" />
-    <Folder Include="Extensions\" />
-  </ItemGroup>
 
 </Project>
