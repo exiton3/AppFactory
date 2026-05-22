@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AppFactory.TestExtensions" Version="1.0.0" />
+    <PackageReference Include="AppFactory.TestExtensions" Version="10.0.1" />
     <PackageReference Include="JunitXml.TestLogger" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
