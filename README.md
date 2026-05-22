@@ -200,6 +200,87 @@ public class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, UserDto>
 }
 ```
 
+### Dependency Registration
+
+Register CQRS components in your application's dependency injection container:
+
+**Register All CQRS Components:**
+
+```csharp
+using AppFactory.Framework.Application;
+using Microsoft.Extensions.DependencyInjection;
+
+var services = new ServiceCollection();
+
+// Automatically registers CommandDispatcher and scans assemblies for all handlers
+services.AddCqrs(typeof(CreateUserCommandHandler).Assembly);
+
+// Or scan multiple assemblies
+services.AddCqrs(
+    typeof(CreateUserCommandHandler).Assembly,
+    typeof(GetUserByIdQueryHandler).Assembly
+);
+```
+
+**Register Only Command Handlers:**
+
+```csharp
+// Registers CommandDispatcher + Command Handlers only
+services.AddCommandHandlers(typeof(CreateUserCommandHandler).Assembly);
+```
+
+**Register Only Query Handlers:**
+
+```csharp
+// Registers Query Handlers only
+services.AddQueryHandlers(typeof(GetUserByIdQueryHandler).Assembly);
+```
+
+**Register Specific Handlers Manually:**
+
+```csharp
+// Register individual handlers
+services.AddCommandHandler<CreateUserCommandHandler>();
+services.AddQueryHandler<GetUserByIdQueryHandler>();
+```
+
+**Use in Your Application:**
+
+```csharp
+public class UserService
+{
+    private readonly ICommandDispatcher _commandDispatcher;
+    private readonly IQueryHandler<GetUserByIdQuery, UserDto> _queryHandler;
+
+    public UserService(
+        ICommandDispatcher commandDispatcher,
+        IQueryHandler<GetUserByIdQuery, UserDto> queryHandler)
+    {
+        _commandDispatcher = commandDispatcher;
+        _queryHandler = queryHandler;
+    }
+
+    public async Task<string> CreateUserAsync(string email, string name)
+    {
+        var command = new CreateUserCommand { Email = email, Name = name };
+        var result = await _commandDispatcher.Dispatch(command);
+
+        if (result.IsFailure)
+            throw new InvalidOperationException(result.Errors.First().Message);
+
+        return result.Id;
+    }
+
+    public async Task<UserDto> GetUserAsync(string userId)
+    {
+        var query = new GetUserByIdQuery { UserId = userId };
+        return await _queryHandler.Handle(query);
+    }
+}
+```
+
+> **Note:** For detailed CQRS patterns, handler implementation, and best practices, see [AppFactory.Framework.Application README](src/AppFactory.Framework.Application/README.md)
+
 ### Entities
 
 Domain entities with built-in identity equality.
