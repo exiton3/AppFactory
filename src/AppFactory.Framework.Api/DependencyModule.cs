@@ -3,7 +3,7 @@ using AppFactory.Framework.Api.Parsing.Configurations;
 using AppFactory.Framework.Api.Parsing.Mappers;
 using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Domain;
-using AppFactory.Framework.Domain.Commands;
+using AppFactory.Framework.Application.Commands;
 using AppFactory.Framework.Domain.Services;
 using AppFactory.Framework.Shared.Config;
 using AppFactory.Framework.Logging;

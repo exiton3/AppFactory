@@ -1,12 +1,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.8.34309.116
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11512.155 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.DataLayer", "Framework.DataLayer\AppFactory.Framework.DataLayer.csproj", "{40E2F1E2-0F84-4436-9352-D76A6B6A2FC7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.Domain", "Framework.Domain\AppFactory.Framework.Domain.csproj", "{502E19B9-F26B-4A7A-89C9-E432A6E39036}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.TestExtensions", "AppFactory.Framework.TestExtensions\AppFactory.TestExtensions.csproj", "{68AF2865-0656-41DD-B9B1-49CB466353D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,10 +20,6 @@ Global
 		{502E19B9-F26B-4A7A-89C9-E432A6E39036}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{502E19B9-F26B-4A7A-89C9-E432A6E39036}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{502E19B9-F26B-4A7A-89C9-E432A6E39036}.Release|Any CPU.Build.0 = Release|Any CPU
-		{68AF2865-0656-41DD-B9B1-49CB466353D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{68AF2865-0656-41DD-B9B1-49CB466353D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{68AF2865-0656-41DD-B9B1-49CB466353D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{68AF2865-0656-41DD-B9B1-49CB466353D4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
