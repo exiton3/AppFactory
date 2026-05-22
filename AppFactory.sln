@@ -44,6 +44,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.EventB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppFactory.Framework.TestExtensions", "src\AppFactory.Framework.TestExtensions\AppFactory.Framework.TestExtensions.csproj", "{A2780871-91D8-9810-2745-40B72BD01AF3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppFactory.Framework.DataAccess.CosmosDB", "src\AppFactory.Framework.DataAccess.CosmosDB\AppFactory.Framework.DataAccess.CosmosDB.csproj", "{6DEDA383-EE85-C4D8-7DE0-AC6B33E1C662}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppFactory.Framework.DataAccess.DynamoDB", "src\AppFactory.Framework.DataAccess.DynamoDB\AppFactory.Framework.DataAccess.DynamoDB.csproj", "{E399E081-B059-746C-EF3F-14A9B136B279}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -106,6 +110,14 @@ Global
 		{A2780871-91D8-9810-2745-40B72BD01AF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2780871-91D8-9810-2745-40B72BD01AF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2780871-91D8-9810-2745-40B72BD01AF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DEDA383-EE85-C4D8-7DE0-AC6B33E1C662}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DEDA383-EE85-C4D8-7DE0-AC6B33E1C662}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DEDA383-EE85-C4D8-7DE0-AC6B33E1C662}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DEDA383-EE85-C4D8-7DE0-AC6B33E1C662}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E399E081-B059-746C-EF3F-14A9B136B279}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E399E081-B059-746C-EF3F-14A9B136B279}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E399E081-B059-746C-EF3F-14A9B136B279}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E399E081-B059-746C-EF3F-14A9B136B279}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -125,6 +137,8 @@ Global
 		{D3AA452B-2753-4620-8888-94128AA5E172} = {A39F7913-44C1-4C3E-9ABF-9F663400B0EF}
 		{B2FB738C-CE46-4A2D-AAAE-3E58920771B6} = {A39F7913-44C1-4C3E-9ABF-9F663400B0EF}
 		{A2780871-91D8-9810-2745-40B72BD01AF3} = {A39F7913-44C1-4C3E-9ABF-9F663400B0EF}
+		{6DEDA383-EE85-C4D8-7DE0-AC6B33E1C662} = {A39F7913-44C1-4C3E-9ABF-9F663400B0EF}
+		{E399E081-B059-746C-EF3F-14A9B136B279} = {A39F7913-44C1-4C3E-9ABF-9F663400B0EF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {71956AEB-AFB5-4013-95A1-678B739902C5}

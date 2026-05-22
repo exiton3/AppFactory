@@ -1,4 +1,5 @@
-﻿using AppFactory.Framework.DataAccess.Configuration;
+﻿using AppFactory.Framework.DataAccess.DynamoDB;
+using AppFactory.Framework.DataAccess.DynamoDB.Configuration;
 using AppFactory.Framework.TestExtensions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

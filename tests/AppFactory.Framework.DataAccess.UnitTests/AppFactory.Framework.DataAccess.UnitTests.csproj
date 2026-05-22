@@ -12,8 +12,9 @@
     </PackageReference>
   </ItemGroup>
 
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AppFactory.Framework.DataAccess\AppFactory.Framework.DataAccess.csproj" />
+    <ProjectReference Include="..\..\src\AppFactory.Framework.DataAccess.DynamoDB\AppFactory.Framework.DataAccess.DynamoDB.csproj" />
   </ItemGroup>
 
 </Project>

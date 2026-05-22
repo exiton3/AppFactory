@@ -1,4 +1,4 @@
-﻿using AppFactory.Framework.DataAccess.Queries;
+﻿using AppFactory.Framework.DataAccess.DynamoDB.Queries;
 using AppFactory.Framework.TestExtensions;
 using Xunit;
 
