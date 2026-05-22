@@ -18,12 +18,15 @@
 		</None>
 	</ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AppFactory.Framework.Logging" Version="10.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Config\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
   </ItemGroup>
 
 </Project>
