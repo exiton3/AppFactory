@@ -10,8 +10,4 @@
 		<ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Repositories\" />
-	</ItemGroup>
-
 </Project>
