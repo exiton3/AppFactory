@@ -4,7 +4,6 @@
     <PackageTags>unit tests; cqrs; xunit</PackageTags>
     <PackageId>AppFactory.TestExtensions</PackageId>
     <Title>AppFactory.TestExtensions</Title>
-    <Version>2.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

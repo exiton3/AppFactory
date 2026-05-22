@@ -42,7 +42,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.EventB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppFactory.Framework.EventBus.Aws", "src\AppFactory.Framework.EventBus.Aws\AppFactory.Framework.EventBus.Aws.csproj", "{B2FB738C-CE46-4A2D-AAAE-3E58920771B6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppFactory.TestExtensions", "src\AppFactory.Framework.TestExtensions\AppFactory.TestExtensions.csproj", "{A2780871-91D8-9810-2745-40B72BD01AF3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppFactory.Framework.TestExtensions", "src\AppFactory.Framework.TestExtensions\AppFactory.Framework.TestExtensions.csproj", "{A2780871-91D8-9810-2745-40B72BD01AF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
