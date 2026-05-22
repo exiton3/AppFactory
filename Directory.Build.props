@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+	  <ImplicitUsings>enable</ImplicitUsings>
+	  <Nullable>enable</Nullable>
+	  <Copyright>Copyright © Sergey Kichuk. All rights reserved. Licensed under the MIT License.</Copyright>
+	  <Authors>Sergey Kichuk</Authors>
+	  <PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/exiton3/AppFactory</RepositoryUrl>
+	  <RepositoryType>git</RepositoryType>	  
+	  <PackageIcon>logo.png</PackageIcon>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+	<PropertyGroup>
+		<NuGetAuditLevel>moderate</NuGetAuditLevel>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- 2. Include the physical files from your solution root -->
+		<!-- $(MSBuildThisFileDirectory) ensures the path is relative to this props file -->
+		<None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+		<None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="\" />
+		<None Include="$(MSBuildThisFileDirectory)logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+</Project>

@@ -1,0 +1,1 @@
+AppFactory tests extension to provide fluent asserts
