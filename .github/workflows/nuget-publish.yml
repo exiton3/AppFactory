@@ -41,6 +41,8 @@ jobs:
          - AppFactory.Framework.EventBus.Aws         
          - AppFactory.Framework.TestExtensions
          - AppFactory.Framework.DataAccess
+         - AppFactory.Framework.DataAccess.DynamoDB
+         - AppFactory.Framework.DataAccess.CosmosDB
          - AppFactory.Framework.Api
 
     steps:

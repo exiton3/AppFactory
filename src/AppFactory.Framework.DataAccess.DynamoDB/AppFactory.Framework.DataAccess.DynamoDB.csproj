@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Description>AppFactory Framework Data Access Repository DynamoDB</Description>
+		<PackageTags>AppFactory;Framework;DynamoDB</PackageTags>
+		<Title>AppFactory Framework Data Access DynamoDB </Title>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.18.4" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Mappers\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
+	</ItemGroup>
+
+</Project>

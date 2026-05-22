@@ -4,31 +4,22 @@ using AppFactory.Framework.Logging;
 
 namespace AppFactory.Framework.DataAccess.DynamoDb
 {
-    public class DynamoDbClientFactory : IDynamoDBClientFactory
+    public class DynamoDbClientFactory(IAWSSettings settings, ILogger logger) : IDynamoDBClientFactory
     {
-        private readonly IAWSSettings _settings;
-        private readonly ILogger _logger;
-
-        public DynamoDbClientFactory(IAWSSettings settings, ILogger logger)
-        {
-            _settings = settings;
-            _logger = logger;
-        }
-
         public IAmazonDynamoDB Create()
         {
-            var client = new AmazonDynamoDBClient(_settings.GetAWSRegion());
+            var client = new AmazonDynamoDBClient(settings.GetAWSRegion());
 
-            _logger.LogTrace($"Db Client #{client.GetHashCode()} created");
+            logger.LogTrace($"Db Client #{client.GetHashCode()} created");
 
             return client;
         }
 
         public IDynamoDbClient CreateClient()
         {
-            var client = new DynamoDbClient(_settings, _logger);
+            var client = new DynamoDbClient(settings, logger);
 
-            _logger.LogTrace($"Db Client #{client.GetHashCode()} created");
+            logger.LogTrace($"Db Client #{client.GetHashCode()} created");
 
             return client;
         }

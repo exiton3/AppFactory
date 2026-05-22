@@ -58,6 +58,7 @@ AppFactory combines powerful architectural patterns and design principles to bui
 - **🔄 Event-Driven Architecture (EDA)** - Decouple services using events as triggers for communication, enabling real-time reactive systems
 - **🎯 Reactive Microservices** - Create responsive, resilient, and elastic services with asynchronous message passing and non-blocking I/O
 - **💾 DynamoDB Integration** - Complete data access layer with repository pattern for NoSQL persistence
+- **☁️ CosmosDB Support** - Azure Cosmos DB data access with the same fluent repository pattern
 - **🚀 API Gateway Support** - Lambda function handlers with automatic request parsing and response building
 - **⚡ Lightweight & Fast** - Minimal dependencies and optimized performance
 - **🔧 Flexible & Extensible** - Easy to customize and extend to fit your needs
@@ -89,7 +90,12 @@ dotnet add package AppFactory.Framework.Messaging
 
 **For DynamoDB Data Access:**
 ```bash
-dotnet add package AppFactory.Framework.DataAccess
+dotnet add package AppFactory.Framework.DataAccess.DynamoDB
+```
+
+**For Azure Cosmos DB Data Access:**
+```bash
+dotnet add package AppFactory.Framework.DataAccess.CosmosDB
 ```
 
 Or via Package Manager Console:
@@ -99,7 +105,8 @@ Install-Package AppFactory.Framework.Domain
 Install-Package AppFactory.Framework.Api
 Install-Package AppFactory.Framework.EventBus.Aws
 Install-Package AppFactory.Framework.Messaging
-Install-Package AppFactory.Framework.DataAccess
+Install-Package AppFactory.Framework.DataAccess.DynamoDB
+Install-Package AppFactory.Framework.DataAccess.CosmosDB
 ```
 
 ## 🏗️ Core Components
@@ -419,22 +426,22 @@ public class PlaceOrderCommandHandler : ICommandHandler<PlaceOrderCommand>
 
 ### DynamoDB Data Access
 
-Work with DynamoDB using a clean repository pattern abstraction.
+Work with AWS DynamoDB using a clean repository pattern abstraction.
 
 **Configure Your Model:**
 
 ```csharp
-using AppFactory.Framework.DataAccess.Configuration;
+using AppFactory.Framework.DataAccess.DynamoDB.Configuration;
 
 public class UserModelConfig : IModelConfig<User>
 {
     public void Configure(IModelConfigOptions<User> options)
     {
         options
-            .SetTableName("Users")
-            .SetPartitionKey(u => u.Id, "PK")
-            .SetSortKey(u => u.Email, "SK")
-            .AddGlobalSecondaryIndex("EmailIndex", "Email", "PK");
+            .PK(u => u.Id)
+            .SK(u => u.Email)
+            .PKPrefix("USER")
+            .SKPrefix("EMAIL");
     }
 }
 ```
@@ -442,10 +449,9 @@ public class UserModelConfig : IModelConfig<User>
 **Use the Repository:**
 
 ```csharp
-using AppFactory.Framework.DataAccess.Repositories;
-using AppFactory.Framework.Domain.Repositories;
+using AppFactory.Framework.DataAccess.DynamoDB.Repositories;
 
-public class UserRepository : RepositoryBase<User>, IUserRepository
+public class UserRepository : RepositoryBase<User>
 {
     public UserRepository(
         IDynamoDBClientFactory dynamoDbFactory, 
@@ -457,34 +463,62 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
 
     public async Task<User> GetByEmail(string email)
     {
-        // Query using GSI
-        return await QuerySingleAsync(q => q
-            .UseIndex("EmailIndex")
-            .Where(u => u.Email == email)
-        );
-    }
-}
-
-// In your command handler
-public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand>
-{
-    private readonly IRepository<User> _userRepository;
-
-    public async Task<CommandResult> Handle(CreateUserCommand command, CancellationToken cancellationToken)
-    {
-        var user = new User 
-        { 
-            Id = Guid.NewGuid().ToString(),
-            Email = command.Email, 
-            Name = command.Name 
-        };
-
-        await _userRepository.Add(user);
-
-        return CommandResult.Success(user.Id);
+        // Query using partition and sort key
+        return await GetByPrimaryKey(
+            _config.GetPrimaryKey(userId, email));
     }
 }
 ```
+
+### Azure Cosmos DB Data Access
+
+AppFactory also supports Azure Cosmos DB with the same repository pattern for Azure-based serverless applications.
+
+**Configure Your Model:**
+
+```csharp
+using AppFactory.Framework.DataAccess.CosmosDB.Configuration;
+
+public class UserModelConfig : IModelConfig<User>
+{
+    public void Configure(IModelConfigOptions<User> options)
+    {
+        options
+            .ContainerName("Users")
+            .Id(u => u.Id)
+            .PartitionKey(u => u.TenantId)
+            .IdPrefix("USER")
+            .PartitionKeyPrefix("TENANT");
+    }
+}
+```
+
+**Use the Repository:**
+
+```csharp
+using AppFactory.Framework.DataAccess.CosmosDB.Repositories;
+
+public class UserRepository : RepositoryBase<User>
+{
+    public UserRepository(
+        ICosmosDbClientFactory cosmosDbFactory, 
+        ILogger logger, 
+        IModelConfig<User> modelConfig) 
+        : base(cosmosDbFactory, logger, modelConfig)
+    {
+    }
+
+    public async Task<User> GetByEmail(string email)
+    {
+        var query = "SELECT * FROM c WHERE c.email = @email";
+        var queryDef = CreateQuery(query)
+            .WithParameter("@email", email);
+        return await QuerySingle(queryDef);
+    }
+}
+```
+
+> **Note:** For detailed CosmosDB usage, see [AppFactory.Framework.DataAccess.CosmosDB README](src/AppFactory.Framework.DataAccess.CosmosDB/README.md)
 
 ### Lambda Message Handlers
 
