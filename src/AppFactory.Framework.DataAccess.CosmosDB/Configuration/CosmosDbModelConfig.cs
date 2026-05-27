@@ -1,3 +1,7 @@
+using System.Collections;
+using Newtonsoft.Json.Linq;
+using System.Linq.Expressions;
+
 namespace AppFactory.Framework.DataAccess.CosmosDB.Configuration;
 
 /// <summary>
@@ -19,15 +23,13 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
 
     public string Container => _containerName;
 
-    /// <summary>
-    /// Gets the partition key paths - auto-derived from property names in partition key parts
-    /// </summary>
     public List<string> PartitionKeyPaths => _partitionKeyConfig.IsHierarchical 
         ? _partitionKeyConfig.GetPartitionKeyPaths() 
         : new List<string> { _partitionKeyPath };
 
     public int? TimeToLiveInSeconds => _ttlInSeconds;
     public bool IsHierarchicalPartitionKey => _partitionKeyConfig.IsHierarchical;
+    public IEnumerable<PartitionKeyPart<TModel>> PartitionKeyParts => _partitionKeyConfig.Parts;
 
     internal string GetIdValue(TModel model)
     {
@@ -37,6 +39,22 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     internal string GetIdValue(object key)
     {
         return string.IsNullOrEmpty(_idPrefix) ? key.ToString() : string.Format(IdPattern, key);
+    }
+
+    /// <summary>
+    /// Strips the ID prefix from a document ID value
+    /// </summary>
+    internal string StripIdPrefix(string documentId)
+    {
+        if (string.IsNullOrEmpty(_idPrefix) || string.IsNullOrEmpty(documentId))
+        {
+            return documentId;
+        }
+
+        var prefix = $"{_idPrefix}{CosmosDbConstants.Separator}";
+        return documentId.StartsWith(prefix) 
+            ? documentId.Substring(prefix.Length) 
+            : documentId;
     }
 
     /// <summary>
@@ -53,14 +71,6 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     internal Dictionary<string, string> GetPartitionKeyProperties(TModel model)
     {
         return _partitionKeyConfig.GetPropertiesWithValues(model);
-    }
-
-    /// <summary>
-    /// Internal method to add a partition key part (used by PartitionKeyConfigBuilder)
-    /// </summary>
-    internal void AddPartitionKeyPart(PartitionKeyPart<TModel> part)
-    {
-        _partitionKeyConfig.AddPart(part);
     }
 
     public DocumentKey GetDocumentKey(TModel model)
@@ -110,9 +120,7 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
         };
     }
 
-    /// <summary>
-    /// Gets document key with hierarchical partition key values
-    /// </summary>
+   
     public DocumentKey GetDocumentKey(object id, params object[] partitionKeyValues)
     {
         var values = new List<string>();
@@ -142,93 +150,46 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
         return this;
     }
 
-    public IModelConfigOptions<TModel> PartitionKeyPath(string partitionKeyPath)
-    {
-        _partitionKeyPath = partitionKeyPath;
-        return this;
-    }
-
-    public IModelConfigOptions<TModel> AddPartitionKeyPath(params string[] paths)
-    {
-        // This method is now deprecated but kept for backward compatibility
-        // Partition key paths are auto-derived from property names
-        // This method does nothing but returns this for method chaining
-        return this;
-    }
-
-    public IModelConfigOptions<TModel> PartitionKeyPrefix(string prefix)
-    {
-        // If PartitionKey() has already been called, apply the prefix to the first part
-        if (_partitionKeyConfig.Parts.Any())
-        {
-            _partitionKeyConfig.Parts[0].Prefix = prefix;
-        }
-        else
-        {
-            // Otherwise, store the prefix to be applied when PartitionKey() is called
-            _pendingPartitionKeyPrefix = prefix;
-        }
-        return this;
-    }
-
     public IModelConfigOptions<TModel> IdPrefix(string prefix)
     {
         _idPrefix = prefix;
         return this;
     }
 
-    public IPartitionKeyConfigOptions<TModel> PartitionKey<TKey>(Func<TModel, TKey> partitionKeySelector)
+    public IPartitionKeyConfigOptions<TModel> PartitionKey<TKey>(Expression<Func<TModel, TKey>> partitionKeySelector)
     {
-        // Create a new partition key part with default property name
-        var part = new PartitionKeyPart<TModel>
-        {
-            Selector = o => partitionKeySelector(o),
-            PropertyName = _partitionKeyPath.TrimStart('/'), // Default property name
-            Prefix = _pendingPartitionKeyPrefix // Apply pending prefix if any
-        };
-
-        // Clear pending prefix
-        _pendingPartitionKeyPrefix = null;
-
-        // Return a builder that allows fluent configuration of this part
-        return new PartitionKeyConfigBuilder<TModel>(this, part);
-    }
-
-    public IModelConfigOptions<TModel> AddPartitionKey<TKey>(Func<TModel, TKey> partitionKeySelector, string propertyName = null, string prefix = null)
-    {
-        // Ensure property name is provided
-        if (string.IsNullOrWhiteSpace(propertyName))
-        {
-            throw new ArgumentException("PropertyName must be specified when using AddPartitionKey", nameof(propertyName));
-        }
+        var getter = PropertyExpressionHelper.InitializeGetter(partitionKeySelector);
+        var setter = PropertyExpressionHelper.InitializeSetter(partitionKeySelector);
+        var propertyName = PropertyExpressionHelper.GetPropertyName(partitionKeySelector);
 
         var part = new PartitionKeyPart<TModel>
         {
-            Selector = o => partitionKeySelector(o),
+            Selector = o => getter(o),
+            Setter = (o, v) => setter(o, (TKey)v),
             PropertyName = propertyName,
-            Prefix = prefix
         };
 
         _partitionKeyConfig.AddPart(part);
-        return this;
+
+        return new PartitionKeyConfigBuilder<TModel>(this, part);
     }
 
     public IModelConfigOptions<TModel> Id<TKey>(Func<TModel, TKey> idSelector)
     {
         _idSelector = o => idSelector(o);
 
-        // If partition key is not set, use the same as id (single partition key)
-        if (!_partitionKeyConfig.Parts.Any())
-        {
-            var part = new PartitionKeyPart<TModel>
-            {
-                Selector = o => idSelector(o),
-                PropertyName = _partitionKeyPath.TrimStart('/'),
-                Prefix = _pendingPartitionKeyPrefix // Apply pending prefix if any
-            };
-            _partitionKeyConfig.AddPart(part);
-            _pendingPartitionKeyPrefix = null;
-        }
+        //// If partition key is not set, use the same as id (single partition key)
+        //if (!_partitionKeyConfig.Parts.Any())
+        //{
+        //    var part = new PartitionKeyPart<TModel>
+        //    {
+        //        Selector = o => idSelector(o),
+        //        PropertyName = _partitionKeyPath.TrimStart('/'),
+        //        Prefix = _pendingPartitionKeyPrefix // Apply pending prefix if any
+        //    };
+        //    _partitionKeyConfig.AddPart(part);
+        //    _pendingPartitionKeyPrefix = null;
+        //}
 
         return this;
     }

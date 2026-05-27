@@ -25,7 +25,7 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
 
         // Add/Update id
         document[CosmosDbConstants.Id] = documentKey.Id;
-
+        
         // Add partition key properties (works for both single and hierarchical)
         var partitionKeyProperties = _config.GetPartitionKeyProperties(model);
         foreach (var kvp in partitionKeyProperties)
@@ -44,30 +44,49 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
 
     public TModel MapFromDocument(CosmosDbDocument document)
     {
-        // Remove CosmosDB specific properties before deserializing to model
         var cleanDocument = new Dictionary<string, object>(document);
-        cleanDocument.Remove(CosmosDbConstants.Id);
+        RemoveCosmosDbSystemProperties(cleanDocument);
 
-        // Remove partition key properties (both single and hierarchical)
-        var partitionKeyPaths = _config.PartitionKeyPaths;
-        foreach (var path in partitionKeyPaths)
+        MapBackId(document, cleanDocument);
+       
+
+        var json = JsonSerializer.Serialize(cleanDocument, _serializerOptions);
+        var model = JsonSerializer.Deserialize<TModel>(json, _serializerOptions);
+
+        foreach (var partitionKeyConfig in _config.PartitionKeyParts)
         {
-            var propertyName = path.TrimStart('/');
-            cleanDocument.Remove(propertyName);
+            var value = document[partitionKeyConfig.PropertyName].ToString();
+
+            if(partitionKeyConfig.IsPrefixSet)
+            {
+                string prefix = $"{partitionKeyConfig.Prefix}{CosmosDbConstants.Separator}";
+                value = value.StartsWith(prefix) ? value.Substring(prefix.Length) : value;
+            }
+            
+            partitionKeyConfig.Setter(model, value);
         }
 
-        // Remove Cosmos DB system properties
+        return model;
+    }
+
+    private static void RemoveCosmosDbSystemProperties(Dictionary<string, object> cleanDocument)
+    {
         cleanDocument.Remove("_rid");
         cleanDocument.Remove("_self");
         cleanDocument.Remove("_etag");
         cleanDocument.Remove("_attachments");
         cleanDocument.Remove("_ts");
         cleanDocument.Remove("ttl");
+    }
 
-        var json = JsonSerializer.Serialize(cleanDocument, _serializerOptions);
-        var model = JsonSerializer.Deserialize<TModel>(json, _serializerOptions);
-
-        return model;
+    private void MapBackId(CosmosDbDocument document, Dictionary<string, object> cleanDocument)
+    {
+        if (document.ContainsKey(CosmosDbConstants.Id))
+        {
+            var documentId = document[CosmosDbConstants.Id]?.ToString();
+            var modelId = _config.StripIdPrefix(documentId);
+            cleanDocument[CosmosDbConstants.Id] = modelId;
+        }
     }
 
     private static JsonSerializerOptions GetJsonSerializerOptions()

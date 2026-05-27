@@ -140,18 +140,6 @@ public class HierarchicalPartitionKeyTests
     }
 
     [Fact]
-    public void SinglePartitionKey_IsHierarchical_ShouldBeFalse()
-    {
-        // Arrange
-        var config = new UserModelConfig();
-        var cosmosDbModelConfig = new CosmosDbModelConfig<User>();
-        config.Configure(cosmosDbModelConfig);
-
-        // Assert
-        Assert.False(cosmosDbModelConfig.IsHierarchicalPartitionKey);
-    }
-
-    [Fact]
     public void HierarchicalPartitionKey_ExceedsThreeLevels_ShouldThrowException()
     {
         // Arrange
@@ -161,10 +149,10 @@ public class HierarchicalPartitionKeyTests
         var exception = Assert.Throws<InvalidOperationException>(() =>
         {
             cosmosDbModelConfig
-                .AddPartitionKey(o => o.TenantId)
-                .AddPartitionKey(o => o.UserId)
-                .AddPartitionKey(o => o.Category)
-                .AddPartitionKey(o => o.Id); // 4th level - should throw
+                .PartitionKey(o => o.TenantId)
+                .PartitionKey(o => o.UserId)
+                .PartitionKey(o => o.Category)
+                .PartitionKey(o => o.Id); // 4th level - should throw
         });
 
         Assert.Contains("up to 3", exception.Message);
