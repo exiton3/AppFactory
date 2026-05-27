@@ -1,18 +1,12 @@
 ﻿using AppFactory.Framework.DataAccess.CosmosDB.Configuration;
 using AppFactory.Framework.DataAccess.CosmosDB.Mapping;
+using AppFactory.Framework.DataAccess.CosmosDB.CosmosDb;
 using Xunit;
 
 namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
 {
    public class ModelConfigTests
     {
-        private readonly ITestOutputHelper _output;
-
-        public ModelConfigTests(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
         [Fact]
         public void UserModelConfig_ShouldConfigureCorrectly()
         {
@@ -33,9 +27,12 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
 
             var document = mapper.MapToDocument(model);
 
-            _output.WriteLine(document.ToJson());
+            // Verify document structure
+            Assert.NotNull(document);
+            Assert.Equal("USER#123", document["id"]);
+            Assert.Equal("TENANT#userID1", document["partitionKey"]);
         }
-        
+
     }
 
 
@@ -43,6 +40,7 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
     {
         public string Id { get; set; }
         public string UserId { get; set; }
+        public string TenantId { get; set; }
         public string Email { get; set; }
         public string Name { get; set; }
     }
@@ -55,8 +53,12 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
                 .ContainerName("Users")
                 .Id(u => u.Id)
                 .IdPrefix("USER")
-                .PartitionKey(u => u.UserId)
-                .PartitionKeyPrefix("TENANT");
+                .PartitionKey(u => u.TenantId).WithPropertyName("tenantId").WithPrefix("TENANT")
+                .PartitionKey(u => u.UserId).WithPropertyName("partitionKey").WithPrefix("TENANT");
         }
     }
+
+   
 }
+
+

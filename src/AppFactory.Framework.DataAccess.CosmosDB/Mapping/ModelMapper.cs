@@ -23,9 +23,15 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
 
         var documentKey = _config.GetDocumentKey(model);
 
-        // Add/Update id and partitionKey
+        // Add/Update id
         document[CosmosDbConstants.Id] = documentKey.Id;
-        document[CosmosDbConstants.PartitionKey] = documentKey.PartitionKey;
+
+        // Add partition key properties (works for both single and hierarchical)
+        var partitionKeyProperties = _config.GetPartitionKeyProperties(model);
+        foreach (var kvp in partitionKeyProperties)
+        {
+            document[kvp.Key] = kvp.Value;
+        }
 
         // Add TTL if configured
         if (_config.TimeToLiveInSeconds.HasValue)
@@ -41,7 +47,16 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         // Remove CosmosDB specific properties before deserializing to model
         var cleanDocument = new Dictionary<string, object>(document);
         cleanDocument.Remove(CosmosDbConstants.Id);
-        cleanDocument.Remove(CosmosDbConstants.PartitionKey);
+
+        // Remove partition key properties (both single and hierarchical)
+        var partitionKeyPaths = _config.PartitionKeyPaths;
+        foreach (var path in partitionKeyPaths)
+        {
+            var propertyName = path.TrimStart('/');
+            cleanDocument.Remove(propertyName);
+        }
+
+        // Remove Cosmos DB system properties
         cleanDocument.Remove("_rid");
         cleanDocument.Remove("_self");
         cleanDocument.Remove("_etag");
@@ -68,3 +83,4 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         };
     }
 }
+

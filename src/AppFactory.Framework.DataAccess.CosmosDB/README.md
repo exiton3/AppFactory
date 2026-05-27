@@ -10,7 +10,8 @@ This package provides a complete abstraction over Azure Cosmos DB, enabling you 
 
 - **🎯 Generic Repository Pattern** - Type-safe data access with minimal boilerplate
 - **🔧 Fluent Configuration** - Intuitive fluent API for model configuration
-- **📦 Partition Key Support** - Full support with automatic prefixing
+- **📦 Partition Key Support** - Single and hierarchical partition keys (up to 3 levels)
+- **🌳 Hierarchical Partition Keys** - Improved query performance and data distribution
 - **⚡ Batch Operations** - Transactional batches with automatic partition grouping
 - **🔍 SQL Query Support** - Parameterized SQL queries
 - **⏱️ TTL Support** - Document-level Time-To-Live
@@ -147,6 +148,85 @@ options
     .PartitionKeyPrefix("TENANT")        // Optional
     .PartitionKeyPath("/partitionKey")   // Optional (default: /partitionKey)
     .TimeToLive(3600);                   // Optional (seconds)
+```
+
+### Hierarchical Partition Keys (NEW)
+
+Azure Cosmos DB supports up to **3 hierarchical partition key paths** for improved query performance and better data distribution.
+
+**Benefits:**
+- Better data distribution across partitions
+- More efficient querying with multiple filters
+- Reduced hot partitions
+
+**Example Configuration:**
+
+```csharp
+public class Order
+{
+    public string Id { get; set; }
+    public string TenantId { get; set; }
+    public string UserId { get; set; }
+    public string Category { get; set; }
+    public decimal Amount { get; set; }
+}
+
+public class OrderModelConfig : IModelConfig<Order>
+{
+    public void Configure(IModelConfigOptions<Order> options)
+    {
+        options
+            .ContainerName("Orders")
+            .Id(o => o.Id)
+            .IdPrefix("ORDER")
+            // Define partition keys with fluent interface - property names auto-derived
+            .PartitionKey(o => o.TenantId).WithPropertyName("tenantId").WithPrefix("TENANT")
+            .PartitionKey(o => o.UserId).WithPropertyName("userId").WithPrefix("USER")
+            .PartitionKey(o => o.Category).WithPropertyName("category");
+    }
+}
+```
+
+**Resulting Document:**
+
+```json
+{
+  "id": "ORDER#12345",
+  "tenantId": "TENANT#tenant-abc",
+  "userId": "USER#user-123",
+  "category": "Electronics",
+  "amount": 299.99
+}
+```
+
+**Querying with Hierarchical Partition Keys:**
+
+```csharp
+// Query within specific partition (most efficient)
+var orders = await Query(
+    "SELECT * FROM c WHERE c.amount > 100",
+    partitionKey: "tenant-abc"); // Uses first level
+
+// Cross-partition query (less efficient)
+var allOrders = await Query("SELECT * FROM c WHERE c.category = 'Electronics'");
+
+// Get by ID with hierarchical partition key
+var documentKey = _config.GetDocumentKey(orderId, "tenant-abc", "user-123", "Electronics");
+var order = await GetByDocumentKey(documentKey);
+```
+
+**Single vs Hierarchical Partition Keys:**
+
+```csharp
+// Single partition key
+options
+    .PartitionKey(u => u.TenantId).WithPropertyName("partitionKey").WithPrefix("TENANT");
+
+// Hierarchical partition keys (up to 3 levels)
+options
+    .PartitionKey(u => u.TenantId).WithPropertyName("tenantId").WithPrefix("TENANT")
+    .PartitionKey(u => u.UserId).WithPropertyName("userId").WithPrefix("USER")
+    .PartitionKey(u => u.Category).WithPropertyName("category");
 ```
 
 ### Prefix Pattern
