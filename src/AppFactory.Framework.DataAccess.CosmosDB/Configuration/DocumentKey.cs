@@ -9,6 +9,9 @@ public class DocumentKey
 
     public PartitionKey ToPartitionKey()
     {
-        return new PartitionKey(PartitionKey);
+        var builder = new PartitionKeyBuilder();
+        builder.Add(PartitionKey);
+
+        return builder.Build();
     }
 }

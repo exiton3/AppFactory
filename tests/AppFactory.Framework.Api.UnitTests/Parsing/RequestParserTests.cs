@@ -6,7 +6,6 @@ using AppFactory.Framework.Shared.Serialization;
 using AppFactory.Framework.TestExtensions;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AppFactory.Framework.Api.UnitTests.Parsing;
 

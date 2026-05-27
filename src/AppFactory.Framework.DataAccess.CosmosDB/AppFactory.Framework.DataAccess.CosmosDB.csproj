@@ -18,7 +18,11 @@
         <ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
         <ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
     </ItemGroup>
-
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>AppFactory.Framework.DataAccess.CosmosDB.UnitTests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
     <ItemGroup>
         <!-- Include CosmosDB specific README in the NuGet package -->
         <None Include="README.md" Pack="true" PackagePath="\" />

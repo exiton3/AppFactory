@@ -3,7 +3,6 @@ using System.Net.Mime;
 using AppFactory.Framework.Shared.ServiceClient;
 using AppFactory.Framework.TestExtensions;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AppFactory.Framework.Infrastructure.UnitTests.ServiceClient;
 
