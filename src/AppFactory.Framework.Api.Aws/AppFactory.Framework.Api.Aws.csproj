@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Description>AppFactory Framework API - AWS Lambda Integration</Description>
+		<PackageTags>AppFactory;Framework;CQRS;AWS;Lambda;Serverless</PackageTags>
+		<Title>AppFactory Framework API AWS Lambda</Title>
+		<PackageId>AppFactory.Framework.Api.Aws</PackageId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="3.0.0" />
+		<PackageReference Include="Amazon.Lambda.Core" Version="3.1.0" />
+		<PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>AppFactory.Framework.Api.Aws.UnitTests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="..\..\logo.png" Link="logo.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AppFactory.Framework.Api\AppFactory.Framework.Api.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.DependencyInjection\AppFactory.Framework.DependencyInjection.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
+	</ItemGroup>
+
+</Project>
