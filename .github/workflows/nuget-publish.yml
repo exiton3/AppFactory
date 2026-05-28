@@ -2,31 +2,30 @@ name: Release Package Version
 on:
   push:
     tags:
-      - "**"
+      - "v*.*.*"  # Only trigger on semantic version tags (v10.1.0, v10.2.0-beta, etc.)
+
 jobs:
   unit_tests:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@v4
+      
       - name: Setup .NET
-        uses: actions/setup-dotnet@main
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            10.0.x
+          dotnet-version: '10.0.x'
+          
       - name: Install dependencies
         run: dotnet restore
 
       - name: Build
-        run: |
-          dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore
 
       - name: Unit Tests
-        run: |
-          dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance"
+        run: dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance"
 
   deploy:
-    needs:
-     - unit_tests
+    needs: unit_tests
     if: github.event.base_ref == 'refs/heads/master'
     runs-on: ubuntu-22.04
     strategy:
@@ -47,43 +46,46 @@ jobs:
          - AppFactory.Framework.Api
 
     steps:
-      - name: Print tag ref
-        run: echo $GITHUB_REF
-
-      - name: Extract version number
-        uses: actions-ecosystem/action-regex-match@v2
-        id: regex-match
-        with:
-          text: ${{ github.ref }}
-          regex: "([0-9][0-9.-]+)$"
-
-      - name: Print version number
-        run: echo '${{ steps.regex-match.outputs.match }}'
-
-      - uses: actions/checkout@main
-      - name: Setup .NET
-        uses: actions/setup-dotnet@main
-        with:
-          dotnet-version: |
-            10.0.x
-
-      - name: Restore ${{ matrix.project }} dependencies
-        run: dotnet restore ./src/${{ matrix.project }}/${{ matrix.project }}.csproj
-
-      - name: Build
+      - name: Extract version from tag
+        id: version
         run: |
-          dotnet build ./src/${{ matrix.project }}/${{ matrix.project }}.csproj --configuration Release --no-restore
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
 
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Build all projects first to ensure project references are resolved correctly
+      - name: Restore all dependencies
+        run: dotnet restore
+
+      - name: Build all projects
+        run: dotnet build --configuration Release --no-restore
+
+      # Pack the specific project (use --no-build to use already built assemblies)
       - name: Pack ${{ matrix.project }}       
         run: |
-          dotnet pack ./src/${{ matrix.project }}/${{ matrix.project }}.csproj  -p:PackageVersion='${{ steps.regex-match.outputs.match }}' --output packages
+          dotnet pack ./src/${{ matrix.project }}/${{ matrix.project }}.csproj \
+            --configuration Release \
+            --no-build \
+            -p:PackageVersion='${{ steps.version.outputs.version }}' \
+            --output packages
   
       - name: Publish ${{ matrix.project }} package
         run: |
-          nuget push **\*.nupkg -NoSymbols -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_APIKEY}} 
+          dotnet nuget push packages/*.nupkg \
+            --source 'https://api.nuget.org/v3/index.json' \
+            --api-key ${{secrets.NUGET_APIKEY}} \
+            --skip-duplicate
 
-      - name: Upload Package
-        uses: actions/upload-artifact@main
+      - name: Upload Package Artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.project }}.v${{ steps.regex-match.outputs.match }}
+          name: ${{ matrix.project }}.v${{ steps.version.outputs.version }}
           path: packages/
+          retention-days: 30
