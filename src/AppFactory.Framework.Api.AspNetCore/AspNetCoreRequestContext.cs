@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using AppFactory.Framework.Api.Abstractions;
+using HttpMethodEnum = AppFactory.Framework.Api.Abstractions.HttpMethod;
 
 namespace AppFactory.Framework.Api.AspNetCore;
 

@@ -25,7 +25,7 @@ public class ApiGatewayRequestContextTests
         var context = new ApiGatewayRequestContext(request, lambdaContext);
 
         context.RequestId.ShouldBe("test-request-id");
-        context.Method.ShouldBe(HttpMethod.Post);
+        context.Method.ShouldBe(HttpMethodEnum.Post);
         context.Path.ShouldBe("/api/users");
         context.Body.ShouldBe("{\"name\":\"test\"}");
         context.PathParameters["id"].ShouldBe("123");

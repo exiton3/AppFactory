@@ -1,6 +1,7 @@
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using AppFactory.Framework.Api.Abstractions;
+using HttpMethodEnum = AppFactory.Framework.Api.Abstractions.HttpMethod;
 
 namespace AppFactory.Framework.Api.Aws;
 
@@ -63,17 +64,17 @@ public class ApiGatewayRequestContext : IHttpRequestContext
             ? "?" + string.Join("&", _request.QueryStringParameters.Select(kvp => $"{kvp.Key}={kvp.Value}"))
             : string.Empty;
 
-    private static HttpMethod ParseHttpMethod(string method)
+    private static HttpMethodEnum ParseHttpMethod(string method)
     {
         return method?.ToUpperInvariant() switch
         {
-            "GET" => HttpMethod.Get,
-            "POST" => HttpMethod.Post,
-            "PUT" => HttpMethod.Put,
-            "DELETE" => HttpMethod.Delete,
-            "PATCH" => HttpMethod.Patch,
-            "HEAD" => HttpMethod.Head,
-            "OPTIONS" => HttpMethod.Options,
+            "GET" => HttpMethodEnum.Get,
+            "POST" => HttpMethodEnum.Post,
+            "PUT" => HttpMethodEnum.Put,
+            "DELETE" => HttpMethodEnum.Delete,
+            "PATCH" => HttpMethodEnum.Patch,
+            "HEAD" => HttpMethodEnum.Head,
+            "OPTIONS" => HttpMethodEnum.Options,
             _ => throw new ArgumentException($"Unsupported HTTP method: {method}", nameof(method))
         };
     }

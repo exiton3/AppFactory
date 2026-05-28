@@ -104,17 +104,17 @@ public class HttpRequestDataContext : IHttpRequestContext
 
     public string QueryString => _request.Url.Query;
 
-    private static HttpMethod ParseHttpMethod(string method)
+    private static HttpMethodEnum ParseHttpMethod(string method)
     {
         return method?.ToUpperInvariant() switch
         {
-            "GET" => HttpMethod.Get,
-            "POST" => HttpMethod.Post,
-            "PUT" => HttpMethod.Put,
-            "DELETE" => HttpMethod.Delete,
-            "PATCH" => HttpMethod.Patch,
-            "HEAD" => HttpMethod.Head,
-            "OPTIONS" => HttpMethod.Options,
+            "GET" => HttpMethodEnum.Get,
+            "POST" => HttpMethodEnum.Post,
+            "PUT" => HttpMethodEnum.Put,
+            "DELETE" => HttpMethodEnum.Delete,
+            "PATCH" => HttpMethodEnum.Patch,
+            "HEAD" => HttpMethodEnum.Head,
+            "OPTIONS" => HttpMethodEnum.Options,
             _ => throw new ArgumentException($"Unsupported HTTP method: {method}", nameof(method))
         };
     }
