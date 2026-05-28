@@ -6,7 +6,7 @@ namespace AppFactory.Framework.Logging.MicrosoftExtensions;
 /// <summary>
 /// Tracks and logs performance metrics for an operation
 /// </summary>
-internal class PerformanceLogger : IDisposable
+internal class PerformanceLogger : ITimeLogger
 {
     private readonly Microsoft.Extensions.Logging.ILogger _logger;
     private readonly string _operationName;
@@ -17,7 +17,7 @@ internal class PerformanceLogger : IDisposable
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _operationName = operationName ?? throw new ArgumentNullException(nameof(operationName));
         _stopwatch = Stopwatch.StartNew();
-        
+
         _logger.LogDebug("Performance tracking started: {OperationName}", operationName);
     }
 

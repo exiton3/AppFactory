@@ -8,49 +8,98 @@ namespace AppFactory.Framework.Logging.MicrosoftExtensions;
 internal class MicrosoftExtensionsLogger : ILogger
 {
     private readonly Microsoft.Extensions.Logging.ILogger _logger;
+    private string _traceId = string.Empty;
+    private string _context = "traceId";
 
     public MicrosoftExtensionsLogger(Microsoft.Extensions.Logging.ILogger logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    public void AddTraceId(string traceId)
+    {
+        _traceId = traceId;
+    }
+
+    public void SetContext(string context)
+    {
+        _context = context;
+    }
+
+    public void LogInfo(string message)
+    {
+        using (_logger.BeginScope(new Dictionary<string, object> { [_context] = _traceId }))
+        {
+            _logger.LogInformation(message);
+        }
+    }
+
+    public void LogInfo(string messageTemplate, params object[] propertyValues)
+    {
+        using (_logger.BeginScope(new Dictionary<string, object> { [_context] = _traceId }))
+        {
+            _logger.LogInformation(messageTemplate, propertyValues);
+        }
+    }
+
     public void LogTrace(string message)
     {
-        _logger.LogTrace(message);
+        using (_logger.BeginScope(new Dictionary<string, object> { [_context] = _traceId }))
+        {
+            _logger.LogTrace(message);
+        }
     }
 
-    public void LogDebug(string message)
+    public void LogTrace(string message, params object[] propertyValues)
     {
-        _logger.LogDebug(message);
+        using (_logger.BeginScope(new Dictionary<string, object> { [_context] = _traceId }))
+        {
+            _logger.LogTrace(message, propertyValues);
+        }
     }
 
-    public void LogInformation(string message)
+    public void LogDebug(string messageTemplate, params object[] values)
     {
-        _logger.LogInformation(message);
+        using (_logger.BeginScope(new Dictionary<string, object> { [_context] = _traceId }))
+        {
+            _logger.LogDebug(messageTemplate, values);
+        }
     }
 
-    public void LogWarning(string message)
+    public void LogDebug(string context, object value, string message)
     {
-        _logger.LogWarning(message);
+        using (_logger.BeginScope(new Dictionary<string, object> { [context] = value }))
+        {
+            _logger.LogDebug(message);
+        }
     }
 
-    public void LogError(string message)
+    public void LogDebug(string context, object value, string messageTemplate, params object[] values)
     {
-        _logger.LogError(message);
+        using (_logger.BeginScope(new Dictionary<string, object> { [context] = value }))
+        {
+            _logger.LogDebug(messageTemplate, values);
+        }
     }
 
-    public void LogError(Exception exception, string message)
+    public void LogError(Exception exception, string messageTemplate)
     {
-        _logger.LogError(exception, message);
+        using (_logger.BeginScope(new Dictionary<string, object> { [_context] = _traceId }))
+        {
+            _logger.LogError(exception, messageTemplate);
+        }
     }
 
-    public void LogCritical(string message)
+    public void LogError(Exception exception, string messageTemplate, params object[] values)
     {
-        _logger.LogCritical(message);
+        using (_logger.BeginScope(new Dictionary<string, object> { [_context] = _traceId }))
+        {
+            _logger.LogError(exception, messageTemplate, values);
+        }
     }
 
-    public IDisposable LogPerformance(string operationName)
+    public ITimeLogger LogPerformance(string message)
     {
-        return new PerformanceLogger(_logger, operationName);
+        return new PerformanceLogger(_logger, message);
     }
 }

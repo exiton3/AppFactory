@@ -12,7 +12,7 @@ internal class SerilogLogger : ILogger
 {
     private const string DefaultContext = "traceId";
     private string _context = DefaultContext;
-    private readonly Logger _logger;
+    private readonly global::Serilog.ILogger _logger;
     private string _traceId;
 
     public SerilogLogger()
@@ -28,6 +28,11 @@ internal class SerilogLogger : ILogger
         _logger = loggerConfiguration
             .WriteTo.Console(new RenderedCompactJsonFormatter())
             .CreateLogger();
+    }
+
+    public SerilogLogger(global::Serilog.ILogger logger)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
     public void AddTraceId(string traceId)
     {

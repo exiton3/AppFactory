@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Core;
+using Serilog.Formatting.Compact;
 
 namespace AppFactory.Framework.Logging.Serilog;
 
@@ -25,7 +26,7 @@ public static class DependencyInjectionExtensions
     /// Registers Serilog logging with the specified configuration
     /// </summary>
     public static IServiceCollection AddSerilogLogging(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         Action<LogConfig> configureLogger)
     {
         services.AddSingleton(_ =>
@@ -37,18 +38,31 @@ public static class DependencyInjectionExtensions
             return loggingLevelSwitch;
         });
 
-        services.AddSingleton<ILogger>(provider =>
+        // Register Serilog.ILogger
+        services.AddSingleton<global::Serilog.ILogger>(provider =>
         {
             var logConfig = new LogConfig();
             configureLogger(logConfig);
             var loggingLevelSwitch = provider.GetRequiredService<LoggingLevelSwitch>();
-            var loggerConfiguration = new LoggerConfiguration()
-                .MinimumLevel.ControlledBy(loggingLevelSwitch);
-
-            return new SerilogLogger(loggerConfiguration);
+            return new LoggerConfiguration()
+                .MinimumLevel.ControlledBy(loggingLevelSwitch)
+                .WriteTo.Console(new RenderedCompactJsonFormatter())
+                .CreateLogger();
         });
 
-        services.AddSingleton<ILoggerFactory, SerilogLoggerFactory>();
+        // Register AppFactory ILogger
+        services.AddSingleton<ILogger>(provider =>
+        {
+            var serilogLogger = provider.GetRequiredService<global::Serilog.ILogger>();
+            return new SerilogLogger(serilogLogger);
+        });
+
+        // Register ILoggerFactory
+        services.AddSingleton<ILoggerFactory>(provider =>
+        {
+            var serilogLogger = provider.GetRequiredService<global::Serilog.ILogger>();
+            return new SerilogLoggerFactory(serilogLogger);
+        });
 
         return services;
     }
@@ -57,8 +71,8 @@ public static class DependencyInjectionExtensions
     /// Registers Serilog logging with custom Serilog configuration
     /// </summary>
     public static IServiceCollection AddSerilogLogging(
-        this IServiceCollection services, 
-        Action<LogConfig> configureLogger, 
+        this IServiceCollection services,
+        Action<LogConfig> configureLogger,
         Action<LoggerConfiguration> configureSerilog)
     {
         services.AddSingleton(_ =>
@@ -70,7 +84,8 @@ public static class DependencyInjectionExtensions
             return loggingLevelSwitch;
         });
 
-        services.AddSingleton<ILogger>(provider =>
+        // Register Serilog.ILogger
+        services.AddSingleton<global::Serilog.ILogger>(provider =>
         {
             var logConfig = new LogConfig();
             configureLogger(logConfig);
@@ -78,29 +93,41 @@ public static class DependencyInjectionExtensions
             var loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.ControlledBy(loggingLevelSwitch);
             configureSerilog(loggerConfiguration);
-            return new SerilogLogger(loggerConfiguration);
+            return loggerConfiguration.CreateLogger();
         });
 
-        services.AddSingleton<ILoggerFactory, SerilogLoggerFactory>();
+        // Register AppFactory ILogger
+        services.AddSingleton<ILogger>(provider =>
+        {
+            var serilogLogger = provider.GetRequiredService<global::Serilog.ILogger>();
+            return new SerilogLogger(serilogLogger);
+        });
+
+        // Register ILoggerFactory
+        services.AddSingleton<ILoggerFactory>(provider =>
+        {
+            var serilogLogger = provider.GetRequiredService<global::Serilog.ILogger>();
+            return new SerilogLoggerFactory(serilogLogger);
+        });
 
         return services;
     }
 
     private static LogLevel GetLogLevelFromEnvironmentOrDefault()
     {
-       var logLevel = Environment.GetEnvironmentVariable("log_level");
+        var logLevel = Environment.GetEnvironmentVariable("log_level");
 
-       if (string.IsNullOrEmpty(logLevel))
-       {
-           return LogLevel.Information;
-       }
+        if (string.IsNullOrEmpty(logLevel))
+        {
+            return LogLevel.Information;
+        }
 
-       if (Enum.TryParse(typeof(LogLevel), logLevel, true, out var parsedLogLevel))
-       {
-           return (LogLevel)parsedLogLevel;
-       }
+        if (Enum.TryParse(typeof(LogLevel), logLevel, true, out var parsedLogLevel))
+        {
+            return (LogLevel)parsedLogLevel;
+        }
 
-       return LogLevel.Information;
+        return LogLevel.Information;
     }
 }
 
