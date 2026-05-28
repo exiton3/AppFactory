@@ -28,6 +28,14 @@ public class CosmosDbDocument : Dictionary<string, object>
         }
     }
 
+    public void Merge(Dictionary<string, object> items)
+    {
+        foreach (var item in items)
+        {
+            this[item.Key] = item.Value;
+        }
+    }
+
     public T GetValue<T>(string key)
     {
         if (TryGetValue(key, out var value))

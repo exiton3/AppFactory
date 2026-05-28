@@ -1,39 +1,34 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using AppFactory.Framework.DataAccess.CosmosDB.Configuration;
 using AppFactory.Framework.DataAccess.CosmosDB.CosmosDb;
 
 namespace AppFactory.Framework.DataAccess.CosmosDB.Mapping;
 
+
 internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
 {
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly CosmosDbModelConfig<TModel> _config;
-
+    private readonly IIdKeyMapper<TModel> _idKeyMapper;
     public ModelMapper(CosmosDbModelConfig<TModel> config)
     {
         _config = config;
-        _serializerOptions = GetJsonSerializerOptions();
+        _serializerOptions = GetJsonSerializerOptions(config);
+        _idKeyMapper = new IdKeyMapper<TModel>(_config);
     }
 
     public CosmosDbDocument MapToDocument(TModel model)
     {
         var modelJson = JsonSerializer.Serialize(model, _serializerOptions);
         var document = new CosmosDbDocument(modelJson);
+       
+        var mappedId = _idKeyMapper.MapId(model);
+        document[mappedId.Key] = mappedId.Value;
 
-        var documentKey = _config.GetDocumentKey(model);
+        MapPartitionKeys(model, document);
 
-        // Add/Update id
-        document[CosmosDbConstants.Id] = documentKey.Id;
-        
-        // Add partition key properties (works for both single and hierarchical)
-        var partitionKeyProperties = _config.GetPartitionKeyProperties(model);
-        foreach (var kvp in partitionKeyProperties)
-        {
-            document[kvp.Key] = kvp.Value;
-        }
-
-        // Add TTL if configured
         if (_config.TimeToLiveInSeconds.HasValue)
         {
             document["ttl"] = _config.TimeToLiveInSeconds.Value;
@@ -42,9 +37,30 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         return document;
     }
 
+    private void MapPartitionKeys(TModel model, CosmosDbDocument document)
+    {
+        foreach (var partitionKeyConfig in _config.PartitionKeyParts)
+        {
+            if (partitionKeyConfig.IsPropertyNameSet)
+            {
+                document.Remove(partitionKeyConfig.OriginalPropertyName);
+            }
+            var value = partitionKeyConfig.Selector(model);
+
+            if(partitionKeyConfig.IsPrefixSet)
+            {
+                value = $"{partitionKeyConfig.Prefix}{CosmosDbConstants.Separator}{value}";
+            }
+            var mappedPropertyName = partitionKeyConfig.IsPropertyNameSet ? partitionKeyConfig.PropertyName : partitionKeyConfig.OriginalPropertyName;
+            
+            document[mappedPropertyName] = value;
+        }
+    }
+
     public TModel MapFromDocument(CosmosDbDocument document)
     {
         var cleanDocument = new Dictionary<string, object>(document);
+        
         RemoveCosmosDbSystemProperties(cleanDocument);
 
         MapBackId(document, cleanDocument);
@@ -53,9 +69,18 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         var json = JsonSerializer.Serialize(cleanDocument, _serializerOptions);
         var model = JsonSerializer.Deserialize<TModel>(json, _serializerOptions);
 
+        MapBackPartitionKeys(document, model);
+
+        return model;
+    }
+
+    private void MapBackPartitionKeys(CosmosDbDocument document, TModel? model)
+    {
         foreach (var partitionKeyConfig in _config.PartitionKeyParts)
         {
-            var value = document[partitionKeyConfig.PropertyName].ToString();
+            var key = partitionKeyConfig.IsPropertyNameSet ? partitionKeyConfig.PropertyName : partitionKeyConfig.OriginalPropertyName;
+
+            var value = document[key].ToString();
 
             if(partitionKeyConfig.IsPrefixSet)
             {
@@ -65,9 +90,8 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
             
             partitionKeyConfig.Setter(model, value);
         }
-
-        return model;
     }
+
 
     private static void RemoveCosmosDbSystemProperties(Dictionary<string, object> cleanDocument)
     {
@@ -89,7 +113,7 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         }
     }
 
-    private static JsonSerializerOptions GetJsonSerializerOptions()
+    private  JsonSerializerOptions GetJsonSerializerOptions(CosmosDbModelConfig<TModel> config)
     {
         return new JsonSerializerOptions
         {
@@ -98,8 +122,27 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
             Converters =
             {
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-            }
+            },
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver().WithAddedModifier(IgnorePropertiesModifier)
+            
         };
+    }
+
+    private  void IgnorePropertiesModifier(JsonTypeInfo obj)
+    {
+        
+        var propertiesToIgnore = new HashSet<string>(_config.PartitionKeyParts.Select(x => x.OriginalPropertyName));
+
+        if (obj.Type == typeof(TModel))
+        {
+            foreach (var property in obj.Properties)
+            {
+                if (propertiesToIgnore.Contains(property.Name))
+                {
+                    property.ShouldSerialize = (p,v) => false;
+                }
+            }
+        }
     }
 }
 

@@ -41,8 +41,8 @@ public class PartitionKeyConfig<TModel> where TModel : class
         if (Parts.Count >= 3)
             throw new InvalidOperationException("Cosmos DB supports up to 3 hierarchical partition keys");
 
-        if (string.IsNullOrWhiteSpace(part.PropertyName))
-            throw new ArgumentException("PropertyName must be specified for each partition key part", nameof(part));
+        if (string.IsNullOrWhiteSpace(part.OriginalPropertyName))
+            throw new ArgumentException("OriginalPropertyName must be specified for each partition key part", nameof(part));
 
         Parts.Add(part);
     }
@@ -74,11 +74,7 @@ public class PartitionKeyConfig<TModel> where TModel : class
         return values;
     }
 
-    /// <summary>
-    /// Gets hierarchical partition key values with their property names for document mapping
-    /// </summary>
-    /// <param name="model">The model to extract values from</param>
-    /// <returns>Dictionary of property names to values</returns>
+   
     public Dictionary<string, string> GetPropertiesWithValues(TModel model)
     {
         if (!IsHierarchical)

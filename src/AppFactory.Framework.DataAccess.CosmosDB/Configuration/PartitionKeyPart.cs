@@ -7,8 +7,13 @@ public class PartitionKeyPart<TModel> where TModel : class
     public Action<TModel, object> Setter { get; set; }
   
     public string PropertyName { get; set; }
+
+
+
+    public string OriginalPropertyName { get; set; }
     
   
     public string Prefix { get; set; }
     public bool IsPrefixSet => !string.IsNullOrEmpty(Prefix);
+    public bool IsPropertyNameSet => !string.IsNullOrEmpty(PropertyName);
 }

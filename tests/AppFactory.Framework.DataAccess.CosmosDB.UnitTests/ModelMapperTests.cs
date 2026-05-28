@@ -116,6 +116,96 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             Assert.Equal("tenantID1", entity.TenantId);
         }
 
+        [Fact]
+        public void MapFromDocument_WithoutPrefixesAndCustomNames()
+        {
+            var options = new CosmosDbModelConfig<User>();
+            options
+                .ContainerName("Users")
+                .Id(u => u.Id)
+                .PartitionKey(u => u.TenantId)
+                .PartitionKey(u => u.UserId);
+
+
+            IModelMapper<User> mapper = new ModelMapper<User>(options);
+
+            var model = new User
+            {
+                Email = "some@mail.com",
+                Name = "John Doe",
+                Id = "123",
+                UserId = "userID1",
+                TenantId = "tenantID1"
+            };
+
+            var document = mapper.MapToDocument(model);
+
+            var entity = mapper.MapFromDocument(document);
+
+            Assert.NotNull(entity);
+            Assert.Equal("123", entity.Id);
+            Assert.Equal("userID1", entity.UserId);
+            Assert.Equal("tenantID1", entity.TenantId);
+        }
+
+        [Fact]
+        public void MapToDocument_WithoutPrefixesAndCustomNames()
+        {
+            var options = new CosmosDbModelConfig<User>();
+            options
+                .ContainerName("Users")
+                .Id(u => u.Id)
+                .PartitionKey(u => u.TenantId)
+                .PartitionKey(u => u.UserId);
+
+            IModelMapper<User> mapper = new ModelMapper<User>(options);
+
+            var model = new User
+            {
+                Email = "some@mail.com",
+                Name = "John Doe",
+                Id = "123",
+                UserId = "userID1",
+                TenantId = "tenantID1"
+            };
+
+            var document = mapper.MapToDocument(model);
+
+            Assert.NotNull(document["id"]);
+            Assert.Equal("123", document["id"]);
+            Assert.Equal("userID1", document["userId"].ToString());
+            Assert.Equal("tenantID1", document["tenantId"].ToString());
+        }
+
+        [Fact]
+        public void MapToDocument_WithCustomNames()
+        {
+            var options = new CosmosDbModelConfig<User>();
+            options
+                .ContainerName("Users")
+                .Id(u => u.Id)
+                .PartitionKey(u => u.TenantId).WithPropertyName("customTenantId")
+                .PartitionKey(u => u.UserId);
+
+            IModelMapper<User> mapper = new ModelMapper<User>(options);
+
+            var model = new User
+            {
+                Email = "some@mail.com",
+                Name = "John Doe",
+                Id = "123",
+                UserId = "userID1",
+                TenantId = "tenantID1"
+            };
+
+            var document = mapper.MapToDocument(model);
+
+            Assert.False(document.ContainsKey("tenantId"));
+            Assert.False(document.ContainsKey("TenantId"));
+            Assert.Equal("tenantID1", document["customTenantId"].ToString());
+            Assert.Equal("userID1", document["userId"].ToString());
+        }
+
     }
 
 
@@ -141,7 +231,19 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
         }
     }
 
-   
+
+    public class UserModelConfigWithoutPrefixWithoutCustomName : IModelConfig<User>
+    {
+        public void Configure(IModelConfigOptions<User> options)
+        {
+            options
+                .ContainerName("Users")
+                .Id(u => u.Id)
+                .PartitionKey(u => u.TenantId)
+                .PartitionKey(u => u.UserId);
+        }
+    }
+
 }
 
 

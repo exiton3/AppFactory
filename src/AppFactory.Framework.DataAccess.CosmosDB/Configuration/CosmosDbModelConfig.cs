@@ -1,6 +1,7 @@
 using System.Collections;
 using Newtonsoft.Json.Linq;
 using System.Linq.Expressions;
+using AppFactory.Framework.Shared;
 
 namespace AppFactory.Framework.DataAccess.CosmosDB.Configuration;
 
@@ -160,13 +161,13 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     {
         var getter = PropertyExpressionHelper.InitializeGetter(partitionKeySelector);
         var setter = PropertyExpressionHelper.InitializeSetter(partitionKeySelector);
-        var propertyName = PropertyExpressionHelper.GetPropertyName(partitionKeySelector);
+        var propertyName = PropertyExpressionHelper.GetPropertyName(partitionKeySelector).ToCamelCase();
 
         var part = new PartitionKeyPart<TModel>
         {
             Selector = o => getter(o),
             Setter = (o, v) => setter(o, (TKey)v),
-            PropertyName = propertyName,
+            OriginalPropertyName = propertyName
         };
 
         _partitionKeyConfig.AddPart(part);
@@ -177,19 +178,6 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     public IModelConfigOptions<TModel> Id<TKey>(Func<TModel, TKey> idSelector)
     {
         _idSelector = o => idSelector(o);
-
-        //// If partition key is not set, use the same as id (single partition key)
-        //if (!_partitionKeyConfig.Parts.Any())
-        //{
-        //    var part = new PartitionKeyPart<TModel>
-        //    {
-        //        Selector = o => idSelector(o),
-        //        PropertyName = _partitionKeyPath.TrimStart('/'),
-        //        Prefix = _pendingPartitionKeyPrefix // Apply pending prefix if any
-        //    };
-        //    _partitionKeyConfig.AddPart(part);
-        //    _pendingPartitionKeyPrefix = null;
-        //}
 
         return this;
     }
