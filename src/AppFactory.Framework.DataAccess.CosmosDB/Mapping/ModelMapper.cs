@@ -83,16 +83,19 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         foreach (var partitionKeyConfig in _config.PartitionKeyParts)
         {
             var key = partitionKeyConfig.IsPropertyNameSet ? partitionKeyConfig.DestinationPropertyName : partitionKeyConfig.SourcePropertyName;
-
-            var value = document[key].ToString();
+            
+            var value = document[key];
 
             if(partitionKeyConfig.IsPrefixSet)
             {
                 string prefix = $"{partitionKeyConfig.Prefix}{CosmosDbConstants.Separator}";
-                value = value.StartsWith(prefix) ? value.Substring(prefix.Length) : value;
+                value = value.ToString().StartsWith(prefix) ? value.ToString().Substring(prefix.Length) : value;
             }
-            
-            partitionKeyConfig.Setter(model, value);
+
+            if (!partitionKeyConfig.IsResolverSet)
+            {
+                partitionKeyConfig.Setter(model, value);
+            }
         }
     }
 

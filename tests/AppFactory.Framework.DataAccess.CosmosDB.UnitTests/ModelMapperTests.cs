@@ -294,6 +294,34 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
 
         }
 
+        [Fact]
+        public void PropertyWithCustomResolverShouldbeIgnoredWhenMappedBack()
+        {
+            var options = new CosmosDbModelConfig<UserNoTenantId>();
+            options
+                .ContainerName("Users")
+                .Id(u => u.Id)
+                .PartitionKey("tenantId").UseResolver<TenantIdValueResolver>()
+                .PartitionKey(u => u.UserId);
+
+            IModelMapper<UserNoTenantId> mapper = new ModelMapper<UserNoTenantId>(options);
+
+            var model = new UserNoTenantId
+            {
+                Email = "some@mail.com",
+                Name = "John Doe",
+                Id = "123",
+                UserId = "userID1",
+            };
+
+            var document = mapper.MapToDocument(model);
+
+            var result = mapper.MapFromDocument(document);
+
+            result.UserId.ShouldBeEqualTo("userID1");
+            result.Id.ShouldBeEqualTo("123");
+        }
+
     }
 
     class TenantIdValueResolver: IPartitionKeyValueResolver 
