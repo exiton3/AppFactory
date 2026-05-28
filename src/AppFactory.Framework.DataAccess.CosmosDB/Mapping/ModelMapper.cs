@@ -65,10 +65,7 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
     {
         var cleanDocument = new Dictionary<string, object>(document);
         
-        RemoveCosmosDbSystemProperties(cleanDocument);
-
         MapBackId(document, cleanDocument);
-       
 
         var json = JsonSerializer.Serialize(cleanDocument, _serializerOptions);
         var model = JsonSerializer.Deserialize<TModel>(json, _serializerOptions);
@@ -100,22 +97,13 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
     }
 
 
-    private static void RemoveCosmosDbSystemProperties(Dictionary<string, object> cleanDocument)
-    {
-        cleanDocument.Remove("_rid");
-        cleanDocument.Remove("_self");
-        cleanDocument.Remove("_etag");
-        cleanDocument.Remove("_attachments");
-        cleanDocument.Remove("_ts");
-        cleanDocument.Remove("ttl");
-    }
-
     private void MapBackId(CosmosDbDocument document, Dictionary<string, object> cleanDocument)
     {
         if (document.ContainsKey(CosmosDbConstants.Id))
         {
             var documentId = document[CosmosDbConstants.Id]?.ToString();
             var modelId = _config.StripIdPrefix(documentId);
+
             cleanDocument[CosmosDbConstants.Id] = modelId;
         }
     }

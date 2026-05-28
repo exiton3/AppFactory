@@ -38,11 +38,6 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     public IEnumerable<PartitionKeyPart<TModel>> PartitionKeyParts => _partitionKeyConfig.Parts;
     public IEnumerable<string> PropertiesToIgnoreDuringSerialization => ignoredPropertyNames;
 
-    internal string GetIdValue(TModel model)
-    {
-        return GetIdValue(_idSelector(model));
-    }
-
     internal string GetIdValue(object key)
     {
         return string.IsNullOrEmpty(_idPrefix) ? key.ToString() : string.Format(IdPattern, key);
@@ -70,14 +65,6 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     internal List<string> GetPartitionKeyValues(TModel model)
     {
         return _partitionKeyConfig.GetValues(model);
-    }
-
-    /// <summary>
-    /// Gets partition key values and property names for document mapping
-    /// </summary>
-    internal Dictionary<string, string> GetPartitionKeyProperties(TModel model)
-    {
-        return _partitionKeyConfig.GetPropertiesWithValues(model);
     }
 
     public DocumentKey GetDocumentKey(TModel model)
@@ -194,7 +181,7 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
         return this;
     }
 
-    public void AddToIgnoreProperties(string propertyName)
+    internal void AddToIgnoreProperties(string propertyName)
     {
         ignoredPropertyNames.Add(propertyName);
     }
