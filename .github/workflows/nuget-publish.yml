@@ -47,6 +47,9 @@ jobs:
          - AppFactory.Framework.DataAccess.DynamoDB
          - AppFactory.Framework.DataAccess.CosmosDB
          - AppFactory.Framework.Api
+         - AppFactory.Framework.Api.Aws
+         - AppFactory.Framework.Api.Azure
+         - AppFactory.Framework.Api.AspNetCore
 
     steps:
       - name: Extract version from tag
