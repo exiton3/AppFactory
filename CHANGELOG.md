@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Microsoft.Extensions.Logging Implementation** (`AppFactory.Framework.Logging.MicrosoftExtensions`)
+  - Adapter for standard .NET logging
+  - `AddMicrosoftExtensionsLogging()` extension methods
+  - Perfect for ASP.NET Core applications
+  - Supports all MEL providers (Console, Debug, ApplicationInsights, etc.)
+  - Performance tracking with structured logging
+
 - **Logging Abstractions** (`AppFactory.Framework.Logging.Abstractions`)
   - Core logging interfaces (`ILogger`, `ILoggerFactory`)
   - No dependencies on specific logging frameworks
@@ -23,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Logging Package Split** - `AppFactory.Framework.Logging` split into:
   - `AppFactory.Framework.Logging.Abstractions` - Interfaces only
   - `AppFactory.Framework.Logging.Serilog` - Serilog implementation
+  - `AppFactory.Framework.Logging.MicrosoftExtensions` - MEL implementation
   - Original package maintained for backward compatibility
 
 ## [10.1.0] - 2024-05-28
