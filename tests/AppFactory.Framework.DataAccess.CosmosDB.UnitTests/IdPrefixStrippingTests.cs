@@ -16,7 +16,7 @@ public class IdPrefixStrippingTests
             .ContainerName("TestEntities")
             .Id(e => e.Id)
             .IdPrefix("ENTITY")
-            .PartitionKey(e => e.TenantId).WithPropertyName("partitionKey").WithPrefix("TENANT");
+            .PartitionKey(e => e.TenantId).WithName("partitionKey").WithPrefix("TENANT");
 
         var mapper = new ModelMapper<TestEntity>(config);
 
@@ -50,8 +50,8 @@ public class IdPrefixStrippingTests
             .ContainerName("TestEntities")
             .Id(e => e.Id)
             .IdPrefix("ENTITY")
-            .PartitionKey(e => e.TenantId).WithPropertyName("tenantId").WithPrefix("TENANT")
-            .PartitionKey(e => e.Category).WithPropertyName("category");
+            .PartitionKey(e => e.TenantId).WithName("tenantId").WithPrefix("TENANT")
+            .PartitionKey(e => e.Category).WithName("category");
 
         var mapper = new ModelMapper<TestEntity>(config);
 

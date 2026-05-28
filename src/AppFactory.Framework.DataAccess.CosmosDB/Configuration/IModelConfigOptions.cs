@@ -16,14 +16,17 @@ public interface IModelConfigOptions<TModel> where TModel : class
 
     /// <summary>
     /// Sets the partition key selector and returns a fluent interface for configuring this partition key part
-    /// Allows chaining .WithPropertyName() and .WithPrefix()
+    /// Allows chaining .WithName() and .WithPrefix()
     /// </summary>
-    IPartitionKeyConfigOptions<TModel> PartitionKey<TKey>(Expression<Func<TModel, TKey>> partitionKeySelector);
+    IPartitionKeyConfigOptions<TModel> PartitionKey<TKey>(Expression<Func<TModel, TKey>> propertyExpression);
+
+    /// </summary>
+    IPartitionKeyConfigOptions<TModel> PartitionKey(string propertyName);
 
     /// <summary>
     /// Sets the ID selector
     /// </summary>
-    IModelConfigOptions<TModel> Id<TKey>(Func<TModel, TKey> idSelector);
+    IModelConfigOptions<TModel> Id<TKey>(Expression<Func<TModel, TKey>> propertyExpression);
 
     /// <summary>
     /// Sets the Time-To-Live in seconds

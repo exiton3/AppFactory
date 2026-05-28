@@ -189,8 +189,8 @@ public class HierarchicalPartitionKeyTests
             .ContainerName("Users")
             .Id(u => u.Id)
             .IdPrefix("USER")
-            .PartitionKey(u => u.TenantId).WithPropertyName("tenantId").WithPrefix("TENANT")
-            .PartitionKey(u => u.UserId).WithPropertyName("userId").WithPrefix("USER");
+            .PartitionKey(u => u.TenantId).WithName("tenantId").WithPrefix("TENANT")
+            .PartitionKey(u => u.UserId).WithName("userId").WithPrefix("USER");
 
         var mapper = new ModelMapper<User>(cosmosDbModelConfig);
         var user = new User
@@ -225,7 +225,7 @@ public class HierarchicalPartitionKeyTests
             .ContainerName("Users")
             .Id(u => u.Id)
             .IdPrefix("USER")
-            .PartitionKey(u => u.TenantId).WithPropertyName("partitionKey").WithPrefix("TENANT");
+            .PartitionKey(u => u.TenantId).WithName("partitionKey").WithPrefix("TENANT");
 
         var mapper = new ModelMapper<User>(cosmosDbModelConfig);
         var user = new User
@@ -266,8 +266,8 @@ public class OrderModelConfig : IModelConfig<Order>
             .ContainerName("Orders")
             .Id(o => o.Id)
             .IdPrefix("ORDER")
-            .PartitionKey(o => o.TenantId).WithPropertyName("tenantId").WithPrefix("TENANT")
-            .PartitionKey(o => o.UserId).WithPropertyName("userId").WithPrefix("USER")
-            .PartitionKey(o => o.Category).WithPropertyName("category");
+            .PartitionKey(o => o.TenantId).WithName("tenantId").WithPrefix("TENANT")
+            .PartitionKey(o => o.UserId).WithName("userId").WithPrefix("USER")
+            .PartitionKey(o => o.Category).WithName("category");
     }
 }

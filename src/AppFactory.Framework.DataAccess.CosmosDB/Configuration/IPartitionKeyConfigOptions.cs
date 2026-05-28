@@ -12,7 +12,7 @@ public interface IPartitionKeyConfigOptions<TModel> : IModelConfigOptions<TModel
     /// </summary>
     /// <param name="propertyName">The property name (without leading slash)</param>
     /// <returns>The partition key config options for method chaining</returns>
-    IPartitionKeyConfigOptions<TModel> WithPropertyName(string propertyName);
+    IPartitionKeyConfigOptions<TModel> WithName(string propertyName);
     
     /// <summary>
     /// Sets the prefix to be applied to the partition key value
@@ -20,4 +20,11 @@ public interface IPartitionKeyConfigOptions<TModel> : IModelConfigOptions<TModel
     /// <param name="prefix">The prefix (e.g., "TENANT", "USER")</param>
     /// <returns>The partition key config options for method chaining</returns>
     IPartitionKeyConfigOptions<TModel> WithPrefix(string prefix);
+
+    IPartitionKeyConfigOptions<TModel> UseResolver<TResolver>() where TResolver : IPartitionKeyValueResolver, new();
+}
+
+public interface IPartitionKeyValueResolver
+{
+    object GetValue();
 }

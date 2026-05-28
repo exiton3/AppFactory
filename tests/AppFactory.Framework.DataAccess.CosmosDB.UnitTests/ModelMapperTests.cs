@@ -1,6 +1,7 @@
 ﻿using AppFactory.Framework.DataAccess.CosmosDB.Configuration;
 using AppFactory.Framework.DataAccess.CosmosDB.Mapping;
 using AppFactory.Framework.DataAccess.CosmosDB.CosmosDb;
+using AppFactory.Framework.TestExtensions;
 using Xunit;
 
 namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
@@ -184,7 +185,7 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             options
                 .ContainerName("Users")
                 .Id(u => u.Id)
-                .PartitionKey(u => u.TenantId).WithPropertyName("customTenantId")
+                .PartitionKey(u => u.TenantId).WithName("customTenantId")
                 .PartitionKey(u => u.UserId);
 
             IModelMapper<User> mapper = new ModelMapper<User>(options);
@@ -206,14 +207,118 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             Assert.Equal("userID1", document["userId"].ToString());
         }
 
+
+        [Fact]
+        public void MapToDocument_IdWithCustomNames()
+        {
+            var options = new CosmosDbModelConfig<User>();
+            options
+                .ContainerName("Users")
+                .Id(u => u.UserId)
+                .PartitionKey(u => u.TenantId).WithName("customTenantId")
+                .PartitionKey(u => u.UserId);
+
+            IModelMapper<User> mapper = new ModelMapper<User>(options);
+
+            var model = new User
+            {
+                Email = "some@mail.com",
+                Name = "John Doe",
+                Id = "123",
+                UserId = "userID1",
+                TenantId = "tenantID1"
+            };
+
+            var document = mapper.MapToDocument(model);
+
+            document.ContainsKey("id").ShouldBeTrue();
+            document.ContainsKey("userId").ShouldBeTrue();
+            document["userId"].ToString().ShouldBeEqualTo("userID1");
+            Assert.Equal("userID1", document["id"].ToString());
+        }
+
+        [Fact]
+        public void MapBack_IdWithCustomNames()
+        {
+            var options = new CosmosDbModelConfig<User>();
+            options
+                .ContainerName("Users")
+                .Id(u => u.UserId)
+                .PartitionKey(u => u.TenantId).WithName("customTenantId")
+                .PartitionKey(u => u.UserId);
+
+            IModelMapper<User> mapper = new ModelMapper<User>(options);
+
+            var model = new User
+            {
+                Email = "some@mail.com",
+                Name = "John Doe",
+                Id = "123",
+                UserId = "userID1",
+                TenantId = "tenantID1"
+            };
+
+            var document = mapper.MapToDocument(model);
+
+           var mappedModel = mapper.MapFromDocument(document);
+
+          mappedModel.UserId.ShouldBeEqualTo("userID1");
+
+
+        }
+
+        [Fact] 
+        public void Map_PartitionKeyThatNotInTheMode()
+        {
+            var options = new CosmosDbModelConfig<UserNoTenantId>();
+            options
+                .ContainerName("Users")
+                .Id(u => u.UserId)
+                .PartitionKey("tenantId").UseResolver<TenantIdValueResolver>()
+                .PartitionKey(u => u.UserId);
+
+            IModelMapper<UserNoTenantId> mapper = new ModelMapper<UserNoTenantId>(options);
+
+            var model = new UserNoTenantId
+            {
+                Email = "some@mail.com",
+                Name = "John Doe",
+                Id = "123",
+                UserId = "userID1",
+            };
+
+            var document = mapper.MapToDocument(model);
+
+            document.ContainsKey("tenantId").ShouldBeTrue();
+            document["tenantId"].ToString().ShouldBeEqualTo("TenantIDFromResolver");
+
+        }
+
     }
 
+    class TenantIdValueResolver: IPartitionKeyValueResolver 
+    {
+        public object GetValue()
+        {
+            return "TenantIDFromResolver";
+        }
+    }
 
     public class User
     {
         public string Id { get; set; }
         public string UserId { get; set; }
         public string TenantId { get; set; }
+        public string Email { get; set; }
+        public string Name { get; set; }
+    }
+
+
+    public class UserNoTenantId
+    {
+        public string Id { get; set; }
+        public string UserId { get; set; }
+        
         public string Email { get; set; }
         public string Name { get; set; }
     }
@@ -226,8 +331,8 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
                 .ContainerName("Users")
                 .Id(u => u.Id)
                 .IdPrefix("USER")
-                .PartitionKey(u => u.TenantId).WithPropertyName("tenantId").WithPrefix("TENANT")
-                .PartitionKey(u => u.UserId).WithPropertyName("partitionKey").WithPrefix("USER");
+                .PartitionKey(u => u.TenantId).WithName("tenantId").WithPrefix("TENANT")
+                .PartitionKey(u => u.UserId).WithName("partitionKey").WithPrefix("USER");
         }
     }
 

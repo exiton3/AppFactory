@@ -27,7 +27,7 @@ public class PartitionKeyConfig<TModel> where TModel : class
     public List<string> GetPartitionKeyPaths()
     {
         return Parts
-            .Select(p => p.PropertyName.StartsWith("/") ? p.PropertyName : $"/{p.PropertyName}")
+            .Select(p => p.DestinationPropertyName.StartsWith("/") ? p.DestinationPropertyName : $"/{p.DestinationPropertyName}")
             .ToList();
     }
 
@@ -41,8 +41,8 @@ public class PartitionKeyConfig<TModel> where TModel : class
         if (Parts.Count >= 3)
             throw new InvalidOperationException("Cosmos DB supports up to 3 hierarchical partition keys");
 
-        if (string.IsNullOrWhiteSpace(part.OriginalPropertyName))
-            throw new ArgumentException("OriginalPropertyName must be specified for each partition key part", nameof(part));
+        if (string.IsNullOrWhiteSpace(part.DestinationPropertyName))
+            throw new ArgumentException("DestinationPropertyName must be specified for each partition key part", nameof(part));
 
         Parts.Add(part);
     }
@@ -60,7 +60,15 @@ public class PartitionKeyConfig<TModel> where TModel : class
         var values = new List<string>();
         foreach (var part in Parts)
         {
-            var value = part.Selector(model);
+            object value;
+            if (part.IsResolverSet)
+            {
+                value = part.Resolver.GetValue();
+            }
+            else
+            {
+                value = part.Getter(model);
+            }
             var stringValue = value?.ToString() ?? string.Empty;
 
             // Apply prefix if configured
@@ -83,7 +91,7 @@ public class PartitionKeyConfig<TModel> where TModel : class
         var properties = new Dictionary<string, string>();
         foreach (var part in Parts)
         {
-            var value = part.Selector(model);
+            var value = part.Getter(model);
             var stringValue = value?.ToString() ?? string.Empty;
 
             // Apply prefix if configured
@@ -93,7 +101,7 @@ public class PartitionKeyConfig<TModel> where TModel : class
             }
 
             // Use the property name from the part
-            var propertyName = part.PropertyName.TrimStart('/');
+            var propertyName = part.DestinationPropertyName.TrimStart('/');
             properties[propertyName] = stringValue;
         }
         return properties;

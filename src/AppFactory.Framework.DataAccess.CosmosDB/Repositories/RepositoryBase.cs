@@ -41,18 +41,21 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
     public async Task<bool> Add(TModel model)
     {
         var document = _mapper.MapToDocument(model);
+
         return await _cosmosDbClient.CreateItemAsync(document, _containerName);
     }
 
     public async Task<bool> Update(TModel model)
     {
         var document = _mapper.MapToDocument(model);
+
         return await _cosmosDbClient.UpdateItemAsync(document, _containerName);
     }
 
     public async Task<bool> Upsert(TModel model)
     {
         var document = _mapper.MapToDocument(model);
+
         return await _cosmosDbClient.UpsertItemAsync(document, _containerName);
     }
 
@@ -78,6 +81,7 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
     public async Task<bool> Delete<TKey>(TKey key, CancellationToken cancellationToken = default)
     {
         var documentKey = _config.GetDocumentKey(key);
+
         return await _cosmosDbClient.DeleteItemAsync(documentKey, _containerName, cancellationToken);
     }
 

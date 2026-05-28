@@ -41,17 +41,21 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
     {
         foreach (var partitionKeyConfig in _config.PartitionKeyParts)
         {
-            if (partitionKeyConfig.IsPropertyNameSet)
+            object value;
+            if (partitionKeyConfig.IsResolverSet)
             {
-                document.Remove(partitionKeyConfig.OriginalPropertyName);
+                value = partitionKeyConfig.Resolver.GetValue();
             }
-            var value = partitionKeyConfig.Selector(model);
+            else
+            {
+                value = partitionKeyConfig.Getter(model);
+            }
 
             if(partitionKeyConfig.IsPrefixSet)
             {
                 value = $"{partitionKeyConfig.Prefix}{CosmosDbConstants.Separator}{value}";
             }
-            var mappedPropertyName = partitionKeyConfig.IsPropertyNameSet ? partitionKeyConfig.PropertyName : partitionKeyConfig.OriginalPropertyName;
+            var mappedPropertyName = partitionKeyConfig.IsPropertyNameSet ? partitionKeyConfig.DestinationPropertyName : partitionKeyConfig.SourcePropertyName;
             
             document[mappedPropertyName] = value;
         }
@@ -78,7 +82,7 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
     {
         foreach (var partitionKeyConfig in _config.PartitionKeyParts)
         {
-            var key = partitionKeyConfig.IsPropertyNameSet ? partitionKeyConfig.PropertyName : partitionKeyConfig.OriginalPropertyName;
+            var key = partitionKeyConfig.IsPropertyNameSet ? partitionKeyConfig.DestinationPropertyName : partitionKeyConfig.SourcePropertyName;
 
             var value = document[key].ToString();
 
@@ -131,7 +135,7 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
     private  void IgnorePropertiesModifier(JsonTypeInfo obj)
     {
         
-        var propertiesToIgnore = new HashSet<string>(_config.PartitionKeyParts.Select(x => x.OriginalPropertyName));
+        var propertiesToIgnore = _config.PropertiesToIgnoreDuringSerialization;
 
         if (obj.Type == typeof(TModel))
         {

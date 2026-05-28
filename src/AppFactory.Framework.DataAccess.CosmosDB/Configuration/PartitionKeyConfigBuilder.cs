@@ -20,16 +20,23 @@ internal class PartitionKeyConfigBuilder<TModel> : IPartitionKeyConfigOptions<TM
         _currentPart = currentPart;
     }
 
-    public IPartitionKeyConfigOptions<TModel> WithPropertyName(string propertyName)
+    public IPartitionKeyConfigOptions<TModel> WithName(string propertyName)
     {
-        _currentPart.PropertyName = propertyName;
-
+        _currentPart.DestinationPropertyName = propertyName;
+        _parentConfig.AddToIgnoreProperties(propertyName);
         return this;
     }
 
     public IPartitionKeyConfigOptions<TModel> WithPrefix(string prefix)
     {
         _currentPart.Prefix = prefix;
+
+        return this;
+    }
+
+    public IPartitionKeyConfigOptions<TModel> UseResolver<TResolver>() where TResolver : IPartitionKeyValueResolver, new()
+    {
+        _currentPart.Resolver = new TResolver();
 
         return this;
     }
@@ -45,17 +52,21 @@ internal class PartitionKeyConfigBuilder<TModel> : IPartitionKeyConfigOptions<TM
         return _parentConfig.IdPrefix(prefix);
     }
 
-    public IPartitionKeyConfigOptions<TModel> PartitionKey<TKey>(Expression<Func<TModel, TKey>> partitionKeySelector)
+    public IPartitionKeyConfigOptions<TModel> PartitionKey<TKey>(Expression<Func<TModel, TKey>> propertyExpression)
     {
-        return _parentConfig.PartitionKey(partitionKeySelector);
+        return _parentConfig.PartitionKey(propertyExpression);
     }
 
-
-
-    public IModelConfigOptions<TModel> Id<TKey>(Func<TModel, TKey> idSelector)
+    public IPartitionKeyConfigOptions<TModel> PartitionKey(string propertyName)
     {
-        return _parentConfig.Id(idSelector);
+       return _parentConfig.PartitionKey(propertyName);
     }
+
+    public IModelConfigOptions<TModel> Id<TKey>(Expression<Func<TModel, TKey>> propertyExpression)
+    {
+        return _parentConfig.Id(propertyExpression);
+    }
+
 
     public IModelConfigOptions<TModel> TimeToLive(int? ttlInSeconds)
     {
