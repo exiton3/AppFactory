@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Description>AppFactory Framework Logging Abstractions - Core logging interfaces and contracts</Description>
+		<PackageTags>AppFactory;Framework;Logging;Abstractions</PackageTags>
+		<Title>AppFactory Framework Logging Abstractions</Title>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>AppFactory.Framework.Logging.Serilog</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>AppFactory.Framework.Logging.MicrosoftExtensions</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>AppFactory.Framework.Logging.UnitTests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+</Project>

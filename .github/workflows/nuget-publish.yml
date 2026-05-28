@@ -33,6 +33,8 @@ jobs:
         project:
          - AppFactory.Framework.Domain
          - AppFactory.Framework.DependencyInjection
+         - AppFactory.Framework.Logging.Abstractions
+         - AppFactory.Framework.Logging.Serilog
          - AppFactory.Framework.Logging
          - AppFactory.Framework.Application
          - AppFactory.Framework.Shared

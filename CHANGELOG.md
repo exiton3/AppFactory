@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Logging Abstractions** (`AppFactory.Framework.Logging.Abstractions`)
+  - Core logging interfaces (`ILogger`, `ILoggerFactory`)
+  - No dependencies on specific logging frameworks
+  - Allows choosing logging implementation
+
+- **Serilog Logging Implementation** (`AppFactory.Framework.Logging.Serilog`)
+  - Moved Serilog implementation to dedicated package
+  - `AddSerilogLogging()` extension methods
+  - Support for custom Serilog configuration
+  - Performance tracking with structured logging
+
+### Changed
+- **Logging Package Split** - `AppFactory.Framework.Logging` split into:
+  - `AppFactory.Framework.Logging.Abstractions` - Interfaces only
+  - `AppFactory.Framework.Logging.Serilog` - Serilog implementation
+  - Original package maintained for backward compatibility
+
 ## [10.1.0] - 2024-05-28
 
 ### Added
