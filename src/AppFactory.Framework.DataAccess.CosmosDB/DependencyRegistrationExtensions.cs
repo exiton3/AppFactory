@@ -1,6 +1,7 @@
 using AppFactory.Framework.DataAccess.CosmosDB.Configuration;
 using AppFactory.Framework.DataAccess.CosmosDB.CosmosDb;
 using AppFactory.Framework.DataAccess.CosmosDB.Settings;
+using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -38,7 +39,7 @@ public static class DependencyRegistrationExtensions
     }
 
     /// <summary>
-    /// Registers all Model Configs from the specified assemblies
+    /// Registers all Model Configs from the specified assemblies using assembly scanning
     /// </summary>
     /// <param name="services">The service collection</param>
     /// <param name="assemblies">Assemblies to scan for model configs. If none provided, scans the calling assembly</param>
@@ -49,10 +50,11 @@ public static class DependencyRegistrationExtensions
             ? assemblies 
             : new[] { Assembly.GetCallingAssembly() };
 
-        foreach (var assembly in assembliesToScan)
-        {
-            RegisterModelConfigsFromAssembly(services, assembly);
-        }
+        services.Scan(scan => scan
+            .FromAssemblies(assembliesToScan)
+            .AddClasses(classes => classes.AssignableTo(typeof(IModelConfig<>)), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithSingletonLifetime());
 
         return services;
     }
@@ -73,7 +75,7 @@ public static class DependencyRegistrationExtensions
     }
 
     /// <summary>
-    /// Registers all Repositories from the specified assemblies
+    /// Registers all Repositories from the specified assemblies using assembly scanning
     /// </summary>
     /// <param name="services">The service collection</param>
     /// <param name="assemblies">Assemblies to scan for repositories. If none provided, scans the calling assembly</param>
@@ -84,16 +86,17 @@ public static class DependencyRegistrationExtensions
             ? assemblies 
             : new[] { Assembly.GetCallingAssembly() };
 
-        foreach (var assembly in assembliesToScan)
-        {
-            RegisterRepositoriesFromAssembly(services, assembly);
-        }
+        services.Scan(scan => scan
+            .FromAssemblies(assembliesToScan)
+            .AddClasses(classes => classes.AssignableTo(typeof(IRepository<>)), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
 
         return services;
     }
 
     /// <summary>
-    /// Registers all Model Configs and Repositories from the specified assemblies
+    /// Registers all Model Configs and Repositories from the specified assemblies using assembly scanning
     /// </summary>
     /// <param name="services">The service collection</param>
     /// <param name="assemblies">Assemblies to scan for model configs and repositories. If none provided, scans the calling assembly</param>
@@ -107,57 +110,16 @@ public static class DependencyRegistrationExtensions
         // Register infrastructure
         RegisterCosmosDbPersistence(services);
 
-        // Register all Model Configs and Repositories
-        foreach (var assembly in assembliesToScan)
-        {
-            RegisterModelConfigsFromAssembly(services, assembly);
-            RegisterRepositoriesFromAssembly(services, assembly);
-        }
+        // Use assembly scanning to register all Model Configs and Repositories
+        services.Scan(scan => scan
+            .FromAssemblies(assembliesToScan)
+            .AddClasses(classes => classes.AssignableTo(typeof(IModelConfig<>)), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithSingletonLifetime()
+            .AddClasses(classes => classes.AssignableTo(typeof(IRepository<>)), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
 
         return services;
     }
-
-    #region Private Helper Methods
-
-    private static void RegisterModelConfigsFromAssembly(IServiceCollection services, Assembly assembly)
-    {
-        var modelConfigTypes = assembly.GetTypes()
-            .Where(t => t.IsClass && !t.IsAbstract)
-            .Where(t => t.GetInterfaces().Any(i => 
-                i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IModelConfig<>)))
-            .ToList();
-
-        foreach (var configType in modelConfigTypes)
-        {
-            var modelConfigInterface = configType.GetInterfaces()
-                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IModelConfig<>));
-
-            if (modelConfigInterface != null)
-            {
-                services.AddSingleton(modelConfigInterface, configType);
-            }
-        }
-    }
-
-    private static void RegisterRepositoriesFromAssembly(IServiceCollection services, Assembly assembly)
-    {
-        var repositoryTypes = assembly.GetTypes()
-            .Where(t => t.IsClass && !t.IsAbstract)
-            .Where(t => t.GetInterfaces().Any(i => 
-                i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRepository<>)))
-            .ToList();
-
-        foreach (var repositoryType in repositoryTypes)
-        {
-            var repositoryInterfaces = repositoryType.GetInterfaces()
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRepository<>));
-
-            foreach (var interfaceType in repositoryInterfaces)
-            {
-                services.AddScoped(interfaceType, repositoryType);
-            }
-        }
-    }
-
-    #endregion
 }

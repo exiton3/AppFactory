@@ -12,6 +12,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.DependencyInjection\AppFactory.Framework.DependencyInjection.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
