@@ -1041,6 +1041,57 @@ If you encounter any issues or have questions:
 - 📖 Check existing [documentation](https://github.com/exiton3/AppFactory/wiki)
 - ⭐ Star the project if you find it useful!
 
+## 📦 Versioning & Releases
+
+AppFactory follows [Semantic Versioning (SemVer)](https://semver.org/) for all NuGet packages:
+
+```
+MAJOR.MINOR.PATCH (e.g., 10.1.0)
+```
+
+- **MAJOR** - Breaking changes (API removals, signature changes)
+- **MINOR** - New features (backward compatible)
+- **PATCH** - Bug fixes (backward compatible)
+
+### Current Version: **v10.1.0**
+
+All packages in the AppFactory Framework are versioned together to ensure compatibility:
+
+```bash
+dotnet add package AppFactory.Framework.Application --version 10.1.0
+dotnet add package AppFactory.Framework.DataAccess.CosmosDB --version 10.1.0
+dotnet add package AppFactory.Framework.DataAccess.DynamoDB --version 10.1.0
+```
+
+### Release Notes
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed release notes and migration guides.
+
+### Latest Changes (v10.1.0)
+
+**Assembly Scanning Framework** - Automatically register types from assemblies:
+
+```csharp
+// Before: Manual registration
+services.AddScoped<IRepository<User>, UserRepository>();
+services.AddScoped<IRepository<Product>, ProductRepository>();
+
+// After: Assembly scanning
+services.RegisterCosmosDbDataAccess(typeof(UserRepository).Assembly);
+
+// Or use the fluent API
+services.Scan(scan => scan
+    .FromAssembliesOf(typeof(Program))
+    .AddClasses(classes => classes.AssignableTo(typeof(IRepository<>)), publicOnly: false)
+        .AsImplementedInterfaces()
+        .WithScopedLifetime());
+```
+
+**New extension methods:**
+- `RegisterModelConfigs()` - Scan and register model configurations
+- `RegisterRepositories()` - Scan and register repositories
+- `RegisterCosmosDbDataAccess()` / `RegisterDynamoDbDataAccess()` - All-in-one registration
+
 ## 🙏 Acknowledgments
 
 Built with ❤️ for the .NET community to simplify CQRS and DDD implementation.

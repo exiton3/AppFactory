@@ -1,8 +1,10 @@
 <Project>
   <PropertyGroup>
-      <TargetFramework>net10.0</TargetFramework>
+	  <TargetFramework>net10.0</TargetFramework>
 	  <ImplicitUsings>enable</ImplicitUsings>
 	  <Nullable>enable</Nullable>
+	  <!-- Default version for local builds - overridden in CI/CD with -p:PackageVersion -->
+	  <Version>10.1.0-dev</Version>
 	  <Copyright>Copyright © Sergey Kichuk. All rights reserved. Licensed under the MIT License.</Copyright>
 	  <Authors>Sergey Kichuk</Authors>
 	  <PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
