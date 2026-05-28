@@ -66,7 +66,8 @@ public class ApiGatewayResponseBuilderTests
         builder.Body(data);
         var response = (APIGatewayProxyResponse)builder.Build();
 
-        response.Body.ShouldContain("\"Message\"");
+        // System.Text.Json uses camelCase by default
+        response.Body.ShouldContain("\"message\"");
         response.Body.ShouldContain("\"test\"");
     }
 
