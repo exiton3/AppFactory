@@ -104,17 +104,17 @@ public class AspNetCoreRequestContext : IHttpRequestContext
 
     public string QueryString => _httpContext.Request.QueryString.Value ?? string.Empty;
 
-    private static HttpMethod ParseHttpMethod(string method)
+    private static Abstractions.HttpMethod ParseHttpMethod(string method)
     {
         return method?.ToUpperInvariant() switch
         {
-            "GET" => HttpMethod.Get,
-            "POST" => HttpMethod.Post,
-            "PUT" => HttpMethod.Put,
-            "DELETE" => HttpMethod.Delete,
-            "PATCH" => HttpMethod.Patch,
-            "HEAD" => HttpMethod.Head,
-            "OPTIONS" => HttpMethod.Options,
+            "GET" => Abstractions.HttpMethod.Get,
+            "POST" => Abstractions.HttpMethod.Post,
+            "PUT" => Abstractions.HttpMethod.Put,
+            "DELETE" => Abstractions.HttpMethod.Delete,
+            "PATCH" => Abstractions.HttpMethod.Patch,
+            "HEAD" => Abstractions.HttpMethod.Head,
+            "OPTIONS" => Abstractions.HttpMethod.Options,
             _ => throw new ArgumentException($"Unsupported HTTP method: {method}", nameof(method))
         };
     }

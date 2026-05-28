@@ -22,9 +22,9 @@ public class ApiGatewayRequestContext : IHttpRequestContext
 
     public string RequestId => _lambdaContext.AwsRequestId;
 
-    public HttpMethod Method => ParseHttpMethod(_request.HttpMethod);
+    public HttpMethodEnum Method => ParseHttpMethod(_request.HttpMethod);
 
-    public IDictionary<string, string> PathParameters => 
+    public IDictionary<string, string> PathParameters =>
         _request.PathParameters ?? new Dictionary<string, string>();
 
     public IDictionary<string, string> QueryParameters => 

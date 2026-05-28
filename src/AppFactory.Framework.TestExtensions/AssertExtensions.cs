@@ -51,6 +51,24 @@ public static class AssertExtensions
         Assert.NotNull(actual);
     }
 
+    // Alias for ShouldBeNotNull for compatibility
+    public static void ShouldNotBeNull<T>(this T actual, string message = Empty)
+    {
+        Assert.NotNull(actual);
+    }
+
+    // Alias for ShouldBeEqualTo for compatibility
+    public static void ShouldBe<T>(this T actual, T expected, string message = Empty)
+    {
+        Assert.Equal(expected, actual);
+    }
+
+    // String StartsWith assertion
+    public static void ShouldStartWith(this string actual, string expected, string message = Empty)
+    {
+        Assert.StartsWith(expected, actual);
+    }
+
     public static void ShouldBeInstanceOf<TInstance>(this object actual, string message = Empty)
     {
         Assert.IsType<TInstance>(actual);

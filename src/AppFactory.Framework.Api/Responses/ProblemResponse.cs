@@ -2,7 +2,7 @@
 
 namespace AppFactory.Framework.Api.Responses;
 
-class ProblemResponse
+public class ProblemResponse
 {
     public string Problem { get; set; }
 

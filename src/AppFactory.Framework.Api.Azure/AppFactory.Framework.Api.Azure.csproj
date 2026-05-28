@@ -5,13 +5,12 @@
 		<PackageTags>AppFactory;Framework;CQRS;Azure;Functions;Serverless</PackageTags>
 		<Title>AppFactory Framework API Azure Functions</Title>
 		<PackageId>AppFactory.Framework.Api.Azure</PackageId>
-		<AzureFunctionsVersion>v4</AzureFunctionsVersion>
+		<OutputType>Library</OutputType>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.2.0" />
-		<PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
 	</ItemGroup>
 

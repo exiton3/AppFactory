@@ -2,7 +2,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.Domain.ServiceResult;
 using AppFactory.Framework.Shared.Serialization;
-using System.Net;
+using SystemHttpStatusCode = System.Net.HttpStatusCode;
 
 namespace AppFactory.Framework.Api.Azure;
 
@@ -33,7 +33,7 @@ public class HttpResponseDataBuilder : IHttpResponseBuilder
 
     public IHttpResponseBuilder StatusCode(int statusCode)
     {
-        _response.StatusCode = (HttpStatusCode)statusCode;
+        _response.StatusCode = (SystemHttpStatusCode)statusCode;
         return this;
     }
 

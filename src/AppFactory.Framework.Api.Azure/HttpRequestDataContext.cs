@@ -1,6 +1,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using AppFactory.Framework.Api.Abstractions;
+using HttpMethodEnum = AppFactory.Framework.Api.Abstractions.HttpMethod;
 
 namespace AppFactory.Framework.Api.Azure;
 
@@ -22,7 +23,7 @@ public class HttpRequestDataContext : IHttpRequestContext
 
     public string RequestId => _functionContext.InvocationId;
 
-    public HttpMethod Method => ParseHttpMethod(_request.Method);
+    public HttpMethodEnum Method => ParseHttpMethod(_request.Method);
 
     public IDictionary<string, string> PathParameters
     {

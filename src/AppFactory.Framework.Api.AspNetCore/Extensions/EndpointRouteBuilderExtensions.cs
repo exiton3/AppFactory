@@ -55,7 +55,7 @@ public static class EndpointRouteBuilderExtensions
             }
             catch (Exception ex)
             {
-                logger?.LogError($"Error processing request: {ex.Message}", ex);
+                logger?.LogError(ex, "Error processing request: {Message}", ex.Message);
                 context.Response.StatusCode = 500;
                 await context.Response.WriteAsJsonAsync(new { error = "Internal server error" });
             }

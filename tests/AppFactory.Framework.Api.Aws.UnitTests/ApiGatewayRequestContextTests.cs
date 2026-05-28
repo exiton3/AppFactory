@@ -3,6 +3,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.TestUtilities;
 using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.TestExtensions;
+using HttpMethodEnum = AppFactory.Framework.Api.Abstractions.HttpMethod;
 
 namespace AppFactory.Framework.Api.Aws.UnitTests;
 
@@ -34,12 +35,12 @@ public class ApiGatewayRequestContextTests
     }
 
     [Theory]
-    [InlineData("GET", HttpMethod.Get)]
-    [InlineData("POST", HttpMethod.Post)]
-    [InlineData("PUT", HttpMethod.Put)]
-    [InlineData("DELETE", HttpMethod.Delete)]
-    [InlineData("PATCH", HttpMethod.Patch)]
-    public void Method_VariousHttpMethods_ParsesCorrectly(string httpMethod, HttpMethod expected)
+    [InlineData("GET", HttpMethodEnum.Get)]
+    [InlineData("POST", HttpMethodEnum.Post)]
+    [InlineData("PUT", HttpMethodEnum.Put)]
+    [InlineData("DELETE", HttpMethodEnum.Delete)]
+    [InlineData("PATCH", HttpMethodEnum.Patch)]
+    public void Method_VariousHttpMethods_ParsesCorrectly(string httpMethod, HttpMethodEnum expected)
     {
         var request = new APIGatewayProxyRequest { HttpMethod = httpMethod };
         var lambdaContext = new TestLambdaContext();
