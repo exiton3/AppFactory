@@ -20,7 +20,7 @@ public class AspNetCoreRequestContext : IHttpRequestContext
 
     public string RequestId => _httpContext.TraceIdentifier;
 
-    public HttpMethod Method => ParseHttpMethod(_httpContext.Request.Method);
+    public HttpMethodEnum Method => ParseHttpMethod(_httpContext.Request.Method);
 
     public IDictionary<string, string> PathParameters
     {
