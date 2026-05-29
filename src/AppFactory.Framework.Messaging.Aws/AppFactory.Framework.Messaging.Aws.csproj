@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>14.0</LangVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Authors>Sergey Kichuk</Authors>
+    <Company>AppFactory</Company>
+    <Product>AppFactory Framework</Product>
+    <Description>AWS SQS messaging implementation for AppFactory Framework - Build reactive microservices on AWS Lambda</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/exiton3/AppFactory</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>aws;sqs;lambda;messaging;microservices;reactive;serverless;appfactory</PackageTags>
+    <Version>10.5.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.400.57" />
+    <PackageReference Include="Amazon.Lambda.Core" Version="3.1.0" />
+    <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AppFactory.Framework.Messaging.Core\AppFactory.Framework.Messaging.Core.csproj" />
+    <ProjectReference Include="..\AppFactory.Framework.Logging.Abstractions\AppFactory.Framework.Logging.Abstractions.csproj" />
+    <ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Description>AppFactory Framework Messaging - Core Abstractions</Description>
+		<PackageTags>AppFactory;Framework;Messaging;Queue;MessageBus;Multi-Cloud</PackageTags>
+		<Title>AppFactory Framework Messaging Core</Title>
+		<PackageId>AppFactory.Framework.Messaging</PackageId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>AppFactory.Framework.Messaging.Aws</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>AppFactory.Framework.Messaging.Azure</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>AppFactory.Framework.Messaging.UnitTests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="..\..\logo.png" Link="logo.png" />
+	</ItemGroup>
+
+</Project>
