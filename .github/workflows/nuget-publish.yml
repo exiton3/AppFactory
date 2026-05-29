@@ -41,7 +41,8 @@ jobs:
          - AppFactory.Framework.Shared
          - AppFactory.Framework.Messaging
          - AppFactory.Framework.EventBus
-         - AppFactory.Framework.EventBus.Aws         
+         - AppFactory.Framework.EventBus.Aws
+         - AppFactory.Framework.EventBus.Azure
          - AppFactory.Framework.TestExtensions
          - AppFactory.Framework.DataAccess
          - AppFactory.Framework.DataAccess.DynamoDB

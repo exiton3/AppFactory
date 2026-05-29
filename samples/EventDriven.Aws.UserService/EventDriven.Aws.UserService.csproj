@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+		<AWSProjectType>Lambda</AWSProjectType>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<PublishReadyToRun>true</PublishReadyToRun>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Amazon.Lambda.Core" Version="3.1.0" />
+		<PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="3.0.0" />
+		<PackageReference Include="Amazon.Lambda.CloudWatchEvents" Version="4.0.0" />
+		<PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\AppFactory.Framework.Api.Aws\AppFactory.Framework.Api.Aws.csproj" />
+		<ProjectReference Include="..\..\src\AppFactory.Framework.EventBus.Aws\AppFactory.Framework.EventBus.Aws.csproj" />
+		<ProjectReference Include="..\..\src\AppFactory.Framework.Application\AppFactory.Framework.Application.csproj" />
+		<ProjectReference Include="..\..\src\AppFactory.Framework.Logging.Serilog\AppFactory.Framework.Logging.Serilog.csproj" />
+	</ItemGroup>
+
+</Project>

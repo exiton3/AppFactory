@@ -1,0 +1,43 @@
+service: user-service-events
+
+provider:
+  name: aws
+  runtime: dotnet10
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    EVENT_BUS_NAME: ${self:service}-${self:provider.stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource:
+            - !GetAtt EventBus.Arn
+
+functions:
+  createUser:
+    handler: EventDriven.Aws.UserService::EventDriven.Aws.UserService.Functions.CreateUserFunction::FunctionHandler
+    events:
+      - http:
+          path: users
+          method: post
+
+  handleUserCreated:
+    handler: EventDriven.Aws.UserService::EventDriven.Aws.UserService.Functions.UserCreatedEventFunction::FunctionHandler
+    events:
+      - eventBridge:
+          eventBus: !GetAtt EventBus.Arn
+          pattern:
+            source:
+              - user-service
+            detail-type:
+              - com.appfactory.user.created
+
+resources:
+  Resources:
+    EventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:service}-${self:provider.stage}
