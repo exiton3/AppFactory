@@ -7,6 +7,117 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.4.0] - 2024-12-20
+
+### 🎯 Event-Driven Architecture - Multi-Cloud Event Support!
+
+AppFactory now provides comprehensive event-driven architecture support across AWS EventBridge, Azure Event Grid, and on-premises messaging systems.
+
+### Added
+
+#### Core Event Abstractions (`AppFactory.Framework.EventBus`)
+- **IEvent** - Platform-agnostic event interface
+- **IEventPublisher** - Unified event publishing across all platforms
+- **IEventHandler<TEvent>** - Platform-agnostic event handler interface
+- **CloudEvent** - CloudEvents 1.0 specification support
+- **DomainEvent<TData>** - Strongly-typed domain events with metadata support
+  - Correlation ID tracking
+  - Causation ID tracking
+  - User context tracking
+
+#### AWS EventBridge Integration (Enhanced `AppFactory.Framework.EventBus.Aws`)
+- **EventBridgePublisher** - Publish events to AWS EventBridge
+- **LambdaEventHandlerBase<TEvent>** - Process EventBridge events in Lambda
+- **ServiceCollectionExtensions** - Easy DI setup
+  - `AddEventBridgePublisher()` - Register EventBridge publisher
+  - `AddEventHandlers()` - Auto-register event handlers from assembly
+- Batch publishing support (up to 10 events per batch)
+- Full CloudEvents compatibility
+
+#### Azure Event Grid Integration (`AppFactory.Framework.EventBus.Azure`) **NEW**
+- **EventGridPublisher** - Publish CloudEvents to Azure Event Grid
+- **AzureFunctionEventHandlerBase<TEvent>** - Process Event Grid events in Azure Functions
+- **ServiceCollectionExtensions** - Easy DI setup
+  - `AddEventGridPublisher()` - Register Event Grid publisher
+  - `AddEventHandlers()` - Auto-register event handlers from assembly
+- Native CloudEvents support
+- Batch publishing support
+
+### Changed
+- Enhanced existing `IEventBus` to work with new `IEventPublisher` abstraction
+- `IntegrationEvent` now implements `IEvent` for backward compatibility
+- Improved event serialization with CloudEvents format
+
+### Event-Driven Patterns Supported
+- ✅ **Event Publishing** - Publish domain events to EventBridge or Event Grid
+- ✅ **Event Handling** - Subscribe to events and process them in Lambda/Azure Functions
+- ✅ **CloudEvents Standard** - Industry-standard event format
+- ✅ **Batch Publishing** - Publish multiple events efficiently
+- ✅ **Distributed Tracing** - Correlation IDs and causation IDs
+- ✅ **Cross-Service Communication** - Decoupled microservices architecture
+
+### Sample Applications
+- ✅ `samples/EventDriven.Aws.UserService` - Complete AWS EventBridge example
+  - User creation with event publishing
+  - Welcome email event handler
+  - EventBridge event bus configuration
+
+### Documentation
+- [Event-Driven Architecture Guide](EVENT_DRIVEN_ARCHITECTURE_GUIDE.md)
+- [CloudEvents Specification Guide](CLOUDEVENTS_GUIDE.md)
+- [Multi-Cloud Events Migration Guide](MULTI_CLOUD_EVENTS_GUIDE.md)
+- [AWS EventBridge Package README](src/AppFactory.Framework.EventBus.Aws/README.md)
+- [Azure Event Grid Package README](src/AppFactory.Framework.EventBus.Azure/README.md)
+
+### Example Usage
+
+#### Publishing Events
+```csharp
+public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand>
+{
+    private readonly IEventPublisher _eventPublisher;
+
+    public async Task<CommandResult> Handle(CreateUserCommand cmd, CancellationToken ct)
+    {
+        var user = new User { Email = cmd.Email };
+        await _userRepo.AddAsync(user, ct);
+
+        // Publish event (works on AWS, Azure, or on-prem!)
+        await _eventPublisher.PublishAsync(new UserCreatedEvent
+        {
+            EventType = "com.appfactory.user.created",
+            Source = "user-service",
+            Data = new { UserId = user.Id, Email = user.Email }
+        }, ct);
+
+        return CommandResult.Success(user.Id);
+    }
+}
+```
+
+#### Handling Events
+```csharp
+public class SendWelcomeEmailHandler : IEventHandler<UserCreatedEvent>
+{
+    public async Task HandleAsync(UserCreatedEvent @event, CancellationToken ct)
+    {
+        await _emailService.SendWelcomeEmailAsync(@event.Data.Email, ct);
+    }
+}
+
+// AWS Lambda
+public class UserCreatedLambda : LambdaEventHandlerBase<UserCreatedEvent>
+{
+    protected override IStartup GetStartup() => new Startup();
+}
+
+// Azure Functions
+public class UserCreatedFunction : AzureFunctionEventHandlerBase<UserCreatedEvent>
+{
+    protected override IStartup GetStartup() => new Startup();
+}
+```
+
 ## [10.3.0] - 2024-12-19
 
 ### 🚀 Multi-Cloud API Support - Build Once, Deploy Anywhere!

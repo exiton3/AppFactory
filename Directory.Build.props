@@ -4,7 +4,7 @@
 	  <ImplicitUsings>enable</ImplicitUsings>
 	  <Nullable>enable</Nullable>
 	  <!-- Default version for local builds - overridden in CI/CD with -p:PackageVersion -->
-	  <Version>10.3.0</Version>
+	  <Version>10.4.0</Version>
 	  <Copyright>Copyright © Sergey Kichuk. All rights reserved. Licensed under the MIT License.</Copyright>
 	  <Authors>Sergey Kichuk</Authors>
 	  <PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
