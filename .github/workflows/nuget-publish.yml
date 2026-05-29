@@ -40,6 +40,9 @@ jobs:
          - AppFactory.Framework.Application
          - AppFactory.Framework.Shared
          - AppFactory.Framework.Messaging
+         - AppFactory.Framework.Messaging.Core
+         - AppFactory.Framework.Messaging.Aws
+         - AppFactory.Framework.Messaging.Azure
          - AppFactory.Framework.EventBus
          - AppFactory.Framework.EventBus.Aws
          - AppFactory.Framework.EventBus.Azure
@@ -47,6 +50,7 @@ jobs:
          - AppFactory.Framework.DataAccess
          - AppFactory.Framework.DataAccess.DynamoDB
          - AppFactory.Framework.DataAccess.CosmosDB
+         - AppFactory.Framework.Infrastructure
          - AppFactory.Framework.Api
          - AppFactory.Framework.Api.Aws
          - AppFactory.Framework.Api.Azure

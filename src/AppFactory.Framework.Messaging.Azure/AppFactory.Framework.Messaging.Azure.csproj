@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>14.0</LangVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Authors>Sergey Kichuk</Authors>
+    <Company>AppFactory</Company>
+    <Product>AppFactory Framework</Product>
+    <Description>Azure Service Bus and Queue Storage messaging implementation for AppFactory Framework - Build reactive microservices on Azure Functions</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/exiton3/AppFactory</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>azure;servicebus;queuestorage;functions;messaging;microservices;reactive;serverless;appfactory</PackageTags>
+    <Version>10.5.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.17.0" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.17.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.16.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.3.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AppFactory.Framework.Messaging.Core\AppFactory.Framework.Messaging.Core.csproj" />
+    <ProjectReference Include="..\AppFactory.Framework.Logging.Abstractions\AppFactory.Framework.Logging.Abstractions.csproj" />
+    <ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
