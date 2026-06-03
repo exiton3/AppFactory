@@ -1,9 +1,10 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Queues;
 using AppFactory.Framework.Messaging.Azure.Configuration;
-using AppFactory.Framework.Messaging.Core.Abstractions;
+using AppFactory.Framework.Messaging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Configuration;
 
 namespace AppFactory.Framework.Messaging.Azure.Extensions;
 
@@ -119,7 +120,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddAzureQueueStorage(
         this IServiceCollection services,
-        Microsoft.Extensions.Configuration.IConfiguration configuration)
+        IConfiguration configuration)
     {
         if (configuration == null)
             throw new ArgumentNullException(nameof(configuration));

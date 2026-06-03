@@ -1,5 +1,4 @@
 using AppFactory.Framework.DependencyInjection;
-using AppFactory.Framework.Logging;
 using AppFactory.Framework.Shared.Config;
 using AppFactory.Framework.Shared.Serialization;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +12,5 @@ public class DependencyModule : IDependencyRegistrationModule
         services.AddSingleton<IJsonSerializer, DefaultJsonSerializer>();
         services.AddSingleton<IConfigSettings, ConfigSettings>();
         services.AddSingleton<IServiceProvider>(x => x);
-        services.AddLogging();
     }
 }

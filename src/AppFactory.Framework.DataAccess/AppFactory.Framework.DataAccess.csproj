@@ -19,7 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AppFactory.Framework.DependencyInjection\AppFactory.Framework.DependencyInjection.csproj" />
     <ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
-    <ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
+    <ProjectReference Include="..\AppFactory.Framework.Logging.Abstractions\AppFactory.Framework.Logging.Abstractions.csproj" />
     <ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
   </ItemGroup>
 

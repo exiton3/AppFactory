@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
+    <ProjectReference Include="..\AppFactory.Framework.Logging.Abstractions\AppFactory.Framework.Logging.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

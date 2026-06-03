@@ -1,11 +1,10 @@
 using Amazon.SQS;
 using Amazon.SQS.Model;
-using AppFactory.Framework.Logging.Abstractions;
+using AppFactory.Framework.Logging;
 using AppFactory.Framework.Messaging.Aws.Configuration;
-using AppFactory.Framework.Messaging.Core.Abstractions;
-using AppFactory.Framework.Shared;
-using Microsoft.Extensions.Options;
 using System.Text.Json;
+using AppFactory.Framework.Messaging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace AppFactory.Framework.Messaging.Aws;
 
@@ -40,7 +39,7 @@ public class SqsMessagePublisher : IMessagePublisher
         TMessage message,
         CancellationToken cancellationToken = default) where TMessage : class
     {
-        Check.NotNull(message, nameof(message));
+        ArgumentNullException.ThrowIfNull(message);
 
         try
         {
@@ -64,8 +63,8 @@ public class SqsMessagePublisher : IMessagePublisher
 
             if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
             {
-                var error = $"Failed to publish message to SQS. Status: {response.HttpStatusCode}";
-                _logger.LogError(error);
+                var error = $"Failed to publish message to SQS. Status: {response}";
+                _logger.LogError(error, response.HttpStatusCode);
                 return PublishResult.Failed(error);
             }
 
@@ -90,7 +89,7 @@ public class SqsMessagePublisher : IMessagePublisher
         IEnumerable<TMessage> messages,
         CancellationToken cancellationToken = default) where TMessage : class
     {
-        Check.NotNull(messages, nameof(messages));
+        ArgumentNullException.ThrowIfNull(messages);
 
         var messageList = messages.ToList();
         if (messageList.Count == 0)
@@ -98,34 +97,33 @@ public class SqsMessagePublisher : IMessagePublisher
             return BatchPublishResult.Success();
         }
 
-        var results = new List<BatchPublishResult.MessageResult>();
+        var allResults = new List<PublishResult>();
         var batches = messageList.Chunk(_options.MaxBatchSize);
 
         foreach (var batch in batches)
         {
             var batchResults = await PublishBatchInternalAsync(batch, cancellationToken);
-            results.AddRange(batchResults);
+            allResults.AddRange(batchResults);
         }
 
-        var successCount = results.Count(r => r.IsSuccess);
-        var failureCount = results.Count(r => !r.IsSuccess);
+        var successCount = allResults.Count(r => r.IsSuccess);
+        var failureCount = allResults.Count(r => !r.IsSuccess);
 
-        _logger.LogInformation($"Batch publish completed. Success: {successCount}, Failed: {failureCount}");
+        _logger.LogInfo($"Batch publish completed. Success: {successCount}, Failed: {failureCount}");
 
         return new BatchPublishResult
         {
-            IsSuccess = failureCount == 0,
             SuccessCount = successCount,
             FailureCount = failureCount,
-            Results = results
+            Results = allResults
         };
     }
 
-    private async Task<List<BatchPublishResult.MessageResult>> PublishBatchInternalAsync<TMessage>(
+    private async Task<List<PublishResult>> PublishBatchInternalAsync<TMessage>(
         IEnumerable<TMessage> messages,
         CancellationToken cancellationToken) where TMessage : class
     {
-        var results = new List<BatchPublishResult.MessageResult>();
+        var results = new List<PublishResult>();
 
         try
         {
@@ -148,24 +146,18 @@ public class SqsMessagePublisher : IMessagePublisher
             // Process successful messages
             foreach (var success in response.Successful)
             {
-                results.Add(new BatchPublishResult.MessageResult
-                {
-                    MessageId = success.MessageId,
-                    IsSuccess = true
-                });
+                results.Add(PublishResult.Success(success.MessageId));
             }
 
             // Process failed messages
             foreach (var failure in response.Failed)
             {
-                results.Add(new BatchPublishResult.MessageResult
-                {
-                    MessageId = failure.Id,
-                    IsSuccess = false,
-                    ErrorMessage = $"Code: {failure.Code}, Message: {failure.Message}"
-                });
+                var error = $"Code: {failure.Code}, Message: {failure.Message}";
+                results.Add(PublishResult.Failed(error));
 
-                _logger.LogError($"Failed to publish message {failure.Id}: {failure.Code} - {failure.Message}");
+                _logger.LogError(
+                    new Exception(error),
+                    $"Failed to publish message {failure.Id}: {failure.Code} - {failure.Message}");
             }
         }
         catch (Exception ex)
@@ -175,12 +167,7 @@ public class SqsMessagePublisher : IMessagePublisher
             // Mark all messages in this batch as failed
             foreach (var msg in messages)
             {
-                results.Add(new BatchPublishResult.MessageResult
-                {
-                    MessageId = Guid.NewGuid().ToString(),
-                    IsSuccess = false,
-                    ErrorMessage = ex.Message
-                });
+                results.Add(PublishResult.Failed(ex.Message));
             }
         }
 

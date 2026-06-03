@@ -1,16 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<Description>AppFactory Framework Messaging - Core Abstractions</Description>
 		<PackageTags>AppFactory;Framework;Messaging;Queue;MessageBus;Multi-Cloud</PackageTags>
 		<Title>AppFactory Framework Messaging Core</Title>
-		<PackageId>AppFactory.Framework.Messaging</PackageId>
+		<PackageId>AppFactory.Framework.Messaging.Core</PackageId>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
-		<ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -23,7 +18,9 @@
 			<_Parameter1>AppFactory.Framework.Messaging.UnitTests</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
-
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+	</ItemGroup>
 	<ItemGroup>
 		<Content Include="..\..\logo.png" Link="logo.png" />
 	</ItemGroup>

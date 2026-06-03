@@ -8,9 +8,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Messaging.EventGrid" Version="4.28.0" />
-		<PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
-		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.EventGrid" Version="3.4.2" />
+		<PackageReference Include="Azure.Messaging.EventGrid" Version="4.31.0" />
+		<PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.EventGrid" Version="3.6.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
 	</ItemGroup>
 
@@ -27,7 +27,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\AppFactory.Framework.EventBus\AppFactory.Framework.EventBus.csproj" />
 		<ProjectReference Include="..\AppFactory.Framework.DependencyInjection\AppFactory.Framework.DependencyInjection.csproj" />
-		<ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.Logging.Abstractions\AppFactory.Framework.Logging.Abstractions.csproj" />
 		<ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
 	</ItemGroup>
 

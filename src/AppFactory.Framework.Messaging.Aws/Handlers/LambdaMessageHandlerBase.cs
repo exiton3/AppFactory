@@ -1,8 +1,9 @@
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
-using AppFactory.Framework.Logging.Abstractions;
-using AppFactory.Framework.Messaging.Core.Abstractions;
+using AppFactory.Framework.Logging;
+using AppFactory.Framework.Messaging.Abstractions;
 using System.Text.Json;
+
 
 namespace AppFactory.Framework.Messaging.Aws.Handlers;
 
@@ -22,21 +23,21 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : class
     /// <summary>
     /// Entry point for Lambda function. Processes SQS event and calls HandleMessageAsync for each message.
     /// </summary>
-    [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
+    
     public async Task FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
     {
         if (sqsEvent?.Records == null || sqsEvent.Records.Count == 0)
         {
-            Logger.LogWarning("Received empty SQS event");
+            Logger.LogInfo("Received empty SQS event");
             return;
         }
 
-        Logger.LogInformation($"Processing {sqsEvent.Records.Count} SQS messages");
+        Logger.LogInfo($"Processing {sqsEvent.Records.Count} SQS messages");
 
         var tasks = sqsEvent.Records.Select(record => ProcessRecordAsync(record, context));
         await Task.WhenAll(tasks);
 
-        Logger.LogInformation("Completed processing all SQS messages");
+        Logger.LogInfo("Completed processing all SQS messages");
     }
 
     private async Task ProcessRecordAsync(SQSEvent.SQSMessage record, ILambdaContext context)
@@ -44,15 +45,15 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : class
         try
         {
             var message = DeserializeMessage(record.Body);
-            
+
             if (message == null)
             {
-                Logger.LogError($"Failed to deserialize message. MessageId: {record.MessageId}");
+                Logger.LogError(new Exception("Deserialization failed"), $"Failed to deserialize message. MessageId: {record.MessageId}");
                 throw new InvalidOperationException($"Message deserialization failed for {record.MessageId}");
             }
 
             // Populate metadata if message implements IMessage
-            if (message is IMessage baseMessage)
+            if (message is Message baseMessage)
             {
                 baseMessage.MessageId = record.MessageId;
                 baseMessage.EnqueuedTimeUtc = DateTimeOffset.FromUnixTimeMilliseconds(
@@ -69,11 +70,11 @@ public abstract class LambdaMessageHandlerBase<TMessage> where TMessage : class
                 }
             }
 
-            Logger.LogInformation($"Handling message: {typeof(TMessage).Name}, MessageId: {record.MessageId}");
+            Logger.LogInfo($"Handling message: {typeof(TMessage).Name}, MessageId: {record.MessageId}");
 
             await HandleMessageAsync(message, CancellationToken.None);
 
-            Logger.LogInformation($"Successfully processed message: {record.MessageId}");
+            Logger.LogInfo($"Successfully processed message: {record.MessageId}");
         }
         catch (Exception ex)
         {
@@ -119,21 +120,21 @@ public abstract class LambdaMessageHandlerWithContextBase<TMessage> where TMessa
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
+    
     public async Task FunctionHandler(SQSEvent sqsEvent, ILambdaContext context)
     {
         if (sqsEvent?.Records == null || sqsEvent.Records.Count == 0)
         {
-            Logger.LogWarning("Received empty SQS event");
+            Logger.LogInfo("Received empty SQS event");
             return;
         }
 
-        Logger.LogInformation($"Processing {sqsEvent.Records.Count} SQS messages with context");
+        Logger.LogInfo($"Processing {sqsEvent.Records.Count} SQS messages with context");
 
         var tasks = sqsEvent.Records.Select(record => ProcessRecordWithContextAsync(record, context));
         await Task.WhenAll(tasks);
 
-        Logger.LogInformation("Completed processing all SQS messages");
+        Logger.LogInfo("Completed processing all SQS messages");
     }
 
     private async Task ProcessRecordWithContextAsync(SQSEvent.SQSMessage record, ILambdaContext lambdaContext)
@@ -146,13 +147,13 @@ public abstract class LambdaMessageHandlerWithContextBase<TMessage> where TMessa
 
             if (message == null)
             {
-                Logger.LogError($"Failed to deserialize message. MessageId: {record.MessageId}");
+                Logger.LogError(new Exception("Deserialization failed"), $"Failed to deserialize message. MessageId: {record.MessageId}");
                 await messageContext.DeadLetterAsync("Deserialization failed");
                 return;
             }
 
             // Populate metadata
-            if (message is IMessage baseMessage)
+            if (message is Message baseMessage)
             {
                 baseMessage.MessageId = record.MessageId;
                 baseMessage.EnqueuedTimeUtc = DateTimeOffset.FromUnixTimeMilliseconds(
@@ -168,7 +169,7 @@ public abstract class LambdaMessageHandlerWithContextBase<TMessage> where TMessa
                 }
             }
 
-            Logger.LogInformation($"Handling message with context: {typeof(TMessage).Name}, MessageId: {record.MessageId}");
+            Logger.LogInfo($"Handling message with context: {typeof(TMessage).Name}, MessageId: {record.MessageId}");
 
             await HandleMessageAsync(message, messageContext, CancellationToken.None);
 
@@ -181,7 +182,7 @@ public abstract class LambdaMessageHandlerWithContextBase<TMessage> where TMessa
         catch (Exception ex)
         {
             Logger.LogError(ex, $"Error processing SQS message {record.MessageId}: {ex.Message}");
-            
+
             if (!messageContext.IsProcessed)
             {
                 await messageContext.AbandonAsync(); // Will throw to trigger retry
@@ -224,10 +225,27 @@ internal class SqsMessageContext : IMessageContext
     private readonly ILogger _logger;
     public bool IsProcessed { get; private set; }
 
+    public string MessageId => _record.MessageId;
+    public string QueueName => _record.EventSourceArn?.Split(':').LastOrDefault()?.Split('/').LastOrDefault() ?? "unknown";
+    public int DeliveryAttempt => int.Parse(_record.Attributes.GetValueOrDefault("ApproximateReceiveCount", "1"));
+    public IDictionary<string, string> Properties { get; }
+    public DateTime EnqueuedTimeUtc => DateTimeOffset.FromUnixTimeMilliseconds(
+        long.Parse(_record.Attributes.GetValueOrDefault("SentTimestamp", "0"))).UtcDateTime;
+
     public SqsMessageContext(SQSEvent.SQSMessage record, ILogger logger)
     {
         _record = record;
         _logger = logger;
+
+        // Extract properties from message attributes
+        Properties = new Dictionary<string, string>();
+        if (record.MessageAttributes != null)
+        {
+            foreach (var attr in record.MessageAttributes)
+            {
+                Properties[attr.Key] = attr.Value.StringValue ?? string.Empty;
+            }
+        }
     }
 
     public Task CompleteAsync(CancellationToken cancellationToken = default)
@@ -240,7 +258,7 @@ internal class SqsMessageContext : IMessageContext
 
     public Task AbandonAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning($"Message {_record.MessageId} abandoned - will be retried");
+        _logger.LogInfo($"Message {_record.MessageId} abandoned - will be retried");
         IsProcessed = true;
         // Throw to make Lambda retry the message
         throw new MessageAbandonedException($"Message {_record.MessageId} was abandoned");
@@ -248,7 +266,7 @@ internal class SqsMessageContext : IMessageContext
 
     public Task DeadLetterAsync(string reason, CancellationToken cancellationToken = default)
     {
-        _logger.LogError($"Message {_record.MessageId} moved to DLQ. Reason: {reason}");
+        _logger.LogError(new Exception(reason), $"Message {_record.MessageId} moved to DLQ. Reason: {reason}");
         IsProcessed = true;
         // Throw to move to DLQ
         throw new MessageDeadLetteredException($"Message {_record.MessageId} dead-lettered: {reason}");

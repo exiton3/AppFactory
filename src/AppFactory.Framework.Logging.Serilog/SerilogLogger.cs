@@ -91,4 +91,9 @@ internal class SerilogLogger : ILogger
     {
         _logger.ForContext(_context, _traceId).Error(exception, messageTemplate, values);
     }
+
+    public void LogError(string messageTemplate, params object[] values)
+    {
+        _logger.ForContext(_context, _traceId).Error(messageTemplate, values);
+    }
 }

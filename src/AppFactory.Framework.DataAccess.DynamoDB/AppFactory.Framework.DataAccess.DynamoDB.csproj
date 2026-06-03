@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.18.5" />
+		<PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.18.6" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
 	</ItemGroup>
@@ -19,7 +19,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\AppFactory.Framework.DependencyInjection\AppFactory.Framework.DependencyInjection.csproj" />
 		<ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
-		<ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.Logging.Abstractions\AppFactory.Framework.Logging.Abstractions.csproj" />
 		<ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
 	</ItemGroup>
 

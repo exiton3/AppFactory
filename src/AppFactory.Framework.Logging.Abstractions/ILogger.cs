@@ -14,4 +14,5 @@ public interface ILogger
     void LogDebug(string messageTemplate, params object[] values);
     void LogTrace(string message, params object[] propertyValues);
     void LogError(Exception exception, string messageTemplate, params object[] values);
+    void LogError(string messageTemplate, params object[] values);
 }

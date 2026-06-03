@@ -26,14 +26,14 @@
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.CloudWatchEvents" Version="5.0.0" />
     <PackageReference Include="Amazon.Lambda.Core" Version="3.1.0" />
-    <PackageReference Include="AWSSDK.EventBridge" Version="4.0.5.33" />
+	<PackageReference Include="AWSSDK.EventBridge" Version="4.0.6.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AppFactory.Framework.DependencyInjection\AppFactory.Framework.DependencyInjection.csproj" />
     <ProjectReference Include="..\AppFactory.Framework.EventBus\AppFactory.Framework.EventBus.csproj" />
-    <ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
+    <ProjectReference Include="..\AppFactory.Framework.Logging.Abstractions\AppFactory.Framework.Logging.Abstractions.csproj" />
     <ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
   </ItemGroup>
 

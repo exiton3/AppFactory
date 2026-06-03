@@ -1,5 +1,4 @@
 ﻿using AppFactory.Framework.DependencyInjection;
-using AppFactory.Framework.Logging;
 using AppFactory.Framework.Shared.Config;
 using AppFactory.Framework.Shared.Serialization;
 using AppFactory.Framework.Shared.ServiceClient;
@@ -15,6 +14,5 @@ public class DependencyModule : IDependencyRegistrationModule
         services.AddSingleton<IConfigSettings, ConfigSettings>();
         services.AddScoped<IWebServiceClient, WebServiceClient>();
         services.AddSingleton<IServiceProvider>(x => x);
-        services.AddLogging();
     }
 }

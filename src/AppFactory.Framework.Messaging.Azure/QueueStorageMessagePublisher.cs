@@ -1,12 +1,10 @@
 using Azure.Storage.Queues;
-using Azure.Storage.Queues.Models;
-using AppFactory.Framework.Logging.Abstractions;
 using AppFactory.Framework.Messaging.Azure.Configuration;
-using AppFactory.Framework.Messaging.Core.Abstractions;
-using AppFactory.Framework.Shared;
 using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
+using AppFactory.Framework.Logging;
+using AppFactory.Framework.Messaging.Abstractions;
 
 namespace AppFactory.Framework.Messaging.Azure;
 
@@ -36,7 +34,7 @@ public class QueueStorageMessagePublisher : IMessagePublisher
         TMessage message,
         CancellationToken cancellationToken = default) where TMessage : class
     {
-        Check.NotNull(message, nameof(message));
+        ArgumentNullException.ThrowIfNull(message);
 
         try
         {
@@ -63,7 +61,7 @@ public class QueueStorageMessagePublisher : IMessagePublisher
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error publishing message to Queue Storage: {ex.Message}");
-            return PublishResult.Failed(ex.Message);
+            throw;
         }
     }
 
@@ -75,7 +73,7 @@ public class QueueStorageMessagePublisher : IMessagePublisher
         IEnumerable<TMessage> messages,
         CancellationToken cancellationToken = default) where TMessage : class
     {
-        Check.NotNull(messages, nameof(messages));
+        ArgumentNullException.ThrowIfNull(messages);
 
         var messageList = messages.ToList();
         if (messageList.Count == 0)
@@ -83,7 +81,7 @@ public class QueueStorageMessagePublisher : IMessagePublisher
             return BatchPublishResult.Success();
         }
 
-        var results = new List<BatchPublishResult.MessageResult>();
+        var results = new List<PublishResult>();
 
         // Process in chunks for better performance
         var batches = messageList.Chunk(_options.MaxBatchSize);
@@ -102,7 +100,7 @@ public class QueueStorageMessagePublisher : IMessagePublisher
                         timeToLive: _options.TimeToLive,
                         cancellationToken: cancellationToken);
 
-                    return new BatchPublishResult.MessageResult
+                    return new PublishResult()
                     {
                         MessageId = response.Value.MessageId,
                         IsSuccess = true
@@ -111,11 +109,11 @@ public class QueueStorageMessagePublisher : IMessagePublisher
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Error publishing message to Queue Storage: {ex.Message}");
-                    return new BatchPublishResult.MessageResult
+                    return new PublishResult
                     {
                         MessageId = Guid.NewGuid().ToString(),
                         IsSuccess = false,
-                        ErrorMessage = ex.Message
+                        Error = ex.Message
                     };
                 }
             });
@@ -127,11 +125,10 @@ public class QueueStorageMessagePublisher : IMessagePublisher
         var successCount = results.Count(r => r.IsSuccess);
         var failureCount = results.Count(r => !r.IsSuccess);
 
-        _logger.LogInformation($"Batch publish completed. Success: {successCount}, Failed: {failureCount}");
+        _logger.LogInfo($"Batch publish completed. Success: {successCount}, Failed: {failureCount}");
 
         return new BatchPublishResult
         {
-            IsSuccess = failureCount == 0,
             SuccessCount = successCount,
             FailureCount = failureCount,
             Results = results
@@ -155,7 +152,7 @@ public class QueueStorageMessagePublisher : IMessagePublisher
         if (message is IMessage baseMessage)
         {
             envelope.MessageId = baseMessage.MessageId;
-            envelope.Properties = baseMessage.Properties;
+            envelope.Properties = baseMessage.Properties.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         var json = JsonSerializer.Serialize(envelope, new JsonSerializerOptions

@@ -12,7 +12,7 @@ public interface IMessagePublisher
     /// <typeparam name="TMessage">Message type</typeparam>
     /// <param name="message">Message to publish</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    Task PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
+    Task<PublishResult> PublishAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
         where TMessage : class;
 
     /// <summary>
@@ -21,7 +21,7 @@ public interface IMessagePublisher
     /// <typeparam name="TMessage">Message type</typeparam>
     /// <param name="messages">Messages to publish</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    Task PublishBatchAsync<TMessage>(IEnumerable<TMessage> messages, CancellationToken cancellationToken = default)
+    Task<BatchPublishResult> PublishBatchAsync<TMessage>(IEnumerable<TMessage> messages, CancellationToken cancellationToken = default)
         where TMessage : class;
 }
 
@@ -40,11 +40,12 @@ public class PublishResult
         MessageId = messageId
     };
 
-    public static PublishResult Failure(string error) => new()
+    public static PublishResult Failed(string error) => new()
     {
         IsSuccess = false,
         Error = error
     };
+
 }
 
 /// <summary>
@@ -58,4 +59,27 @@ public class BatchPublishResult
 
     public bool AllSucceeded => FailureCount == 0;
     public bool AnyFailed => FailureCount > 0;
+
+    public static BatchPublishResult Success()
+    {
+        return new BatchPublishResult
+        {
+            SuccessCount = 0,
+            FailureCount = 0,
+            Results = new List<PublishResult>()
+        };
+    }
+
+    public static BatchPublishResult Failed(string error)
+    {
+        var batchPublishResult = new BatchPublishResult();
+        batchPublishResult.Results.Add(PublishResult.Failed(error)); 
+        return batchPublishResult;
+    }
+
+    public interface MessageResult
+    {
+        string MessageId { get; }
+        bool IsSuccess { get; }
+    }
 }

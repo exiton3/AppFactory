@@ -1,9 +1,11 @@
 using Amazon;
 using Amazon.SQS;
 using AppFactory.Framework.Messaging.Aws.Configuration;
-using AppFactory.Framework.Messaging.Core.Abstractions;
+using AppFactory.Framework.Messaging.Abstractions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace AppFactory.Framework.Messaging.Aws.Extensions;
 
@@ -31,7 +33,7 @@ public static class ServiceCollectionExtensions
         // Register AWS SQS client
         services.TryAddSingleton<IAmazonSQS>(provider =>
         {
-            var options = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AwsSqsOptions>>().Value;
+            var options = provider.GetRequiredService<IOptions<AwsSqsOptions>>().Value;
 
             var config = new AmazonSQSConfig();
 
@@ -57,17 +59,17 @@ public static class ServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddAwsMessaging(
         this IServiceCollection services,
-        Microsoft.Extensions.Configuration.IConfiguration configuration)
+        IConfiguration configuration)
     {
         if (configuration == null)
             throw new ArgumentNullException(nameof(configuration));
 
-        services.Configure<AwsSqsOptions>(configuration);
+       // services.Configure<AwsSqsOptions>(configuration);
 
         // Register AWS SQS client
         services.TryAddSingleton<IAmazonSQS>(provider =>
         {
-            var options = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AwsSqsOptions>>().Value;
+            var options = provider.GetRequiredService<IOptions<AwsSqsOptions>>().Value;
 
             var config = new AmazonSQSConfig();
 

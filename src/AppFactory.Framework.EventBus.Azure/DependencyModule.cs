@@ -2,7 +2,6 @@ using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Shared.Config;
 using AppFactory.Framework.Shared.Serialization;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace AppFactory.Framework.EventBus.Azure;
 
@@ -13,6 +12,5 @@ public class DependencyModule : IDependencyRegistrationModule
         services.AddSingleton<IJsonSerializer, DefaultJsonSerializer>();
         services.AddSingleton<IConfigSettings, ConfigSettings>();
         services.AddSingleton<IServiceProvider>(x => x);
-        services.AddLogging();
     }
 }

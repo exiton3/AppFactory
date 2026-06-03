@@ -23,11 +23,12 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="MessageProcessors\" />
     <Folder Include="Publishers\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AppFactory.Framework.DependencyInjection\AppFactory.Framework.DependencyInjection.csproj" />
-    <ProjectReference Include="..\AppFactory.Framework.Logging\AppFactory.Framework.Logging.csproj" />
+    <ProjectReference Include="..\AppFactory.Framework.Logging.Abstractions\AppFactory.Framework.Logging.Abstractions.csproj" />
     <ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
   </ItemGroup>
 

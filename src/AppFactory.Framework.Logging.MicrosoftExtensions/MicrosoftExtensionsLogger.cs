@@ -98,6 +98,14 @@ internal class MicrosoftExtensionsLogger : ILogger
         }
     }
 
+    public void LogError(string messageTemplate, params object[] values)
+    {
+        using (_logger.BeginScope(new Dictionary<string, object> { [_context] = _traceId }))
+        {
+            _logger.LogError(messageTemplate, values);
+        }
+    }
+
     public ITimeLogger LogPerformance(string message)
     {
         return new PerformanceLogger(_logger, message);

@@ -1,10 +1,9 @@
 using Azure.Messaging.ServiceBus;
-using AppFactory.Framework.Logging.Abstractions;
 using AppFactory.Framework.Messaging.Azure.Configuration;
-using AppFactory.Framework.Messaging.Core.Abstractions;
-using AppFactory.Framework.Shared;
+using AppFactory.Framework.Messaging.Abstractions;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using AppFactory.Framework.Logging;
 
 namespace AppFactory.Framework.Messaging.Azure;
 
@@ -42,7 +41,7 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
         TMessage message,
         CancellationToken cancellationToken = default) where TMessage : class
     {
-        Check.NotNull(message, nameof(message));
+        ArgumentNullException.ThrowIfNull(message, nameof(message));
 
         try
         {
@@ -76,7 +75,7 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
         IEnumerable<TMessage> messages,
         CancellationToken cancellationToken = default) where TMessage : class
     {
-        Check.NotNull(messages, nameof(messages));
+        ArgumentNullException.ThrowIfNull(messages, nameof(messages));
 
         var messageList = messages.ToList();
         if (messageList.Count == 0)
@@ -84,9 +83,7 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
             return BatchPublishResult.Success();
         }
 
-        var results = new List<BatchPublishResult.MessageResult>();
-
-        // Service Bus supports batching up to the configured max batch size
+        var results = new List<PublishResult>();
         var batches = messageList.Chunk(_options.MaxBatchSize);
 
         foreach (var batch in batches)
@@ -98,22 +95,23 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
         var successCount = results.Count(r => r.IsSuccess);
         var failureCount = results.Count(r => !r.IsSuccess);
 
-        _logger.LogInformation($"Batch publish completed. Success: {successCount}, Failed: {failureCount}");
+        _logger.LogInfo($"Batch publish completed. Success: {successCount}, Failed: {failureCount}");
 
         return new BatchPublishResult
         {
-            IsSuccess = failureCount == 0,
             SuccessCount = successCount,
             FailureCount = failureCount,
             Results = results
         };
     }
 
-    private async Task<List<BatchPublishResult.MessageResult>> PublishBatchInternalAsync<TMessage>(
+   
+    
+    private async Task<List<PublishResult>> PublishBatchInternalAsync<TMessage>(
         IEnumerable<TMessage> messages,
         CancellationToken cancellationToken) where TMessage : class
     {
-        var results = new List<BatchPublishResult.MessageResult>();
+        var results = new List<PublishResult>();
 
         try
         {
@@ -138,7 +136,7 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
                     // Mark sent messages as successful
                     foreach (var (msgId, _) in addedMessages)
                     {
-                        results.Add(new BatchPublishResult.MessageResult
+                        results.Add(new PublishResult
                         {
                             MessageId = msgId,
                             IsSuccess = true
@@ -152,11 +150,11 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
                     if (!newBatch.TryAddMessage(serviceBusMessage))
                     {
                         // Message is too large even for empty batch
-                        results.Add(new BatchPublishResult.MessageResult
+                        results.Add(new PublishResult()
                         {
                             MessageId = serviceBusMessage.MessageId,
                             IsSuccess = false,
-                            ErrorMessage = "Message size exceeds Service Bus limits"
+                            Error = "Message size exceeds Service Bus limits"
                         });
                     }
                     else
@@ -174,7 +172,7 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
 
                 foreach (var (msgId, _) in addedMessages)
                 {
-                    results.Add(new BatchPublishResult.MessageResult
+                    results.Add(new PublishResult
                     {
                         MessageId = msgId,
                         IsSuccess = true
@@ -189,11 +187,11 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
             // Mark all messages in this batch as failed
             foreach (var msg in messages)
             {
-                results.Add(new BatchPublishResult.MessageResult
+                results.Add(new PublishResult
                 {
                     MessageId = Guid.NewGuid().ToString(),
                     IsSuccess = false,
-                    ErrorMessage = ex.Message
+                    Error = ex.Message
                 });
             }
         }
