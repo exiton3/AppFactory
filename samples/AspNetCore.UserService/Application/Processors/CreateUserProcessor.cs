@@ -20,7 +20,8 @@ public class CreateUserProcessor : IFunctionProcessor<Commands.CreateUserCommand
 
         if (result.IsFailure)
         {
-            return Result<UserDto>.Invalid(result.Errors);
+            var errors = result.Errors.Select(e => new AppFactory.Framework.Domain.ServiceResult.Error(e.Code, e.Message)).ToList();
+            return Result<UserDto>.Invalid(errors);
         }
 
         var userDto = new UserDto
