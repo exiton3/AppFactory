@@ -1,8 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
+using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.Api.Parsing;
 using AppFactory.Framework.Api.Parsing.Configurations;
 using AppFactory.Framework.Api.Parsing.Mappers;
 using AppFactory.Framework.Application;
+using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Shared.Serialization;
 
 namespace AppFactory.Framework.Api.AspNetCore.Extensions;
@@ -31,10 +33,17 @@ public static class ServiceCollectionExtensions
         });
         services.AddSingleton<IRequestParser, RequestParser>();
 
-        // Add CQRS if assemblies provided
+        // Add CQRS and Processors if assemblies provided
         if (assemblies?.Length > 0)
         {
             services.AddCqrs(assemblies);
+
+            // Register all IFunctionProcessor implementations
+            services.Scan(scan => scan
+                .FromAssemblies(assemblies)
+                .AddClasses(classes => classes.AssignableTo(typeof(IFunctionProcessor<,>)), publicOnly: false)
+                    .AsImplementedInterfaces()
+                    .WithScopedLifetime());
         }
 
         return services;

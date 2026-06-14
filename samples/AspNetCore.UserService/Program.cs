@@ -1,15 +1,20 @@
 using AppFactory.Framework.Api.AspNetCore.Extensions;
 using AppFactory.Framework.Api.AspNetCore.Middleware;
+using AppFactory.Framework.Domain.Repositories;
 using AppFactory.Framework.Logging.MicrosoftExtensions;
 using AspNetCore.UserService.Application.Commands;
 using AspNetCore.UserService.Application.DTOs;
 using AspNetCore.UserService.Application.Queries;
+using AspNetCore.UserService.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMicrosoftExtensionsLogging();
 
 builder.Services.AddAppFactoryApi(typeof(Program).Assembly);
+
+// Register in-memory repository for demo purposes
+builder.Services.AddSingleton<IRepository<AspNetCore.UserService.Domain.User>, InMemoryUserRepository>();
 
 builder.Services.AddOpenApi();
 

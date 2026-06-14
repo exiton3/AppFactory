@@ -50,9 +50,8 @@ All documentation files are organized in this folder for easy navigation.
 
 | Document | Description |
 |----------|-------------|
-| [POSTMAN_FIX_SUMMARY.md](POSTMAN_FIX_SUMMARY.md) | Summary of Postman fixes applied |
-| [POSTMAN_CLEANUP_SUMMARY.md](POSTMAN_CLEANUP_SUMMARY.md) | Why we use environments |
-| [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) | Complete documentation index |
+| [TESTING_QUICK_START.md](TESTING_QUICK_START.md) | Quick testing reference |
+| [API_TESTING_GUIDE.md](API_TESTING_GUIDE.md) | Complete API testing guide |
 
 ---
 
@@ -74,9 +73,6 @@ All documentation files are organized in this folder for easy navigation.
 
 #### ✅ Understand all endpoints
 → [API_TESTING_GUIDE.md](API_TESTING_GUIDE.md)
-
-#### ✅ See all documentation
-→ [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
 
 ---
 
