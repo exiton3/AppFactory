@@ -7,7 +7,134 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [10.4.0] - 2024-12-20
+## [10.5.0] - 2026-06-13
+
+### 🚀 Unified Multi-Cloud Messaging Architecture
+
+Major update introducing a unified, platform-agnostic messaging architecture with support for AWS SQS, Azure Service Bus, and Azure Storage Queues.
+
+### Added
+
+#### Unified Messaging Abstractions (`AppFactory.Framework.Messaging.Core`)
+- **IMessageHandler<TMessage>** - Platform-agnostic message handler interface (single source of truth)
+- **Message** class - Unified message structure with:
+  - `Properties` dictionary for platform-specific metadata
+  - `EnqueuedTimeUtc` for message timing
+  - `DeliveryCount` for retry tracking
+- **IMessageHandler<TMessage, TContext>** - Extended handler with message context support
+- **ServiceCollectionExtensions** - Easy DI registration
+  - `AddMessageHandler<THandler, TMessage>()` - Register single handler
+  - `AddMessageHandlers(assemblies)` - Auto-register handlers from assemblies
+
+#### AWS SQS Integration (Enhanced `AppFactory.Framework.Messaging.Aws`)
+- **SqsMessageHandlerBase<TMessage>** - AWS Lambda SQS handler with Publisher-Subscriber pattern
+  - Platform-agnostic `IMessageHandler<TMessage>` support
+  - Automatic SQS → Message mapping with full metadata
+  - Batch failure handling with partial retries
+  - Performance logging and cancellation support
+- **SqsMessagePublisher** - Publish messages to SQS queues
+  - Fixed batch publishing to use `List<PublishResult>`
+  - Updated return types to match interface contracts
+
+#### Azure Service Bus Integration (`AppFactory.Framework.Messaging.Azure`) **NEW**
+- **ServiceBusFunctionHandlerBase<TMessage>** - Azure Functions handler for Service Bus
+  - Queue message processing
+  - Topic subscription processing
+  - Batch processing support
+  - Same DI and processor pattern as AWS
+- **QueueStorageFunctionHandlerBase<TMessage>** - Azure Functions handler for Storage Queues
+  - QueueMessage and string message support
+  - Batch processing support
+- **ServiceBusMessagePublisher** - Publish to Service Bus queues/topics
+- **QueueStorageMessagePublisher** - Publish to Storage Queues
+- Namespace alias to avoid collision: `using AzureServiceBus = Azure.Messaging.ServiceBus;`
+
+### Changed
+- **Removed** `IMessageProcessor<TMessage>` (duplicate interface)
+- `ILambdaMessageProcessor<T>` remains for backward compatibility (legacy)
+- All new handlers use `IMessageHandler<TMessage>` from `Messaging.Core`
+- Message metadata access pattern unified:
+  - `message.Properties["key"]` instead of `message.Attributes["key"]`
+  - `message.EnqueuedTimeUtc` instead of `message.Timestamp`
+  - `message.DeliveryCount` for retry count across all platforms
+
+### Fixed
+- AWS `SqsMessagePublisher` batch publishing now returns `List<PublishResult>`
+- AWS `LambdaMessageHandlerBase` fixed to use `Message` class with settable properties
+- Implemented missing `IMessageContext` properties in `SqsMessageContext`
+- Package version conflicts in Azure packages (Microsoft.Extensions.* → 10.0.8)
+- NuGet pack error NU5033: Removed duplicate `PackageLicenseExpression` from Messaging.Azure and Messaging.Aws
+
+### Security
+- Updated AWS SDK packages to latest versions:
+  - AWSSDK.EventBridge: 4.0.5.33 → 4.0.6.1
+  - AWSSDK.DynamoDBv2: 4.0.18.5 → 4.0.18.6
+  - AWSSDK.SQS: 4.0.2.32 → 4.0.2.33
+- Updated Azure packages with security patches:
+  - Azure.Messaging.ServiceBus: 7.17.2 → 7.20.1
+  - Azure.Storage.Queues: 12.17.0 → 12.26.0
+  - Microsoft.Azure.Functions.Worker: 2.0.0 → 2.52.0 (52 minor versions!)
+  - Azure.Messaging.EventGrid: 4.28.0 → 4.31.0
+- Updated Microsoft.Extensions packages: 9.0.0 → 10.0.8
+- Updated test frameworks: xunit 2.9.2 → 2.9.3, coverlet 6.0.2 → 6.0.4
+
+### Platform Support
+- ✅ AWS Lambda + SQS
+- ✅ Azure Functions + Service Bus Queue
+- ✅ Azure Functions + Service Bus Topic
+- ✅ Azure Functions + Storage Queue
+- All use the same `IMessageHandler<TMessage>` interface!
+
+### Example Usage
+
+#### Platform-Agnostic Handler (Works on AWS & Azure!)
+```csharp
+public class OrderHandler : IMessageHandler<OrderMessage>
+{
+    public async Task HandleAsync(OrderMessage message, CancellationToken ct)
+    {
+        // Access metadata (same pattern on all platforms)
+        var source = message.Properties.GetValueOrDefault("Source");
+        var deliveryCount = message.DeliveryCount;
+        var enqueuedTime = message.EnqueuedTimeUtc;
+
+        // Business logic
+        var data = JsonSerializer.Deserialize<OrderData>(message.Body);
+        await _orderService.ProcessAsync(data, ct);
+    }
+}
+
+// Register once, works everywhere
+services.AddScoped<IMessageHandler<OrderMessage>, OrderHandler>();
+```
+
+#### AWS Lambda Function
+```csharp
+public class OrderFunction : SqsMessageHandlerBase<OrderMessage>
+{
+    public OrderFunction() : base(new Startup()) { }
+    protected override IStartup GetStartup() => new Startup();
+}
+```
+
+#### Azure Service Bus Function
+```csharp
+public class OrderFunction : ServiceBusFunctionHandlerBase<OrderMessage>
+{
+    [Function("ProcessOrder")]
+    public async Task Run(
+        [ServiceBusTrigger("queue", Connection = "ServiceBus")] 
+        ServiceBusReceivedMessage msg, FunctionContext ctx)
+        => await Handle(msg, ctx);
+}
+```
+
+### Migration Notes
+- Existing `ILambdaMessageProcessor<T>` code continues to work (no breaking changes)
+- For new code, use `IMessageHandler<TMessage>` from `Messaging.Core`
+- Update message property access: `Attributes` → `Properties`
+
+## [10.4.0] - 2026-05-28
 
 ### 🎯 Event-Driven Architecture - Multi-Cloud Event Support!
 
