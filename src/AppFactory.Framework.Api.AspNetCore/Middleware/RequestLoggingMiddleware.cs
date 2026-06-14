@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Http;
-using AppFactory.Framework.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AppFactory.Framework.Api.AspNetCore.Middleware;
 
@@ -10,9 +10,9 @@ namespace AppFactory.Framework.Api.AspNetCore.Middleware;
 public class RequestLoggingMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger _logger;
+    private readonly ILogger<RequestLoggingMiddleware> _logger;
 
-    public RequestLoggingMiddleware(RequestDelegate next, ILogger logger)
+    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -20,19 +20,26 @@ public class RequestLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        _logger?.AddTraceId(context.TraceIdentifier);
-        _logger?.LogInfo($"{context.Request.Method} {context.Request.Path}{context.Request.QueryString}");
-
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-        try
+        using (_logger.BeginScope(new Dictionary<string, object> { ["TraceId"] = context.TraceIdentifier }))
         {
-            await _next(context);
-        }
-        finally
-        {
-            stopwatch.Stop();
-            _logger?.LogInfo($"Request completed in {stopwatch.ElapsedMilliseconds}ms with status {context.Response.StatusCode}");
+            _logger.LogInformation("{Method} {Path}{QueryString}", 
+                context.Request.Method, 
+                context.Request.Path, 
+                context.Request.QueryString);
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            try
+            {
+                await _next(context);
+            }
+            finally
+            {
+                stopwatch.Stop();
+                _logger.LogInformation("Request completed in {ElapsedMs}ms with status {StatusCode}", 
+                    stopwatch.ElapsedMilliseconds, 
+                    context.Response.StatusCode);
+            }
         }
     }
 }

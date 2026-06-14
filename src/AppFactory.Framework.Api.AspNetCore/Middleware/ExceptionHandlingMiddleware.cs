@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Http;
-using AppFactory.Framework.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AppFactory.Framework.Api.AspNetCore.Middleware;
 
@@ -10,9 +10,9 @@ namespace AppFactory.Framework.Api.AspNetCore.Middleware;
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger _logger;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -26,7 +26,7 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Unhandled exception: {Message}", ex.Message);
+            _logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);
             await HandleExceptionAsync(context, ex);
         }
     }

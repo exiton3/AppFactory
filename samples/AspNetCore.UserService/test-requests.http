@@ -1,0 +1,86 @@
+### AspNetCore.UserService API Tests
+### Install "REST Client" extension in VS Code to run these requests
+
+@baseUrl = https://localhost:64846
+
+###############################################
+# 1. Service Info
+###############################################
+
+GET {{baseUrl}}/
+Accept: application/json
+
+###############################################
+# 2. Health Check
+###############################################
+
+GET {{baseUrl}}/health
+
+###############################################
+# 3. OpenAPI Specification (Dev Mode)
+###############################################
+
+GET {{baseUrl}}/openapi/v1.json
+Accept: application/json
+
+###############################################
+# 4. Create User
+###############################################
+
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "name": "John Doe"
+}
+
+###############################################
+# 5. Create Another User
+###############################################
+
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "email": "jane.smith@example.com",
+  "name": "Jane Smith"
+}
+
+###############################################
+# 6. Get User by ID
+# Replace {userId} with actual ID from create response
+###############################################
+
+GET {{baseUrl}}/api/users/a1b2c3d4-e5f6-4g7h-8i9j-0k1l2m3n4o5p
+Accept: application/json
+
+###############################################
+# 7. Test Validation - Missing Email
+###############################################
+
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "name": "Test User"
+}
+
+###############################################
+# 8. Test Validation - Missing Name
+###############################################
+
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+###############################################
+# 9. Test Not Found - Invalid User ID
+###############################################
+
+GET {{baseUrl}}/api/users/invalid-id-12345
+Accept: application/json
+

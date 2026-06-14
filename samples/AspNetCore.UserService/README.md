@@ -50,21 +50,86 @@ AspNetCore.UserService/
 
 ## 🛠️ Local Development
 
-### 1. Run Locally
+### 1. Run from Visual Studio
+
+1. Open `AppFactory.sln` in Visual Studio
+2. Set `AspNetCore.UserService` as the startup project
+3. Press **F5** to run
+4. Application will start at:
+   - HTTPS: `https://localhost:64846`
+   - HTTP: `http://localhost:64847`
+
+### 2. Run from Command Line
 
 ```bash
 cd samples/AspNetCore.UserService
 dotnet run
 ```
 
-Access Swagger UI: `http://localhost:8080/swagger`
+Application will start at: `http://localhost:8080`
 
-### 2. Run with Docker
+### 3. Run with Docker
 
 ```bash
 docker build -t user-service:latest -f samples/AspNetCore.UserService/Dockerfile .
 docker run -p 8080:8080 user-service:latest
 ```
+
+## 🧪 Testing the API
+
+### Quick Test Options
+
+1. **PowerShell Script** (Windows)
+   ```powershell
+   .\test-api.ps1
+   ```
+
+2. **Bash Script** (Linux/Mac)
+   ```bash
+   chmod +x test-api.sh
+   ./test-api.sh
+   ```
+
+3. **VS Code REST Client**
+   - Install "REST Client" extension
+   - Open `test-requests.http`
+   - Click "Send Request" above each request
+
+4. **Postman/Thunder Client**
+   - Import `AspNetCore.UserService.postman_collection.json`
+   - Run the collection
+
+5. **Browser** (for GET endpoints)
+   - Service Info: `https://localhost:64846/`
+   - Health Check: `https://localhost:64846/health`
+   - OpenAPI: `https://localhost:64846/openapi/v1.json`
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Service information |
+| `/health` | GET | Health check endpoint |
+| `/openapi/v1.json` | GET | OpenAPI specification |
+| `/api/users` | POST | Create a new user |
+| `/api/users/{userId}` | GET | Get user by ID |
+
+### Example Requests
+
+**Create User:**
+```bash
+curl -X POST https://localhost:64846/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"email":"john.doe@example.com","name":"John Doe"}' \
+  -k
+```
+
+**Get User:**
+```bash
+curl https://localhost:64846/api/users/{userId} -k
+```
+
+📖 **See [API_TESTING_GUIDE.md](API_TESTING_GUIDE.md) for detailed testing instructions**
 
 ### 3. Run Tests
 
