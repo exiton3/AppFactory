@@ -100,7 +100,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://localhost:64846",
+      "value": "http://localhost:8080",
       "type": "string"
     }
   ]

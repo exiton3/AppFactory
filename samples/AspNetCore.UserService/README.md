@@ -81,11 +81,13 @@ docker run -p 8080:8080 user-service:latest
 
 1. **PowerShell Script** (Windows)
    ```powershell
+   # Edit $baseUrl in test-api.ps1 to match how you're running the app
    .\test-api.ps1
    ```
 
 2. **Bash Script** (Linux/Mac)
    ```bash
+   # Edit BASE_URL in test-api.sh to match how you're running the app
    chmod +x test-api.sh
    ./test-api.sh
    ```
@@ -93,16 +95,29 @@ docker run -p 8080:8080 user-service:latest
 3. **VS Code REST Client**
    - Install "REST Client" extension
    - Open `test-requests.http`
+   - Edit `@baseUrl` to match how you're running the app
    - Click "Send Request" above each request
 
 4. **Postman/Thunder Client**
-   - Import `AspNetCore.UserService.postman_collection.json`
-   - Run the collection
+   - **Import:** See detailed instructions in [docs/POSTMAN_IMPORT_GUIDE.md](docs/POSTMAN_IMPORT_GUIDE.md)
+   - **Quick:** Drag and drop these 3 files into Postman:
+     - `AspNetCore.UserService.postman_collection.json` (collection)
+     - `Postman-Environment-Local-HTTP.json` (for CLI/Docker)
+     - `Postman-Environment-Local-HTTPS.json` (for Visual Studio)
+   - **Select environment** from dropdown (top-right) based on how you're running
+   - **Having SSL errors?** See [docs/POSTMAN_SSL_FIX.md](docs/POSTMAN_SSL_FIX.md)
 
 5. **Browser** (for GET endpoints)
-   - Service Info: `https://localhost:64846/`
-   - Health Check: `https://localhost:64846/health`
-   - OpenAPI: `https://localhost:64846/openapi/v1.json`
+   - **Visual Studio:** `https://localhost:64846/` (accept cert warning)
+   - **Command Line:** `http://localhost:8080/`
+
+### Port Configuration
+
+| How You Run | Protocol | Port | URL |
+|-------------|----------|------|-----|
+| **Visual Studio F5** | HTTPS | 64846 | `https://localhost:64846` |
+| **Visual Studio F5** | HTTP | 64847 | `http://localhost:64847` |
+| **dotnet run** | HTTP | 8080 | `http://localhost:8080` |
 
 ### API Endpoints
 
@@ -129,7 +144,7 @@ curl -X POST https://localhost:64846/api/users \
 curl https://localhost:64846/api/users/{userId} -k
 ```
 
-📖 **See [API_TESTING_GUIDE.md](API_TESTING_GUIDE.md) for detailed testing instructions**
+📖 **See [docs/API_TESTING_GUIDE.md](docs/API_TESTING_GUIDE.md) for detailed testing instructions**
 
 ### 3. Run Tests
 
@@ -357,6 +372,16 @@ public class CreateUserProcessor : IFunctionProcessor<CreateUserCommand, UserDto
 4. Set up CI/CD pipeline
 5. Configure auto-scaling rules
 6. Add distributed caching
+
+## 📚 Documentation
+
+All documentation is organized in the [`docs/`](docs/) folder:
+
+- **[Quick Start Testing](docs/TESTING_QUICK_START.md)** - Fast testing guide
+- **[Postman Setup](docs/POSTMAN_IMPORT_GUIDE.md)** - Import Postman collection
+- **[API Testing Guide](docs/API_TESTING_GUIDE.md)** - Complete API documentation
+- **[Troubleshooting](docs/STARTUP_TROUBLESHOOTING.md)** - Fix common issues
+- **[Full Documentation Index](docs/DOCUMENTATION_INDEX.md)** - All docs
 
 ## 📚 Related Documentation
 

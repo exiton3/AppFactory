@@ -1,7 +1,12 @@
 ### AspNetCore.UserService API Tests
 ### Install "REST Client" extension in VS Code to run these requests
 
-@baseUrl = https://localhost:64846
+# IMPORTANT: Set baseUrl based on how you're running the app:
+# - Visual Studio (F5): https://localhost:64846
+# - Command Line (dotnet run): http://localhost:8080
+# - Docker: http://localhost:8080
+
+@baseUrl = http://localhost:8080
 
 ###############################################
 # 1. Service Info

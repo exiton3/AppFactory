@@ -2,7 +2,12 @@
 # AspNetCore.UserService API Test Script (Bash/curl)
 # Make executable: chmod +x test-api.sh
 
-BASE_URL="https://localhost:64846"
+# IMPORTANT: Set this based on how you're running the app:
+# - Visual Studio (F5): Use https://localhost:64846
+# - Command Line (dotnet run): Use http://localhost:8080
+# - Docker: Use http://localhost:8080
+
+BASE_URL="http://localhost:8080"  # Change this if using Visual Studio
 
 echo "🧪 Testing AspNetCore.UserService API"
 echo "Base URL: $BASE_URL"

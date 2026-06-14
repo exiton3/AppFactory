@@ -1,0 +1,13 @@
+{
+  "id": "local-https-environment",
+  "name": "Local HTTPS (Visual Studio)",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:64846",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

@@ -1,7 +1,12 @@
 # AspNetCore.UserService API Test Script
 # Run this script to test all API endpoints
 
-$baseUrl = "https://localhost:64846"
+# IMPORTANT: Set this based on how you're running the app:
+# - Visual Studio (F5): Use https://localhost:64846
+# - Command Line (dotnet run): Use http://localhost:8080
+# - Docker: Use http://localhost:8080
+
+$baseUrl = "http://localhost:8080"  # Change this if using Visual Studio
 
 Write-Host "🧪 Testing AspNetCore.UserService API" -ForegroundColor Cyan
 Write-Host "Base URL: $baseUrl" -ForegroundColor Yellow
