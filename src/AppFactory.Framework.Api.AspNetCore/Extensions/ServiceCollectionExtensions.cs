@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using AppFactory.Framework.Api.Parsing;
+using AppFactory.Framework.Api.Parsing.Configurations;
+using AppFactory.Framework.Api.Parsing.Mappers;
 using AppFactory.Framework.Application;
 using AppFactory.Framework.Shared.Serialization;
 
@@ -19,6 +21,14 @@ public static class ServiceCollectionExtensions
     {
         // Add core services
         services.AddSingleton<IJsonSerializer, DefaultJsonSerializer>();
+
+        // Add parsing services
+        services.AddSingleton<IPropertyMapperRegistry, PropertyMapperRegistry>();
+        services.AddSingleton<IParseModelMapRegistry>(sp => 
+        {
+            var maps = sp.GetServices<IParseModelMap>();
+            return new ParseModelMapRegistry(maps);
+        });
         services.AddSingleton<IRequestParser, RequestParser>();
 
         // Add CQRS if assemblies provided
