@@ -24,8 +24,9 @@ public static class DependencyRegistrationExtensions
             ? assemblies 
             : new[] { Assembly.GetCallingAssembly() };
 
-        // Register CommandDispatcher
-        services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
+        // Register CommandDispatcher as scoped
+        // Uses IServiceProvider for lazy handler resolution to support both ASP.NET Core and Lambda
+        services.AddScoped<ICommandDispatcher, CommandDispatcher>();
 
         // Use assembly scanning to register all handlers
         services.Scan(scan => scan
@@ -53,8 +54,9 @@ public static class DependencyRegistrationExtensions
             ? assemblies 
             : new[] { Assembly.GetCallingAssembly() };
 
-        // Register CommandDispatcher
-        services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
+        // Register CommandDispatcher as scoped
+        // Uses IServiceProvider for lazy handler resolution to support both ASP.NET Core and Lambda
+        services.AddScoped<ICommandDispatcher, CommandDispatcher>();
 
         // Use assembly scanning to register command handlers
         services.Scan(scan => scan
@@ -137,3 +139,5 @@ public static class DependencyRegistrationExtensions
         return services;
     }
 }
+
+
