@@ -10,7 +10,6 @@
     <Company>AppFactory</Company>
     <Product>AppFactory Framework</Product>
     <Description>Azure Service Bus and Queue Storage messaging implementation for AppFactory Framework - Build reactive microservices on Azure Functions</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/exiton3/AppFactory</PackageProjectUrl>
     <RepositoryUrl>https://github.com/exiton3/AppFactory</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
