@@ -1,12 +1,12 @@
 namespace AppFactory.Framework.Application.Commands;
 
-public abstract class CommandHandler<TCommand> : Domain.Commands.ICommandHandler<TCommand> where TCommand : Domain.Commands.ICommand
+public abstract class CommandHandler<TCommand> : ICommandHandler<TCommand> where TCommand : ICommand
 {
-    public abstract Task<Domain.Commands.CommandResult> Handle(TCommand command, CancellationToken cancellationToken = default);
+    public abstract Task<CommandResult> Handle(TCommand command, CancellationToken cancellationToken = default);
 
 
-    public Task<Domain.Commands.CommandResult> Handle(object command, CancellationToken cancellationToken = default)
+    public Task<CommandResult> Handle(object command, CancellationToken cancellationToken = default)
     {
-        return Handle((TCommand)command);
+        return Handle((TCommand)command, cancellationToken);
     }
 }
