@@ -50,7 +50,6 @@ jobs:
          - AppFactory.Framework.DataAccess
          - AppFactory.Framework.DataAccess.DynamoDB
          - AppFactory.Framework.DataAccess.CosmosDB
-         - AppFactory.Framework.Infrastructure
          - AppFactory.Framework.Api
          - AppFactory.Framework.Api.Aws
          - AppFactory.Framework.Api.Azure
