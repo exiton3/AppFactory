@@ -1,6 +1,6 @@
 # AppFactory v10.5.0 - Release Notes
 
-**Release Date**: 2024  
+**Release Date**: Jun 13, 2026   
 **Status**: Production Ready  
 **Focus**: Multi-Cloud Messaging Foundation
 
