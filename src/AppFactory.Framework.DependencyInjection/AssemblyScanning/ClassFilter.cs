@@ -20,7 +20,18 @@ internal class ClassFilter : IClassFilter
 
     public IClassFilter AssignableTo(Type type)
     {
-        _filters.Add(t => type.IsAssignableFrom(t));
+        _filters.Add(t =>
+        {
+            // Handle generic type definitions (e.g., IFunctionProcessor<,>)
+            if (type.IsGenericTypeDefinition)
+            {
+                return t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == type)
+                    || (t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == type);
+            }
+
+            // Handle regular types
+            return type.IsAssignableFrom(t);
+        });
         return this;
     }
 

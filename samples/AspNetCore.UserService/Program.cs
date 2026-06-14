@@ -1,5 +1,6 @@
 using AppFactory.Framework.Api.AspNetCore.Extensions;
 using AppFactory.Framework.Api.AspNetCore.Middleware;
+using AppFactory.Framework.Api.Parsing.Configurations;
 using AppFactory.Framework.Domain.Repositories;
 using AppFactory.Framework.Logging.MicrosoftExtensions;
 using AspNetCore.UserService.Application.Commands;
@@ -12,6 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMicrosoftExtensionsLogging();
 
 builder.Services.AddAppFactoryApi(typeof(Program).Assembly);
+
+// Register parse model maps for request mapping
+builder.Services.AddSingleton<IParseModelMap, CreateUserRequestMap>();
+builder.Services.AddSingleton<IParseModelMap, GetUserByIdQueryMap>();
 
 // Register in-memory repository for demo purposes
 builder.Services.AddSingleton<IRepository<AspNetCore.UserService.Domain.User>, InMemoryUserRepository>();
@@ -30,7 +35,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
-app.MapCommand<CreateUserCommand, UserDto>("/api/users")
+app.MapCqrsEndpoint<CreateUserRequest, UserDto>("/api/users", "POST")
    .WithName("CreateUser")
    .WithSummary("Create a new user")
    .WithDescription("Creates a new user with the specified email and name")

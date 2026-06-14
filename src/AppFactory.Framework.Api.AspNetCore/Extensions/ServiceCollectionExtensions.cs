@@ -1,11 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using AppFactory.Framework.Api.Abstractions;
-using AppFactory.Framework.Api.Parsing;
-using AppFactory.Framework.Api.Parsing.Configurations;
-using AppFactory.Framework.Api.Parsing.Mappers;
 using AppFactory.Framework.Application;
 using AppFactory.Framework.DependencyInjection;
-using AppFactory.Framework.Shared.Serialization;
 
 namespace AppFactory.Framework.Api.AspNetCore.Extensions;
 
@@ -21,17 +17,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         params System.Reflection.Assembly[] assemblies)
     {
-        // Add core services
-        services.AddSingleton<IJsonSerializer, DefaultJsonSerializer>();
-
-        // Add parsing services
-        services.AddSingleton<IPropertyMapperRegistry, PropertyMapperRegistry>();
-        services.AddSingleton<IParseModelMapRegistry>(sp => 
-        {
-            var maps = sp.GetServices<IParseModelMap>();
-            return new ParseModelMapRegistry(maps);
-        });
-        services.AddSingleton<IRequestParser, RequestParser>();
+        services.AddRequestParsing();
 
         // Add CQRS and Processors if assemblies provided
         if (assemblies?.Length > 0)

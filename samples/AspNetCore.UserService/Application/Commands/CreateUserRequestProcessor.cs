@@ -3,20 +3,20 @@ using AppFactory.Framework.Application.Commands;
 using AppFactory.Framework.Domain.ServiceResult;
 using AspNetCore.UserService.Application.DTOs;
 
-namespace AspNetCore.UserService.Application.Processors;
+namespace AspNetCore.UserService.Application.Commands;
 
-public class CreateUserProcessor : IFunctionProcessor<Commands.CreateUserCommand, UserDto>
+public class CreateUserRequestProcessor : IFunctionProcessor<CreateUserRequest, UserDto>
 {
-    private readonly ICommandHandler<Commands.CreateUserCommand> _commandHandler;
+    private readonly ICommandHandler<CreateUserCommand> _commandHandler;
 
-    public CreateUserProcessor(ICommandHandler<Commands.CreateUserCommand> commandHandler)
+    public CreateUserRequestProcessor(ICommandHandler<CreateUserCommand> commandHandler)
     {
         _commandHandler = commandHandler;
     }
 
-    public async Task<Result<UserDto>> Process(Commands.CreateUserCommand request, CancellationToken cancellationToken = default)
+    public async Task<Result<UserDto>> Process(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
-        var result = await _commandHandler.Handle(request, cancellationToken);
+        var result = await _commandHandler.Handle(request.Command, cancellationToken);
 
         if (result.IsFailure)
         {
@@ -27,8 +27,8 @@ public class CreateUserProcessor : IFunctionProcessor<Commands.CreateUserCommand
         var userDto = new UserDto
         {
             Id = result.Id,
-            Email = request.Email,
-            Name = request.Name,
+            Email = request.Command.Email,
+            Name = request.Command.Name,
             CreatedAt = DateTime.UtcNow,
             IsActive = true
         };

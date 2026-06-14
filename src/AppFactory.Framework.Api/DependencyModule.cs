@@ -31,3 +31,26 @@ public class DependencyModule : IDependencyRegistrationModule
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
     }
 }
+
+public static class DependencyModuleExtensions
+{
+    public static IServiceCollection AddRequestParsing(this IServiceCollection services)
+    {
+
+        services.AddSingleton<IJsonSerializer, DefaultJsonSerializer>();
+
+        // Add parsing services
+        services.AddSingleton<IPropertyMapperRegistry, PropertyMapperRegistry>();
+        services.AddTransient<IPropertyMapper, PathPropertyMapper>();
+        services.AddTransient<IPropertyMapper, QueryPropertyMapper>();
+        services.AddTransient<IPropertyMapper, BodyPropertyMapper>();
+        services.AddSingleton<IParseModelMapRegistry>(sp =>
+        {
+            var maps = sp.GetServices<IParseModelMap>();
+            return new ParseModelMapRegistry(maps);
+        });
+        services.AddSingleton<IRequestParser, RequestParser>();
+
+        return services;
+    }
+}
