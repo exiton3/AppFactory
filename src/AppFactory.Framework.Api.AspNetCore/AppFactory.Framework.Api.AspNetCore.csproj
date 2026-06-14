@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<Description>AppFactory Framework API - ASP.NET Core Minimal API Integration</Description>
@@ -12,8 +12,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+		<PackageReference Include="Microsoft.Extensions.Logging" />
 	</ItemGroup>
 
 	<ItemGroup>

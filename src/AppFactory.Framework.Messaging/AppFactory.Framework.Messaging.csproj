@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Description>AppFactory Framework Shared</Description>
 		<PackageTags>AppFactory;Framework;Serverless;SQS</PackageTags>
@@ -17,10 +17,10 @@
 		</None>
 	</ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.Core" Version="3.1.0" />
-    <PackageReference Include="Amazon.Lambda.SQSEvents" Version="3.0.0" />
-    <PackageReference Include="AWSSDK.SQS" Version="4.0.2.32" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+    <PackageReference Include="Amazon.Lambda.Core" />
+    <PackageReference Include="Amazon.Lambda.SQSEvents" />
+    <PackageReference Include="AWSSDK.SQS" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="MessageProcessors\" />

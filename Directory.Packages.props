@@ -1,0 +1,58 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- AWS SDK -->
+    <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="3.0.0" />
+    <PackageVersion Include="Amazon.Lambda.CloudWatchEvents" Version="5.0.0" />
+    <PackageVersion Include="Amazon.Lambda.Core" Version="3.1.0" />
+    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.0" />
+    <PackageVersion Include="Amazon.Lambda.SQSEvents" Version="3.0.0" />
+    <PackageVersion Include="Amazon.Lambda.TestUtilities" Version="4.1.0" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.21.3" />
+    <PackageVersion Include="AWSSDK.EventBridge" Version="4.0.6.6" />
+    <PackageVersion Include="AWSSDK.SQS" Version="4.0.3.4" />
+
+    <!-- Azure SDK -->
+    <PackageVersion Include="Azure.Messaging.EventGrid" Version="5.0.0" />
+    <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
+    <PackageVersion Include="Azure.Storage.Queues" Version="12.27.0" />
+    <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.61.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.EventGrid" Version="3.6.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.24.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.5.4" />
+
+    <!-- Microsoft.Extensions -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.9" />
+
+    <!-- Serilog -->
+    <PackageVersion Include="Serilog" Version="4.3.1" />
+    <PackageVersion Include="Serilog.Formatting.Compact" Version="3.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Sinks.XUnit3" Version="1.2.0" />
+
+    <!-- Other -->
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+
+    <!-- Testing -->
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.v3.assert" Version="3.2.2" />
+  </ItemGroup>
+</Project>
