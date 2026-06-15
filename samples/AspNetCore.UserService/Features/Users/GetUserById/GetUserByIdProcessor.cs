@@ -1,15 +1,18 @@
 using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.Application.Queries;
 using AppFactory.Framework.Domain.ServiceResult;
-using AspNetCore.UserService.Application.DTOs;
+using AspNetCore.UserService.Contracts.Users;
 
-namespace AspNetCore.UserService.Application.Queries;
+namespace AspNetCore.UserService.Features.Users.GetUserById;
 
-public class GetUserByIdQueryProcessor : IFunctionProcessor<GetUserByIdQuery, UserDto>
+/// <summary>
+/// Processor for GetUserById requests
+/// </summary>
+public sealed class GetUserByIdProcessor : IFunctionProcessor<GetUserByIdQuery, UserDto>
 {
-    private readonly IQueryHandler<GetUserByIdQuery, UserDto> _queryHandler;
+    private readonly IQueryHandler<GetUserByIdQuery, UserDto?> _queryHandler;
 
-    public GetUserByIdQueryProcessor(IQueryHandler<GetUserByIdQuery, UserDto> queryHandler)
+    public GetUserByIdProcessor(IQueryHandler<GetUserByIdQuery, UserDto?> queryHandler)
     {
         _queryHandler = queryHandler;
     }

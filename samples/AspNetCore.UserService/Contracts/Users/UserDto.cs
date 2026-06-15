@@ -1,5 +1,8 @@
-namespace AspNetCore.UserService.Application.DTOs;
+namespace AspNetCore.UserService.Contracts.Users;
 
+/// <summary>
+/// Data transfer object for User
+/// </summary>
 public class UserDto
 {
     public string Id { get; set; }
