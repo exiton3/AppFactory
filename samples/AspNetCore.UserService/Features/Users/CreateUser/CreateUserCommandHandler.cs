@@ -21,7 +21,7 @@ public sealed class CreateUserCommandHandler : CommandHandler<CreateUserCommand>
         var existingUser = await _userRepository.GetByEmailAsync(command.Email, cancellationToken);
         if (existingUser != null)
         {
-            return CommandResult.Failure("USER_EXISTS", $"User with email {command.Email} already exists");
+            return CommandResult.ErrorResult("USER_EXISTS", $"User with email {command.Email} already exists");
         }
 
         // Create domain entity

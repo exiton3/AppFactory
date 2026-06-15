@@ -5,9 +5,10 @@ namespace AspNetCore.UserService.Contracts.Users;
 /// </summary>
 public class UserDto
 {
-    public string Id { get; set; }
-    public string Email { get; set; }
-    public string Name { get; set; }
+    public string Id { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public bool IsActive { get; set; }
 }
