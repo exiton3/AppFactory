@@ -1,29 +1,30 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 using AppFactory.Framework.DataAccess.CosmosDB.Configuration;
 using AppFactory.Framework.DataAccess.CosmosDB.CosmosDb;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace AppFactory.Framework.DataAccess.CosmosDB.Mapping;
 
 
 internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
 {
-    private readonly JsonSerializerOptions _serializerOptions;
+    private readonly JsonSerializerSettings _serializerSettings;
     private readonly CosmosDbModelConfig<TModel> _config;
     private readonly IIdKeyMapper<TModel> _idKeyMapper;
+
     public ModelMapper(CosmosDbModelConfig<TModel> config)
     {
         _config = config;
-        _serializerOptions = GetJsonSerializerOptions(config);
+        _serializerSettings = GetJsonSerializerSettings(config);
         _idKeyMapper = new IdKeyMapper<TModel>(_config);
     }
 
     public CosmosDbDocument MapToDocument(TModel model)
     {
-        var modelJson = JsonSerializer.Serialize(model, _serializerOptions);
+        var modelJson = JsonConvert.SerializeObject(model, _serializerSettings);
         var document = new CosmosDbDocument(modelJson);
-       
+
         var mappedId = _idKeyMapper.MapId(model);
         document[mappedId.Key] = mappedId.Value;
 
@@ -64,11 +65,11 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
     public TModel MapFromDocument(CosmosDbDocument document)
     {
         var cleanDocument = new Dictionary<string, object>(document);
-        
+
         MapBackId(document, cleanDocument);
 
-        var json = JsonSerializer.Serialize(cleanDocument, _serializerOptions);
-        var model = JsonSerializer.Deserialize<TModel>(json, _serializerOptions);
+        var json = JsonConvert.SerializeObject(cleanDocument, _serializerSettings);
+        var model = JsonConvert.DeserializeObject<TModel>(json, _serializerSettings);
 
         MapBackPartitionKeys(document, model);
 
@@ -108,35 +109,49 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         }
     }
 
-    private  JsonSerializerOptions GetJsonSerializerOptions(CosmosDbModelConfig<TModel> config)
+    private JsonSerializerSettings GetJsonSerializerSettings(CosmosDbModelConfig<TModel> config)
     {
-        return new JsonSerializerOptions
+        var settings = new JsonSerializerSettings
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
             Converters =
             {
-                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-            },
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver().WithAddedModifier(IgnorePropertiesModifier)
-            
+                new Newtonsoft.Json.Converters.StringEnumConverter(new CamelCaseNamingStrategy())
+            }
         };
+
+        // Configure property ignore list using custom contract resolver
+        if (config.PropertiesToIgnoreDuringSerialization.Any())
+        {
+            var resolver = new IgnorePropertiesResolver(config.PropertiesToIgnoreDuringSerialization);
+            settings.ContractResolver = resolver;
+        }
+
+        return settings;
     }
 
-    private  void IgnorePropertiesModifier(JsonTypeInfo obj)
+    // Custom contract resolver to ignore specific properties
+    private class IgnorePropertiesResolver : CamelCasePropertyNamesContractResolver
     {
-        
-        var propertiesToIgnore = _config.PropertiesToIgnoreDuringSerialization;
+        private readonly IEnumerable<string> _propertiesToIgnore;
 
-        if (obj.Type == typeof(TModel))
+        public IgnorePropertiesResolver(IEnumerable<string> propertiesToIgnore)
         {
-            foreach (var property in obj.Properties)
+            _propertiesToIgnore = propertiesToIgnore;
+        }
+
+        protected override JsonProperty CreateProperty(System.Reflection.MemberInfo member, MemberSerialization memberSerialization)
+        {
+            var property = base.CreateProperty(member, memberSerialization);
+
+            if (_propertiesToIgnore.Contains(property.PropertyName, StringComparer.OrdinalIgnoreCase))
             {
-                if (propertiesToIgnore.Contains(property.Name))
-                {
-                    property.ShouldSerialize = (p,v) => false;
-                }
+                property.ShouldSerialize = _ => false;
             }
+
+            return property;
         }
     }
 }
