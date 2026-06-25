@@ -28,6 +28,9 @@ jobs:
     needs: unit_tests
     if: github.event.base_ref == 'refs/heads/master'
     runs-on: ubuntu-22.04
+    permissions:
+      id-token: write  # Required for OIDC authentication with NuGet
+      contents: read
     strategy:
       matrix:
         project:
@@ -90,7 +93,6 @@ jobs:
         run: |
           dotnet nuget push packages/*.nupkg \
             --source 'https://api.nuget.org/v3/index.json' \
-            --api-key ${{secrets.NUGET_APIKEY}} \
             --skip-duplicate
 
       - name: Upload Package Artifact

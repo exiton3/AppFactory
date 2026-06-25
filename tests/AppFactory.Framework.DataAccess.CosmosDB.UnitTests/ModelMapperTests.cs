@@ -322,6 +322,34 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             result.Id.ShouldBeEqualTo("123");
         }
 
+        [Fact]
+        public void GuidIdShouldBeDeserializedInPartitionKey()
+        {
+            var options = new CosmosDbModelConfig<User2>();
+            options
+                .ContainerName("Users")
+                .Id(u => u.Id)
+                .PartitionKey(u => u.Id).WithName("id");
+
+            IModelMapper<User2> mapper = new ModelMapper<User2>(options);
+
+            var newGuid = Guid.NewGuid();
+            var model = new User2
+            {
+                Email = "some@mail.com",
+                Name = "John Doe",
+                Id = newGuid,
+                UserId = "userID1",
+            };
+
+            var document = mapper.MapToDocument(model);
+            document["id"] = newGuid.ToString();
+            var result = mapper.MapFromDocument(document);
+
+            result.UserId.ShouldBeEqualTo("userID1");
+            result.Id.ShouldBeEqualTo(newGuid);
+        }
+
     }
 
     class TenantIdValueResolver: IPartitionKeyValueResolver 
@@ -341,6 +369,14 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
         public string Name { get; set; }
     }
 
+    public class User2
+    {
+        public Guid Id { get; set; }
+        public string UserId { get; set; }
+        public string TenantId { get; set; }
+        public string Email { get; set; }
+        public string Name { get; set; }
+    }
 
     public class UserNoTenantId
     {
