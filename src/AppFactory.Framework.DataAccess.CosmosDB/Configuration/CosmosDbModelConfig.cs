@@ -142,8 +142,26 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
         var part = new PartitionKeyPart<TModel>
         {
             Getter = o => getter(o),
-            Setter = (o, v) => setter(o, (TKey)v),
-            DestinationPropertyName =  propertyName
+            Setter = (o, v) => 
+            {
+                // Handle type conversion for Newtonsoft.Json deserialization
+                TKey typedValue;
+                if (v is TKey directValue)
+                {
+                    typedValue = directValue;
+                }
+                else if (typeof(TKey) == typeof(Guid) && v is string guidString)
+                {
+                    typedValue = (TKey)(object)Guid.Parse(guidString);
+                }
+                else
+                {
+                    // Try Convert.ChangeType for other types
+                    typedValue = (TKey)Convert.ChangeType(v, typeof(TKey));
+                }
+                setter(o, typedValue);
+            },
+            DestinationPropertyName = propertyName
         };
 
         AddToIgnoreProperties(propertyName);

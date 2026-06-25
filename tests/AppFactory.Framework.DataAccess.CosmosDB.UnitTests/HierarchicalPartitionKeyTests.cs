@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using Newtonsoft.Json.Linq;
 using AppFactory.Framework.DataAccess.CosmosDB.Configuration;
 using AppFactory.Framework.DataAccess.CosmosDB.Mapping;
 using Xunit;
@@ -35,8 +35,9 @@ public class HierarchicalPartitionKeyTests
         Assert.Equal("USER#user-123", document["userId"]);
         Assert.Equal("Electronics", document["category"]);
 
-        var amountElement = (JsonElement)document["amount"];
-        Assert.Equal(299.99m, amountElement.GetDecimal());
+        // After Newtonsoft.Json fix, numeric values are stored directly (not as JsonElement)
+        var amount = Convert.ToDecimal(document["amount"]);
+        Assert.Equal(299.99m, amount);
     }
 
     [Fact]
