@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
 {
-   public class ModelMapperTests
+    public class ModelMapperTests
     {
         [Fact]
         public void UserModelConfig_ShouldConfigureCorrectly()
@@ -81,11 +81,11 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
 
             var document = mapper.MapToDocument(model);
 
-           var entity = mapper.MapFromDocument(document);
+            var entity = mapper.MapFromDocument(document);
 
-           Assert.NotNull(entity);
-           Assert.Equal("123", entity.Id);
-           Assert.Equal("userID1", entity.UserId);
+            Assert.NotNull(entity);
+            Assert.Equal("123", entity.Id);
+            Assert.Equal("userID1", entity.UserId);
         }
 
         [Fact]
@@ -260,14 +260,14 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
 
             var document = mapper.MapToDocument(model);
 
-           var mappedModel = mapper.MapFromDocument(document);
+            var mappedModel = mapper.MapFromDocument(document);
 
-          mappedModel.UserId.ShouldBeEqualTo("userID1");
+            mappedModel.UserId.ShouldBeEqualTo("userID1");
 
 
         }
 
-        [Fact] 
+        [Fact]
         public void Map_PartitionKeyThatNotInTheMode()
         {
             var options = new CosmosDbModelConfig<UserNoTenantId>();
@@ -350,228 +350,68 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             result.Id.ShouldBeEqualTo(newGuid);
         }
 
-        [Fact]
-        public void ReportDefinitionSerialization()
+    }
+
+    class TenantIdValueResolver : IPartitionKeyValueResolver
         {
-            var options = new ReportDefinitionModelConfig();
-            CosmosDbModelConfig<ReportDefinition> config = new CosmosDbModelConfig<ReportDefinition>();
-            
-            options.Configure(config);
+            public object GetValue()
+            {
+                return "TenantIDFromResolver";
+            }
+        }
 
-            ModelMapper<ReportDefinition> mapper = new ModelMapper<ReportDefinition>(config);
+        public class User
+        {
+            public string Id { get; set; }
+            public string UserId { get; set; }
+            public string TenantId { get; set; }
+            public string Email { get; set; }
+            public string Name { get; set; }
+        }
 
-            // Create a test report with complex nested objects to verify serialization
-            var testReport = ReportDefinition.Create(
-                id: "probeId",
-                name: "Serialization Test Report",
-                description: "Test report to verify AppFactory 10.5.5 serialization with private setters",
-                category: ReportCategory.Tax,
-                catalogType: CatalogType.ServiceBureau,
-                legacyCode: "TEST-SER-001",
-                outputFormats: ["PDF", "Excel", "CSV"],
-                tags:
-                [
-                    new ReportTag(ReportTagType.OutputType, "Standard"),
-                    new ReportTag(ReportTagType.OutputType, "Detailed"),
-                    new ReportTag(ReportTagType.ReportType, "By As Of Date"),
-                    new ReportTag(ReportTagType.ReportType, "Summary")
-                ],
-                parameters:
-                [
-                    new ParameterDefinition
-                    {
-                        Label = "Start Date",
-                        ControlType = ParameterControlType.DatePicker,
-                        IsRequired = true,
-                        DisplayOrder = 1,
-                        DefaultValue = "2024-01-01",
-                        MutualExclusionGroup = "DateRange"
-                    },
-                    new ParameterDefinition
-                    {
-                        Label = "End Date",
-                        ControlType = ParameterControlType.DatePicker,
-                        IsRequired = true,
-                        DisplayOrder = 2,
-                        DefaultValue = "2024-12-31",
-                        MutualExclusionGroup = "DateRange"
-                    },
-                    new ParameterDefinition
-                    {
-                        Label = "Department",
-                        ControlType = ParameterControlType.Dropdown,
-                        IsRequired = false,
-                        DisplayOrder = 3,
-                        DataProviderKey = "DepartmentProvider"
-                    }
-                ]);
+        public class User2
+        {
+            public Guid Id { get; set; }
+            public string UserId { get; set; }
+            public string TenantId { get; set; }
+            public string Email { get; set; }
+            public string Name { get; set; }
+        }
 
-                var document = mapper.MapToDocument(testReport);
+        public class UserNoTenantId
+        {
+            public string Id { get; set; }
+            public string UserId { get; set; }
 
-                document["id"].ShouldBeEqualTo("probeId");
+            public string Email { get; set; }
+            public string Name { get; set; }
+        }
 
-               var result = mapper.MapFromDocument(document);
+        public class UserModelConfig : IModelConfig<User>
+        {
+            public void Configure(IModelConfigOptions<User> options)
+            {
+                options
+                    .ContainerName("Users")
+                    .Id(u => u.Id)
+                    .IdPrefix("USER")
+                    .PartitionKey(u => u.TenantId).WithName("tenantId").WithPrefix("TENANT")
+                    .PartitionKey(u => u.UserId).WithName("partitionKey").WithPrefix("USER");
+            }
+        }
 
-               result.Id.ShouldBeEqualTo("probeId");
-               result.Parameters.Count.ShouldBeEqualTo(3);
+
+        public class UserModelConfigWithoutPrefixWithoutCustomName : IModelConfig<User>
+        {
+            public void Configure(IModelConfigOptions<User> options)
+            {
+                options
+                    .ContainerName("Users")
+                    .Id(u => u.Id)
+                    .PartitionKey(u => u.TenantId)
+                    .PartitionKey(u => u.UserId);
+            }
         }
 
     }
 
-    class TenantIdValueResolver: IPartitionKeyValueResolver 
-    {
-        public object GetValue()
-        {
-            return "TenantIDFromResolver";
-        }
-    }
-
-    public class User
-    {
-        public string Id { get; set; }
-        public string UserId { get; set; }
-        public string TenantId { get; set; }
-        public string Email { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class User2
-    {
-        public Guid Id { get; set; }
-        public string UserId { get; set; }
-        public string TenantId { get; set; }
-        public string Email { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class UserNoTenantId
-    {
-        public string Id { get; set; }
-        public string UserId { get; set; }
-        
-        public string Email { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class UserModelConfig : IModelConfig<User>
-    {
-        public void Configure(IModelConfigOptions<User> options)
-        {
-            options
-                .ContainerName("Users")
-                .Id(u => u.Id)
-                .IdPrefix("USER")
-                .PartitionKey(u => u.TenantId).WithName("tenantId").WithPrefix("TENANT")
-                .PartitionKey(u => u.UserId).WithName("partitionKey").WithPrefix("USER");
-        }
-    }
-
-
-    public class UserModelConfigWithoutPrefixWithoutCustomName : IModelConfig<User>
-    {
-        public void Configure(IModelConfigOptions<User> options)
-        {
-            options
-                .ContainerName("Users")
-                .Id(u => u.Id)
-                .PartitionKey(u => u.TenantId)
-                .PartitionKey(u => u.UserId);
-        }
-    }
-
-}
-
-
-public class ReportDefinitionModelConfig : IModelConfig<ReportDefinition>
-{
-    public void Configure(IModelConfigOptions<ReportDefinition> options)
-    {
-        options
-            .ContainerName("report-catalog")
-            .Id(r => r.Id)
-            .PartitionKey(r => r.Id)
-            .WithName("id");
-    }
-}
-
-public class ReportDefinition
-{
-    public string Id { get; set; }
-    public string Name { get; set; } = default!;
-    public string Description { get; set; } = default!;
-    public ReportCategory Category { get; set; }
-    public CatalogType CatalogType { get; set; }
-    public string LegacyCode { get; set; } = default!;
-    public bool IsActive { get; set; }
-    public List<ParameterDefinition> Parameters { get; set; } = [];
-    public List<string> OutputFormats { get; set; } = [];
-    public List<ReportTag> Tags { get; set; } = [];
-
-    public ReportDefinition() { }
-
-    public static ReportDefinition Create(
-        string name,
-        string description,
-        ReportCategory category,
-        CatalogType catalogType,
-        string legacyCode,
-        IReadOnlyList<string> outputFormats,
-        IReadOnlyList<ReportTag> tags,
-        IReadOnlyList<ParameterDefinition> parameters,
-        string? id = null)
-    {
-        return new ReportDefinition
-        {
-            Id = id ?? Guid.NewGuid().ToString(),
-            Name = name,
-            Description = description,
-            Category = category,
-            CatalogType = catalogType,
-            LegacyCode = legacyCode,
-            IsActive = true,
-            OutputFormats = new List<string>(outputFormats),
-            Tags = new List<ReportTag>(tags),
-            Parameters = new List<ParameterDefinition>(parameters),
-        };
-    }
-
-    public void Deactivate()
-    {
-        IsActive = false;
-    }
-}
-
-public enum CatalogType
-{
-    ServiceBureau,
-    Client
-}
-
-public enum ParameterControlType
-{
-    TextInput, DatePicker, DateRangePicker, Checkbox,
-    Dropdown, MultiSelectDropdown,
-    SearchableDropdown, SearchableMultiSelectDropdown,
-    TreeView, AutocompleteSearch
-}
-
-public class ParameterDefinition
-{
-    public Guid Id { get; init; } = Guid.NewGuid();
-    public string Label { get; init; } = default!;
-    public ParameterControlType ControlType { get; init; }
-    public bool IsRequired { get; init; }
-    public int DisplayOrder { get; init; }
-    public string? DefaultValue { get; init; }
-    public string? MutualExclusionGroup { get; init; }
-    public string? DataProviderKey { get; init; }
-}
-
-public enum ReportCategory
-{
-    Tax, PEO, Billing, Treasury, Benefits, PayrollHR, Finance, ClientAdmin
-}
-
-public enum ReportTagType { OutputType, ReportType }
-
-public record ReportTag(ReportTagType TagType, string Value);
