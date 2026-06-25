@@ -1,6 +1,8 @@
 using AppFactory.Framework.DataAccess.CosmosDB.Settings;
 using AppFactory.Framework.Logging;
 using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace AppFactory.Framework.DataAccess.CosmosDB.CosmosDb;
 
@@ -31,32 +33,32 @@ public class CosmosDbClientFactory : ICosmosDbClientFactory
                 if (_cosmosClient == null)
                 {
                     var connectionString = _settings.GetConnectionString();
-                    
+
+                    // Configure to use Newtonsoft.Json serializer to handle Dictionary<string, object> properly
+                    var clientOptions = new CosmosClientOptions
+                    {
+                        Serializer = new CosmosNewtonsoftJsonSerializer(new JsonSerializerSettings
+                        {
+                            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                            NullValueHandling = NullValueHandling.Ignore,
+                            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                            Formatting = Formatting.None
+                        })
+                    };
+
                     if (!string.IsNullOrEmpty(connectionString))
                     {
-                        _cosmosClient = new CosmosClient(connectionString, new CosmosClientOptions
-                        {
-                            SerializerOptions = new CosmosSerializationOptions
-                            {
-                                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
-                            }
-                        });
+                        _cosmosClient = new CosmosClient(connectionString, clientOptions);
                     }
                     else
                     {
                         var endpoint = _settings.GetEndpoint();
                         var authKey = _settings.GetAuthKey();
-                        
-                        _cosmosClient = new CosmosClient(endpoint, authKey, new CosmosClientOptions
-                        {
-                            SerializerOptions = new CosmosSerializationOptions
-                            {
-                                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
-                            }
-                        });
+
+                        _cosmosClient = new CosmosClient(endpoint, authKey, clientOptions);
                     }
 
-                    _logger.LogInfo("CosmosClient initialized");
+                    _logger.LogInfo("CosmosClient initialized with Newtonsoft.Json serializer");
                 }
             }
         }

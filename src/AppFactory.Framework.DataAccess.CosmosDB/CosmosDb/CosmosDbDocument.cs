@@ -1,4 +1,5 @@
-using System.Text.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AppFactory.Framework.DataAccess.CosmosDB.CosmosDb;
 
@@ -18,7 +19,7 @@ public class CosmosDbDocument : Dictionary<string, object>
 
     public CosmosDbDocument(string json)
     {
-        var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+        var dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
         if (dict != null)
         {
             foreach (var item in dict)
@@ -40,17 +41,27 @@ public class CosmosDbDocument : Dictionary<string, object>
     {
         if (TryGetValue(key, out var value))
         {
-            if (value is JsonElement jsonElement)
+            // Handle Newtonsoft.Json JToken types
+            if (value is JToken jToken)
             {
-                return JsonSerializer.Deserialize<T>(jsonElement.GetRawText());
+                return jToken.ToObject<T>();
             }
-            return (T)value;
+
+            // Handle direct conversion
+            if (value is T typedValue)
+            {
+                return typedValue;
+            }
+
+            // Try JSON round-trip for complex types
+            var json = JsonConvert.SerializeObject(value);
+            return JsonConvert.DeserializeObject<T>(json);
         }
         return default;
     }
 
     public string ToJson()
     {
-        return JsonSerializer.Serialize(this);
+        return JsonConvert.SerializeObject(this);
     }
 }
