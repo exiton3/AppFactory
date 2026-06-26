@@ -18,9 +18,9 @@ public static class DependencyInjectionExtensions
     {
         // Register factory that bridges AppFactory.ILoggerFactory to Microsoft.Extensions.Logging.ILoggerFactory
         services.AddSingleton<ILoggerFactory, MicrosoftExtensionsLoggerFactory>();
-        
-        // Register scoped ILogger that resolves from Microsoft.Extensions.Logging
-        services.AddScoped<ILogger>(provider =>
+
+        // Register ILogger as singleton (loggers are typically stateless and thread-safe)
+        services.AddSingleton<ILogger>(provider =>
         {
             var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
             var melLogger = loggerFactory.CreateLogger("AppFactory");
@@ -41,8 +41,8 @@ public static class DependencyInjectionExtensions
         string categoryName)
     {
         services.AddSingleton<ILoggerFactory, MicrosoftExtensionsLoggerFactory>();
-        
-        services.AddScoped<ILogger>(provider =>
+
+        services.AddSingleton<ILogger>(provider =>
         {
             var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
             var melLogger = loggerFactory.CreateLogger(categoryName);
@@ -67,8 +67,8 @@ public static class DependencyInjectionExtensions
 
         // Register AppFactory adapters
         services.AddSingleton<ILoggerFactory, MicrosoftExtensionsLoggerFactory>();
-        
-        services.AddScoped<ILogger>(provider =>
+
+        services.AddSingleton<ILogger>(provider =>
         {
             var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
             var melLogger = loggerFactory.CreateLogger("AppFactory");
@@ -98,8 +98,8 @@ public static class DependencyInjectionExtensions
         });
 
         services.AddSingleton<ILoggerFactory, MicrosoftExtensionsLoggerFactory>();
-        
-        services.AddScoped<ILogger>(provider =>
+
+        services.AddSingleton<ILogger>(provider =>
         {
             var loggerFactory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
             var melLogger = loggerFactory.CreateLogger("AppFactory");
