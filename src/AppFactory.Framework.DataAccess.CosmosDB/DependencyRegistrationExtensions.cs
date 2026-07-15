@@ -20,7 +20,10 @@ public static class DependencyRegistrationExtensions
     public static void RegisterCosmosDbPersistence(this IServiceCollection services)
     {
         services.AddSingleton<ICosmosDbClientFactory, CosmosDbClientFactory>();
-        services.AddScoped<ICosmosDbSettings, CosmosDbSettings>();
+
+        // Use ConfigurationCosmosDbSettings which reads from IConfiguration
+        // Singleton is safe - IConfiguration is thread-safe and settings don't change at runtime
+        services.AddSingleton<ICosmosDbSettings, ConfigurationCosmosDbSettings>();
     }
 
     /// <summary>

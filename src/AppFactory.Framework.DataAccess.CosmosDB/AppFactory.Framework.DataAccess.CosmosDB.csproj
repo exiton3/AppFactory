@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <Description>AppFactory Framework Data Access Repository CosmosDB</Description>
@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Azure.Cosmos" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Newtonsoft.Json" />
