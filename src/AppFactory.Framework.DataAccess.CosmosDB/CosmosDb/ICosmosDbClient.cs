@@ -13,4 +13,6 @@ public interface ICosmosDbClient : IDisposable
     Task BatchUpsertItemsAsync(List<CosmosDbDocument> documents, string containerName);
     Task<List<CosmosDbDocument>> QueryAsync(QueryDefinition queryDefinition, string containerName, string partitionKey = null);
     Task<List<CosmosDbDocument>> QueryAsync(string query, string containerName, string partitionKey = null);
+    Task<List<CosmosDbDocument>> QueryAsync(QueryDefinition queryDefinition, string containerName, PartitionKey partitionKey);
+    Task<List<CosmosDbDocument>> QueryAsync(string query, string containerName, PartitionKey partitionKey);
 }

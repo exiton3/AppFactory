@@ -113,6 +113,23 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
         return models;
     }
 
+    protected async Task<IEnumerable<TModel>> Query(QueryDefinition queryDefinition, PartitionKey partitionKey)
+    {
+        var documents = await _cosmosDbClient.QueryAsync(queryDefinition, _containerName, partitionKey);
+        var models = new List<TModel>();
+
+        foreach (var document in documents)
+        {
+            var model = _mapper.MapFromDocument(document);
+            models.Add(model);
+        }
+
+        return models;
+    }
+
+    protected async Task<IEnumerable<TModel>> Query(string query, PartitionKey partitionKey)
+        => await Query(new QueryDefinition(query), partitionKey);
+
     protected async Task<TModel> QuerySingle(string query, string partitionKey = null)
     {
         var results = await Query(query, partitionKey);

@@ -146,6 +146,30 @@ public class CosmosDbClient : ICosmosDbClient
         return await QueryAsync(queryDefinition, containerName, partitionKey);
     }
 
+    public async Task<List<CosmosDbDocument>> QueryAsync(QueryDefinition queryDefinition, string containerName, PartitionKey partitionKey)
+    {
+        var container = _cosmosClient.GetContainer(_databaseName, containerName);
+        var documents = new List<CosmosDbDocument>();
+
+        using var feedIterator = container.GetItemQueryIterator<Dictionary<string, object>>(
+            queryDefinition,
+            requestOptions: new QueryRequestOptions { PartitionKey = partitionKey });
+
+        while (feedIterator.HasMoreResults)
+        {
+            var response = await feedIterator.ReadNextAsync();
+            foreach (var item in response)
+            {
+                documents.Add(new CosmosDbDocument(item));
+            }
+        }
+
+        return documents;
+    }
+
+    public async Task<List<CosmosDbDocument>> QueryAsync(string query, string containerName, PartitionKey partitionKey)
+        => await QueryAsync(new QueryDefinition(query), containerName, partitionKey);
+
     public void Dispose()
     {
         // CosmosClient is managed by the factory as a singleton
