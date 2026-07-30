@@ -326,6 +326,54 @@ public class RequestParserTests
         exception.Message.ShouldBeEqualTo("The path parameter 'name', not found in Path parameters.");
     }
 
+    [Fact]
+    public void FromBody_MultipleScalarFields_ShouldParseFromJsonObject()
+    {
+        var parseModelMaps = new List<IParseModelMap> { new CreateUserRequestMap() };
+        var modelMapRegistry = new ParseModelMapRegistry(parseModelMaps);
+        var serializer = new DefaultJsonSerializer();
+        var propertyMappers = new List<IPropertyMapper>
+        {
+            new PathPropertyMapper(),
+            new QueryPropertyMapper(),
+            new BodyPropertyMapper(serializer)
+        };
+
+        var parser = new RequestParser(modelMapRegistry, new PropertyMapperRegistry(propertyMappers));
+
+        var result = parser.ParseRequest<CreateUserRequestForTest>(new InputRequest
+        {
+            Body = "{\"email\":\"john.doe@example.com\",\"name\":\"John Doe\"}"
+        });
+
+        result.Email.ShouldBeEqualTo("john.doe@example.com");
+        result.Name.ShouldBeEqualTo("John Doe");
+    }
+
+    [Fact]
+    public void FromBody_FieldNames_ShouldBeCaseInsensitive()
+    {
+        var parseModelMaps = new List<IParseModelMap> { new CreateUserRequestMap() };
+        var modelMapRegistry = new ParseModelMapRegistry(parseModelMaps);
+        var serializer = new DefaultJsonSerializer();
+        var propertyMappers = new List<IPropertyMapper>
+        {
+            new PathPropertyMapper(),
+            new QueryPropertyMapper(),
+            new BodyPropertyMapper(serializer)
+        };
+
+        var parser = new RequestParser(modelMapRegistry, new PropertyMapperRegistry(propertyMappers));
+
+        var result = parser.ParseRequest<CreateUserRequestForTest>(new InputRequest
+        {
+            Body = "{\"Email\":\"john.doe@example.com\",\"NAME\":\"John Doe\"}"
+        });
+
+        result.Email.ShouldBeEqualTo("john.doe@example.com");
+        result.Name.ShouldBeEqualTo("John Doe");
+    }
+
 }
 
 class MyData
@@ -398,5 +446,20 @@ class MyRequestModelMapWithQuery : ParseModelMap<RequestTest>
     {
         Map(x => x.Name, "name").FromQuery();
         Map(x => x.Id, "id").FromPath().UseConverter<StringToIntConverter>();
+    }
+}
+
+class CreateUserRequestForTest
+{
+    public string Email { get; set; }
+    public string Name { get; set; }
+}
+
+class CreateUserRequestMap : ParseModelMap<CreateUserRequestForTest>
+{
+    public CreateUserRequestMap()
+    {
+        Map(x => x.Email, "email").FromBody();
+        Map(x => x.Name, "name").FromBody();
     }
 }
