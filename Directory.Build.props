@@ -17,6 +17,9 @@
 	<PropertyGroup>
 		<NuGetAuditLevel>moderate</NuGetAuditLevel>
 	</PropertyGroup>
+	<PropertyGroup Condition="$([System.String]::Copy('$(MSBuildProjectName)').StartsWith('AppFactory.Framework.'))">
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
 	<ItemGroup>
 		<!-- 2. Include the physical files from your solution root -->
 		<!-- $(MSBuildThisFileDirectory) ensures the path is relative to this props file -->

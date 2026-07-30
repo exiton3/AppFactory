@@ -31,14 +31,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
       - name: Discover packable projects
         id: discover
         run: |
           mapfile -t projects < <(
-            find ./src -mindepth 2 -maxdepth 2 -name "*.csproj" -printf "%f\n" \
-              | sed 's/\.csproj$//' \
-              | grep '^AppFactory\.Framework\.' \
-              | sort
+            find ./src -mindepth 2 -maxdepth 2 -name "*.csproj" -print \
+              | sort \
+              | while read -r csproj; do
+                  name="$(basename "$csproj" .csproj)"
+                  if [[ "$name" =~ ^AppFactory\.Framework\. ]]; then
+                    is_packable="$(dotnet msbuild "$csproj" -nologo -getProperty:IsPackable | tail -n 1 | tr -d '\r')"
+                    if [[ "$is_packable" == "true" ]]; then
+                      echo "$name"
+                    fi
+                  fi
+                done
           )
 
           if [ ${#projects[@]} -eq 0 ]; then
