@@ -5,15 +5,21 @@ This sample demonstrates building a containerized user management API using ASP.
 ## 🏗️ Architecture
 
 ```
-HTTP Request → Middleware → Minimal API Endpoint → CQRS Handler → Database
-                  ↓
-           AppFactory CQRS
+HTTP Request
+  → Middleware
+  → Endpoint Config Route
+  → EndpointRequestHandler<TRequest, TResponse>
+  → IFunctionProcessor<TRequest, TResponse>
+  → EndpointResponseMapper<TResponse>
 ```
 
 ## 📦 Features
 
 - ✅ ASP.NET Core Minimal APIs
-- ✅ CQRS pattern with commands and queries
+- ✅ Endpoint config classes (REPR style)
+- ✅ Staged fluent endpoint configuration
+- ✅ Generic request handler pipeline
+- ✅ Separated response mapper pipeline
 - ✅ Swagger/OpenAPI documentation
 - ✅ Health checks
 - ✅ Global exception handling
@@ -31,18 +37,29 @@ HTTP Request → Middleware → Minimal API Endpoint → CQRS Handler → Databa
 
 ```
 AspNetCore.UserService/
+├── Contracts/
+│   └── Users/
+│       └── UserDto.cs
 ├── Domain/
-│   └── User.cs
-├── Application/
-│   ├── Commands/
-│   │   └── CreateUserCommand.cs
-│   ├── Queries/
-│   │   └── GetUserByIdQuery.cs
-│   ├── DTOs/
-│   │   └── UserDto.cs
-│   └── Processors/
-│       ├── CreateUserProcessor.cs
-│       └── GetUserProcessor.cs
+│   └── Users/
+│       ├── IUserRepository.cs
+│       └── User.cs
+├── Features/
+│   └── Users/
+│       ├── CreateUser/
+│       │   ├── CreateUserContracts.cs
+│       │   ├── CreateUserEndpoint.cs
+│       │   ├── CreateUserRequestMap.cs
+│       │   ├── CreateUserProcessor.cs
+│       │   └── CreateUserCommandHandler.cs
+│       └── GetUserById/
+│           ├── GetUserByIdEndpoint.cs
+│           ├── GetUserByIdQuery.cs
+│           ├── GetUserByIdQueryMap.cs
+│           └── GetUserByIdProcessor.cs
+├── Infrastructure/
+│   └── Persistence/
+│       └── UserRepository.cs
 ├── Program.cs
 ├── Dockerfile
 └── appsettings.json
@@ -231,33 +248,48 @@ curl http://localhost:8080/health
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAppFactoryApi(typeof(Program).Assembly);
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
-app.MapCommand<CreateUserCommand, UserDto>("/api/users");
-app.MapQuery<GetUserByIdQuery, UserDto>("/api/users/{userId}");
+app.MapEndpointConfigs(typeof(Program).Assembly);
 
 app.Run();
 ```
 
-### Minimal API Endpoints
+### Endpoint Config Class
 
-Fluent API for mapping CQRS handlers:
+Class-based REPR-style endpoint declaration:
 
 ```csharp
-app.MapCommand<CreateUserCommand, UserDto>("/api/users")
-   .WithName("CreateUser")
-   .WithOpenApi();
-
-app.MapQuery<GetUserByIdQuery, UserDto>("/api/users/{userId}")
-   .WithName("GetUser")
-   .WithOpenApi();
+public sealed class CreateUserEndpoint : EndpointConfig<CreateUserRequest, CreateUserResponse>
+{
+  protected override void Configure()
+  {
+    Post("/api/users")
+      .Name("CreateUser")
+      .Summary("Create a new user")
+      .Description("Creates a new user with the specified email and name")
+      .Tags("Users")
+      .Security()
+      .AllowAnonymous()
+      .Produces<CreateUserResponse>(StatusCodes.Status200OK)
+      .Produces(StatusCodes.Status400BadRequest)
+      .ConfigureRoute(route => route.WithOpenApi());
+  }
+}
 ```
+
+### Runtime Flow
+
+1. Endpoint config declares route and metadata.
+2. MapEndpointConfigs discovers and maps configs at startup.
+3. MapEndpointRoute binds HTTP route to generic handler delegate.
+4. EndpointRequestHandler parses request and executes processor.
+5. EndpointResponseMapper maps service result to HTTP response.
 
 ### Middleware
 
@@ -354,7 +386,7 @@ app.MapHealthChecks("/health/live");
 The beauty of AppFactory: **same business logic works everywhere!**
 
 ```csharp
-public class CreateUserProcessor : IFunctionProcessor<CreateUserCommand, UserDto>
+public class CreateUserProcessor : IFunctionProcessor<CreateUserRequest, CreateUserResponse>
 {
     // This processor works in:
     // ✅ AWS Lambda
