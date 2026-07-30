@@ -1,22 +1,23 @@
-using AppFactory.Framework.Api.AspNetCore.Extensions;
+using AppFactory.Framework.Api.AspNetCore.Endpoints;
+using Microsoft.AspNetCore.Http;
 
 namespace AspNetCore.UserService.Features.Users.CreateUser;
 
 /// <summary>
 /// Endpoint configuration for CreateUser feature
 /// </summary>
-public static class CreateUserEndpoint
+public sealed class CreateUserEndpoint : EndpointConfig<CreateUserRequest, CreateUserResponse>
 {
-    public static IEndpointRouteBuilder MapCreateUserEndpoint(this IEndpointRouteBuilder endpoints)
+    protected override void Configure()
     {
-        endpoints.MapCqrsEndpoint<CreateUserRequest, CreateUserResponse>("/api/users", "POST")
-            .WithName("CreateUser")
-            .WithSummary("Create a new user")
-            .WithDescription("Creates a new user with the specified email and name")
-            .WithTags("Users")
+        Post("/api/users")
+            .Name("CreateUser")
+            .Summary("Create a new user")
+            .Description("Creates a new user with the specified email and name")
+            .Tags("Users")
+            .Security()
+            .AllowAnonymous()
             .Produces<CreateUserResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
-
-        return endpoints;
     }
 }

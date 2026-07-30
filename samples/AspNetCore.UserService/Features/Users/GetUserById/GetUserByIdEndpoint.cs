@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using AppFactory.Framework.Api.AspNetCore.Extensions;
+using AppFactory.Framework.Api.AspNetCore.Endpoints;
 using AspNetCore.UserService.Contracts.Users;
 
 namespace AspNetCore.UserService.Features.Users.GetUserById;
@@ -9,18 +9,18 @@ namespace AspNetCore.UserService.Features.Users.GetUserById;
 /// <summary>
 /// Endpoint configuration for GetUserById feature
 /// </summary>
-public static class GetUserByIdEndpoint
+public sealed class GetUserByIdEndpoint : EndpointConfig<GetUserByIdQuery, UserDto>
 {
-    public static IEndpointRouteBuilder MapGetUserByIdEndpoint(this IEndpointRouteBuilder endpoints)
+    protected override void Configure()
     {
-        endpoints.MapCqrsEndpoint<GetUserByIdQuery, UserDto>("/api/users/{userId}", "GET")
-            .WithName("GetUser")
-            .WithSummary("Get user by ID")
-            .WithDescription("Retrieves a user by their unique identifier")
-            .WithTags("Users")
+        Get("/api/users/{userId}")
+            .Name("GetUser")
+            .Summary("Get user by ID")
+            .Description("Retrieves a user by their unique identifier")
+            .Tags("Users")
+            .Security()
+            .AllowAnonymous()
             .Produces<UserDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
-
-        return endpoints;
     }
 }

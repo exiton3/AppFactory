@@ -40,8 +40,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
 // Feature Endpoints
-app.MapCreateUserEndpoint();
-app.MapGetUserByIdEndpoint();
+app.MapEndpointConfigs(typeof(Program).Assembly);
 
 // Health & Info
 app.MapHealthChecks("/health");

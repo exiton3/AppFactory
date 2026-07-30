@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using AppFactory.Framework.Api.AspNetCore.Core;
 using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.Application;
 using AppFactory.Framework.DependencyInjection;
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
         params System.Reflection.Assembly[] assemblies)
     {
         services.AddRequestParsing();
+        services.AddScoped(typeof(IEndpointRequestHandler<,>), typeof(EndpointRequestHandler<,>));
 
         // Add CQRS and Processors if assemblies provided
         if (assemblies?.Length > 0)
