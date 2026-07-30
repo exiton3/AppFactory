@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddRequestParsing();
         services.AddScoped(typeof(IEndpointRequestHandler<,>), typeof(EndpointRequestHandler<,>));
+        services.AddScoped(typeof(IEndpointResponseMapper<>), typeof(EndpointResponseMapper<>));
 
         // Add CQRS and Processors if assemblies provided
         if (assemblies?.Length > 0)
