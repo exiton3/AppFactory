@@ -24,8 +24,36 @@ jobs:
       - name: Unit Tests
         run: dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance"
 
+  discover_projects:
+    runs-on: ubuntu-22.04
+    outputs:
+      projects: ${{ steps.discover.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Discover packable projects
+        id: discover
+        run: |
+          mapfile -t projects < <(
+            find ./src -mindepth 2 -maxdepth 2 -name "*.csproj" -printf "%f\n" \
+              | sed 's/\.csproj$//' \
+              | grep '^AppFactory\.Framework\.' \
+              | sort
+          )
+
+          if [ ${#projects[@]} -eq 0 ]; then
+            echo "No projects found to publish."
+            exit 1
+          fi
+
+          json=$(printf '%s\n' "${projects[@]}" | jq -R . | jq -sc .)
+          echo "projects=$json" >> "$GITHUB_OUTPUT"
+          echo "Discovered projects: $json"
+
   deploy:
-    needs: unit_tests
+    needs:
+      - unit_tests
+      - discover_projects
     if: github.event.base_ref == 'refs/heads/master'
     runs-on: ubuntu-22.04
     permissions:
@@ -33,30 +61,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        project:
-         - AppFactory.Framework.Domain
-         - AppFactory.Framework.DependencyInjection
-         - AppFactory.Framework.Logging.Abstractions
-         - AppFactory.Framework.Logging.Serilog
-         - AppFactory.Framework.Logging.MicrosoftExtensions
-         - AppFactory.Framework.Logging
-         - AppFactory.Framework.Application
-         - AppFactory.Framework.Shared
-         - AppFactory.Framework.Messaging
-         - AppFactory.Framework.Messaging.Core
-         - AppFactory.Framework.Messaging.Aws
-         - AppFactory.Framework.Messaging.Azure
-         - AppFactory.Framework.EventBus
-         - AppFactory.Framework.EventBus.Aws
-         - AppFactory.Framework.EventBus.Azure
-         - AppFactory.Framework.TestExtensions
-         - AppFactory.Framework.DataAccess
-         - AppFactory.Framework.DataAccess.DynamoDB
-         - AppFactory.Framework.DataAccess.CosmosDB
-         - AppFactory.Framework.Api
-         - AppFactory.Framework.Api.Aws
-         - AppFactory.Framework.Api.Azure
-         - AppFactory.Framework.Api.AspNetCore
+        project: ${{ fromJson(needs.discover_projects.outputs.projects) }}
 
     steps:
       - name: Extract version from tag
