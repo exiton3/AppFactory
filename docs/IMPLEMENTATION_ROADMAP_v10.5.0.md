@@ -223,7 +223,7 @@
 ### **Updated Documentation**
 - [ ] Update main `README.md` with v10.5.0 features
 - [ ] Update `CHANGELOG.md`
-- [ ] Create `RELEASE_NOTES_v10.5.0.md`
+- [ ] Create `docs/releases/RELEASE_NOTES_v10.5.0.md`
 - [ ] Update sample applications
 
 ---
@@ -363,7 +363,7 @@ Add new packages to matrix:
 - [ ] Security scan clean
 - [ ] Update version to 10.5.0 in Directory.Build.props
 - [ ] Update CHANGELOG.md
-- [ ] Create RELEASE_NOTES_v10.5.0.md
+- [ ] Create docs/releases/RELEASE_NOTES_v10.5.0.md
 
 ### **Release**
 - [ ] Tag release: `git tag -a v10.5.0 -m "v10.5.0 - Event-Driven Enterprise Features"`

@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.6.0] - 2026-07-30
+
+### 🎯 ASP.NET Core Endpoint Configuration Model
+
+This release introduces a new REPR-style endpoint configuration model for ASP.NET Core Minimal APIs with a staged fluent API and a more cleanly separated runtime pipeline.
+
+### Added
+
+#### ASP.NET Core Endpoint Configuration (`AppFactory.Framework.Api.AspNetCore`)
+- **EndpointConfig<TRequest, TResponse>** - Class-based endpoint declaration for ASP.NET Core Minimal APIs
+- **Staged fluent endpoint configuration** with:
+  - Route step: `Get/Post/Put/Patch/Delete`
+  - Metadata step: `Name`, `Summary`, `Description`, `Tags`
+  - Security step: `Security().AllowAnonymous()` / `Security().RequireAuthorization(...)`
+  - Final step: `Produces(...)`, `ConfigureRoute(...)`
+- **MapEndpointConfigs(...)** - Assembly-based endpoint discovery and registration
+- **MapEndpointRoute<TRequest, TResponse>(...)** - Direct ASP.NET Core route mapping API
+- **IEndpointRequestHandler<TRequest, TResponse>** - Generic request execution pipeline abstraction
+- **IEndpointResponseMapper<TResponse>** - Dedicated result-to-response translation abstraction
+
+#### Authorization Helpers
+- `RequireAuthorization()`
+- `RequireAuthorization(string policy)`
+- `RequireAuthorization(Action<AuthorizationPolicyBuilder> policyBuilder)`
+- `AllowAnonymous()`
+
+### Changed
+- ASP.NET Core endpoint declaration moved toward class-based REPR configuration instead of inline route mapping
+- ASP.NET Core runtime behavior split into focused components:
+  - route mapping
+  - request execution
+  - response mapping
+- `MapEndpoint<TRequest, TResponse>()` retained as a backward-compatible alias for `MapEndpointRoute<TRequest, TResponse>()`
+
+### Fixed
+- Fixed ASP.NET Core JSON body parsing for multi-property request models mapped from body fields
+- Added validation for conflicting authorization configuration so `AllowAnonymous()` and `RequireAuthorization()` cannot be silently combined
+
+### Documentation
+- Updated `src/AppFactory.Framework.Api.AspNetCore/README.md`
+- Updated `samples/AspNetCore.UserService/README.md`
+- Added `docs/releases/RELEASE_NOTES_v10.6.0.md`
+
 ## [10.5.0] - 2026-06-13
 
 ### 🚀 Unified Multi-Cloud Messaging Architecture

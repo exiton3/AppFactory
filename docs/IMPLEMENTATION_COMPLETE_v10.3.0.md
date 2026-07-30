@@ -48,7 +48,7 @@ All steps completed successfully. The framework is ready for v10.3.0 release.
 
 ### ✅ Documentation
 - [x] Updated CHANGELOG.md with v10.3.0
-- [x] Created RELEASE_NOTES_v10.3.0.md (5,500+ words)
+- [x] Created docs/releases/RELEASE_NOTES_v10.3.0.md (5,500+ words)
 - [x] Created MULTI_CLOUD_API_MIGRATION_GUIDE.md (4,200+ words)
 - [x] Created MULTI_CLOUD_API_IMPLEMENTATION_SUMMARY.md (3,800+ words)
 - [x] Created MULTI_CLOUD_API_QUICK_REFERENCE.md (3,500+ words)
@@ -219,7 +219,7 @@ Write once, deploy to:
    - Future roadmap
 
 ### For Product Owners
-4. **RELEASE_NOTES_v10.3.0.md**
+4. **docs/releases/RELEASE_NOTES_v10.3.0.md**
    - Business value
    - Cost comparisons
    - When to use each platform

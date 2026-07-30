@@ -137,7 +137,7 @@
 - ✅ Package READMEs with usage examples
 - ⏳ Multi-cloud comparison guide
 - ⏳ Migration guide from v10.4.0
-- ⏳ RELEASE_NOTES_v10.5.0.md
+- ⏳ docs/releases/RELEASE_NOTES_v10.5.0.md
 - ⏳ Updated main README.md
 
 ### Build Requirements
@@ -293,7 +293,7 @@
 - [ ] Complete Messaging.Azure implementation
 - [ ] All 75+ tests passing
 - [ ] All READMEs complete
-- [ ] Create RELEASE_NOTES_v10.5.0.md
+- [ ] Create docs/releases/RELEASE_NOTES_v10.5.0.md
 - [ ] Update main README.md
 - [ ] Create migration guide
 - [ ] Update GitHub workflow for 24 packages
