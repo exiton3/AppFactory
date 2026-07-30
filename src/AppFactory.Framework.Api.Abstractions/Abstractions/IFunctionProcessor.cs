@@ -8,7 +8,7 @@ namespace AppFactory.Framework.Api.Abstractions;
 /// </summary>
 /// <typeparam name="TRequest">Request model (Command or Query)</typeparam>
 /// <typeparam name="TResponse">Response model (DTO)</typeparam>
-public interface IFunctionProcessor<TRequest, TResponse> 
+public interface IFunctionProcessor<in TRequest, TResponse> 
     where TRequest : class, new() 
     where TResponse : class
 {

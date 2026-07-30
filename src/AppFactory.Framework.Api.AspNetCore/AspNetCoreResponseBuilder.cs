@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 using AppFactory.Framework.Api.Abstractions;
-using AppFactory.Framework.Api.Responses;
 using AppFactory.Framework.Domain.ServiceResult;
 using AppFactory.Framework.Shared.Serialization;
 

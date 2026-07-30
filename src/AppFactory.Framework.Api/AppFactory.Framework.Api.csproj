@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<Description>AppFactory Framework API</Description>
@@ -11,10 +11,6 @@
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Parsing\Converters\" />
-  </ItemGroup>
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>AppFactory.Framework.Api.UnitTests</_Parameter1>
@@ -24,10 +20,14 @@
 	  <Content Include="..\..\logo.png" Link="logo.png" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\AppFactory.Framework.Api.Abstractions\AppFactory.Framework.Api.Abstractions.csproj" />
 	  <ProjectReference Include="..\AppFactory.Framework.DependencyInjection\AppFactory.Framework.DependencyInjection.csproj" />
 	  <ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />
 	  <ProjectReference Include="..\AppFactory.Framework.Application\AppFactory.Framework.Application.csproj" />
 	  <ProjectReference Include="..\AppFactory.Framework.Logging.Abstractions\AppFactory.Framework.Logging.Abstractions.csproj" />
 	  <ProjectReference Include="..\AppFactory.Framework.Shared\AppFactory.Framework.Shared.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Core\" />
 	</ItemGroup>
 </Project>

@@ -1,12 +1,9 @@
-﻿using AppFactory.Framework.Api.Parsing;
-using AppFactory.Framework.Api.Parsing.Configurations;
-using AppFactory.Framework.Api.Parsing.Mappers;
+﻿using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Domain;
 using AppFactory.Framework.Application.Commands;
 using AppFactory.Framework.Domain.Services;
 using AppFactory.Framework.Shared.Config;
-using AppFactory.Framework.Shared.Serialization;
 using AppFactory.Framework.Shared.ServiceClient;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,15 +13,10 @@ public class DependencyModule : IDependencyRegistrationModule
 {
     public void RegisterServices(IServiceCollection services)
     {
-        services.AddSingleton<IJsonSerializer, DefaultJsonSerializer>();
+        services.AddRequestParsing();
         services.AddSingleton<IConfigSettings, ConfigSettings>();
-        services.AddSingleton<IParseModelMapRegistry, ParseModelMapRegistry>();
-        services.AddSingleton<IRequestParser, RequestParser>();
         services.AddSingleton<IServiceProvider>(x => x);
-        services.AddTransient<IPropertyMapper, PathPropertyMapper>();
-        services.AddTransient<IPropertyMapper, QueryPropertyMapper>();
-        services.AddTransient<IPropertyMapper, BodyPropertyMapper>();
-        services.AddTransient<IPropertyMapperRegistry, PropertyMapperRegistry>();
+       
         services.AddSingleton<IEntityIdProvider, EntityIdProvider>();
         services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
         services.AddScoped<IWebServiceClient, WebServiceClient>();
@@ -32,25 +24,3 @@ public class DependencyModule : IDependencyRegistrationModule
     }
 }
 
-public static class DependencyModuleExtensions
-{
-    public static IServiceCollection AddRequestParsing(this IServiceCollection services)
-    {
-
-        services.AddSingleton<IJsonSerializer, DefaultJsonSerializer>();
-
-        // Add parsing services
-        services.AddSingleton<IPropertyMapperRegistry, PropertyMapperRegistry>();
-        services.AddTransient<IPropertyMapper, PathPropertyMapper>();
-        services.AddTransient<IPropertyMapper, QueryPropertyMapper>();
-        services.AddTransient<IPropertyMapper, BodyPropertyMapper>();
-        services.AddSingleton<IParseModelMapRegistry>(sp =>
-        {
-            var maps = sp.GetServices<IParseModelMap>();
-            return new ParseModelMapRegistry(maps);
-        });
-        services.AddSingleton<IRequestParser, RequestParser>();
-
-        return services;
-    }
-}

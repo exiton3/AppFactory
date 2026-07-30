@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<Description>AppFactory Framework Shared</Description>
+		<Description>AppFactory Framework Messaging</Description>
 		<PackageTags>AppFactory;Framework;Serverless;SQS</PackageTags>
 		<Title>AppFactory Framework Messaging</Title>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

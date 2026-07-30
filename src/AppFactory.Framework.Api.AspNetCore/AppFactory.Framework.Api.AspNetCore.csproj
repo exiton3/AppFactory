@@ -27,7 +27,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\AppFactory.Framework.Api\AppFactory.Framework.Api.csproj" />
+		<ProjectReference Include="..\AppFactory.Framework.Api.Abstractions\AppFactory.Framework.Api.Abstractions.csproj" />
 		<ProjectReference Include="..\AppFactory.Framework.Application\AppFactory.Framework.Application.csproj" />
 		<ProjectReference Include="..\AppFactory.Framework.DependencyInjection\AppFactory.Framework.DependencyInjection.csproj" />
 		<ProjectReference Include="..\AppFactory.Framework.Domain\AppFactory.Framework.Domain.csproj" />

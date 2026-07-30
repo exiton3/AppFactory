@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<IsPackable>false</IsPackable>
 		<TargetFramework>net10.0</TargetFramework>
@@ -20,7 +20,7 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AppFactory.Framework.Api\AppFactory.Framework.Api.csproj" />
+    <ProjectReference Include="..\..\src\AppFactory.Framework.Api.Abstractions\AppFactory.Framework.Api.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\AppFactory.Framework.TestExtensions\AppFactory.Framework.TestExtensions.csproj" />
   </ItemGroup>
 

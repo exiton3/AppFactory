@@ -1,3 +1,4 @@
+using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.Api.Parsing;
 using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Shared.Config;
@@ -14,10 +15,10 @@ public class DependencyModule : IDependencyRegistrationModule
 {
     public void RegisterServices(IServiceCollection services)
     {
+        services.AddRequestParsing();
         services.AddSingleton<IJsonSerializer, DefaultJsonSerializer>();
         services.AddSingleton<IConfigSettings, ConfigSettings>();
         services.AddScoped<IWebServiceClient, WebServiceClient>();
         services.AddSingleton<IServiceProvider>(x => x);
-        services.AddSingleton<IRequestParser, RequestParser>();
     }
 }

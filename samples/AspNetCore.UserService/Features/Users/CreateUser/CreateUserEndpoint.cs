@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using AppFactory.Framework.Api.AspNetCore.Extensions;
 
 namespace AspNetCore.UserService.Features.Users.CreateUser;

@@ -113,7 +113,7 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
     {
         var settings = new JsonSerializerSettings
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            ContractResolver = new PrivateSetterCamelCaseContractResolver(),
             NullValueHandling = NullValueHandling.Ignore,
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
             Converters =
@@ -132,8 +132,28 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         return settings;
     }
 
-    // Custom contract resolver to ignore specific properties
-    private class IgnorePropertiesResolver : CamelCasePropertyNamesContractResolver
+    // Enables deserialization of properties with private setters — the standard DDD pattern
+    // where aggregates expose state via public getters but restrict mutation to domain methods.
+    private class PrivateSetterCamelCaseContractResolver : CamelCasePropertyNamesContractResolver
+    {
+        protected override JsonProperty CreateProperty(System.Reflection.MemberInfo member, MemberSerialization memberSerialization)
+        {
+            var property = base.CreateProperty(member, memberSerialization);
+
+            if (!property.Writable && member is System.Reflection.PropertyInfo prop)
+            {
+                var setter = prop.GetSetMethod(nonPublic: true);
+                if (setter != null)
+                    property.Writable = true;
+            }
+
+            return property;
+        }
+    }
+
+    // Extends PrivateSetterCamelCaseContractResolver so ignored properties also benefit
+    // from private-setter deserialization support.
+    private class IgnorePropertiesResolver : PrivateSetterCamelCaseContractResolver
     {
         private readonly IEnumerable<string> _propertiesToIgnore;
 
