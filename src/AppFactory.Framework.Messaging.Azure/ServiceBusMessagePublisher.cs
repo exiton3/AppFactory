@@ -245,6 +245,6 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await _sender.DisposeAsync();
-        await _client.DisposeAsync();
+        // _client is injected (singleton owned by DI) — do not dispose it here.
     }
 }

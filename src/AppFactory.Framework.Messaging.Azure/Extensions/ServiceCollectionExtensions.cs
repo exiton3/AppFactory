@@ -39,8 +39,9 @@ public static class ServiceCollectionExtensions
             return new ServiceBusClient(options.ConnectionString);
         });
 
-        // Register message publisher
-        services.TryAddScoped<IMessagePublisher, ServiceBusMessagePublisher>();
+        // Singleton: ServiceBusMessagePublisher holds a ServiceBusSender (AMQP link) that should
+        // be reused across requests. All dependencies are singleton-safe.
+        services.TryAddSingleton<IMessagePublisher, ServiceBusMessagePublisher>();
 
         return services;
     }
@@ -70,8 +71,9 @@ public static class ServiceCollectionExtensions
             return new ServiceBusClient(options.ConnectionString);
         });
 
-        // Register message publisher
-        services.TryAddScoped<IMessagePublisher, ServiceBusMessagePublisher>();
+        // Singleton: ServiceBusMessagePublisher holds a ServiceBusSender (AMQP link) that should
+        // be reused across requests. All dependencies are singleton-safe.
+        services.TryAddSingleton<IMessagePublisher, ServiceBusMessagePublisher>();
 
         return services;
     }
@@ -109,8 +111,8 @@ public static class ServiceCollectionExtensions
             return queueClient;
         });
 
-        // Register message publisher
-        services.TryAddScoped<IMessagePublisher, QueueStorageMessagePublisher>();
+        // Singleton: QueueStorageMessagePublisher is stateless and all dependencies are singleton-safe.
+        services.TryAddSingleton<IMessagePublisher, QueueStorageMessagePublisher>();
 
         return services;
     }
@@ -147,8 +149,8 @@ public static class ServiceCollectionExtensions
             return queueClient;
         });
 
-        // Register message publisher
-        services.TryAddScoped<IMessagePublisher, QueueStorageMessagePublisher>();
+        // Singleton: QueueStorageMessagePublisher is stateless and all dependencies are singleton-safe.
+        services.TryAddSingleton<IMessagePublisher, QueueStorageMessagePublisher>();
 
         return services;
     }
