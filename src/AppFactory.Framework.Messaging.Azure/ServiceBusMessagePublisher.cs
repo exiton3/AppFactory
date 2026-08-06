@@ -216,21 +216,13 @@ public class ServiceBusMessagePublisher : IMessagePublisher, IAsyncDisposable
         // Add message type
         serviceBusMessage.ApplicationProperties["MessageType"] = typeof(TMessage).Name;
 
-        // Add correlation tracking if message implements IMessage
-        if (message is IMessage baseMessage)
+        if (message is ICorrelatedEnvelope envelope)
         {
-            serviceBusMessage.MessageId = baseMessage.MessageId;
+            if (envelope.CorrelationId is not null)
+                serviceBusMessage.CorrelationId = envelope.CorrelationId;
 
-            foreach (var prop in baseMessage.Properties)
-            {
-                serviceBusMessage.ApplicationProperties[prop.Key] = prop.Value;
-            }
-
-            // Service Bus native correlation support
-            if (baseMessage.Properties.TryGetValue("CorrelationId", out var correlationId))
-            {
-                serviceBusMessage.CorrelationId = correlationId;
-            }
+            foreach (var (key, value) in envelope.GetEnvelopeProperties())
+                serviceBusMessage.ApplicationProperties[key] = value;
         }
 
         // Set time to live if configured

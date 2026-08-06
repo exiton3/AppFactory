@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<Version>10.7.0</Version>
 		<Description>AppFactory Framework Messaging - Core Abstractions</Description>
 		<PackageTags>AppFactory;Framework;Messaging;Queue;MessageBus;Multi-Cloud</PackageTags>
 		<Title>AppFactory Framework Messaging Core</Title>

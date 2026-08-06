@@ -332,4 +332,4 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
-/local-packages/AppFactory.Framework.Messaging.Azure.10.7.0.nupkg.zip
+*.nupkg.zip

@@ -1,7 +1,5 @@
-using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Logging;
 using AppFactory.Framework.Messaging.Abstractions;
-using AppFactory.Framework.Shared.Serialization;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using AzureServiceBus = Azure.Messaging.ServiceBus;
@@ -10,169 +8,116 @@ using CoreMessage = AppFactory.Framework.Messaging.Abstractions.Message;
 namespace AppFactory.Framework.Messaging.Azure.FunctionHandlers;
 
 /// <summary>
-/// Base class for Azure Function handlers processing Service Bus Queue and Topic messages.
-/// Supports cloud-agnostic IMessageHandler from Messaging.Core.
-/// 
+/// Base class for Azure Functions isolated worker handlers processing Service Bus messages.
+///
+/// Uses the host DI container via IServiceScopeFactory — no separate ServiceProvider needed.
+/// Register your IMessageHandler&lt;TMessage&gt; in HostBuilder.ConfigureServices and inject
+/// IServiceScopeFactory + ILogger into the subclass constructor.
+///
 /// Usage:
-/// - For Queue: [ServiceBusTrigger("%QueueName%", Connection = "ServiceBusConnection")]
-/// - For Topic: [ServiceBusTrigger("%TopicName%", "%SubscriptionName%", Connection = "ServiceBusConnection")]
+/// - Queue:  [ServiceBusTrigger("%QueueName%", Connection = "ServiceBusConnection")]
+/// - Topic:  [ServiceBusTrigger("%TopicName%", "%SubscriptionName%", Connection = "ServiceBusConnection")]
 /// </summary>
-/// <typeparam name="TMessage">The message type to process</typeparam>
 public abstract class ServiceBusFunctionHandlerBase<TMessage> where TMessage : CoreMessage, new()
 {
-    protected ServiceProvider ServiceProvider;
-    protected IJsonSerializer JsonSerializer;
-    private IMessageHandler<TMessage> _handler;
-    private ILogger _logger;
-    private IStartup _startup;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger _logger;
 
-    protected ServiceBusFunctionHandlerBase(IStartup startup = null)
+    protected ServiceBusFunctionHandlerBase(IServiceScopeFactory scopeFactory, ILogger logger)
     {
-        _startup = startup;
-        InitializeServices();
+        _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    private void InitializeServices()
-    {
-        var services = new ServiceCollection();
-
-        ConfigureServicesInt(services);
-        ServiceProvider = services.BuildServiceProvider();
-        JsonSerializer = ServiceProvider.GetRequiredService<IJsonSerializer>();
-        _logger = ServiceProvider.GetRequiredService<ILogger>();
-        _logger.LogInfo($"New instance of ServiceBus Function Handler {GetHashCode()} created");
-    }
-
-    private void ConfigureServicesInt(IServiceCollection services)
-    {
-        new DependencyModule().RegisterServices(services);
-
-        _startup ??= GetStartup();
-        _startup.ConfigureServices(services);
-    }
-
-    protected abstract IStartup GetStartup();
-
-    /// <summary>
-    /// Handle a single Service Bus Queue message
-    /// </summary>
     public async Task Handle(AzureServiceBus.ServiceBusReceivedMessage message, FunctionContext context)
-    {
-        _logger.AddTraceId(context.InvocationId);
-        _logger.LogInfo($"Service Bus Queue message {message.MessageId} received");
+        => await ExecuteAsync(message, context, "Queue");
 
-        try
-        {
-            await ProcessMessageAsync(message, context);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, $"{e.Message} -- {e.StackTrace}");
-            throw; // Let Azure Functions handle retry logic
-        }
-    }
-
-    /// <summary>
-    /// Handle a single Service Bus Topic message
-    /// </summary>
     public async Task HandleTopicMessage(AzureServiceBus.ServiceBusReceivedMessage message, FunctionContext context)
-    {
-        _logger.AddTraceId(context.InvocationId);
-        _logger.LogInfo($"Service Bus Topic message {message.MessageId} received from subject: {message.Subject}");
+        => await ExecuteAsync(message, context, $"Topic [Subject: {message.Subject}]");
 
-        try
-        {
-            await ProcessMessageAsync(message, context);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, $"{e.Message} -- {e.StackTrace}");
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Handle a batch of Service Bus messages
-    /// </summary>
     public async Task HandleBatch(AzureServiceBus.ServiceBusReceivedMessage[] messages, FunctionContext context)
     {
         _logger.AddTraceId(context.InvocationId);
-        _logger.LogInfo($"Service Bus batch of {messages.Length} messages received");
+        _logger.LogInfo("Service Bus batch of {Count} messages received", messages.Length);
 
+        var failures = new List<Exception>();
         foreach (var message in messages)
         {
             try
             {
-                await ProcessMessageAsync(message, context);
+                await ProcessMessageAsync(message, context.CancellationToken);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Failed to process message {message.MessageId}: {e.Message}");
-                // Continue processing other messages in the batch
+                _logger.LogError(e, "Failed to process message {MessageId} in batch", message.MessageId);
+                failures.Add(e);
             }
         }
+
+        if (failures.Count > 0)
+            throw new AggregateException("One or more messages in the batch failed.", failures);
     }
 
-    private async Task ProcessMessageAsync(AzureServiceBus.ServiceBusReceivedMessage serviceBusMessage, FunctionContext context)
+    private async Task ExecuteAsync(AzureServiceBus.ServiceBusReceivedMessage message, FunctionContext context, string source)
     {
+        _logger.AddTraceId(context.InvocationId);
+        _logger.LogInfo("Service Bus {Source} message {MessageId} received", source, message.MessageId);
         try
         {
-            _logger.LogInfo($"Message {serviceBusMessage.MessageId} from Service Bus received");
-
-            var attributes = GetLogMessageForAttributes(serviceBusMessage);
-            _logger.LogTrace($"Message {serviceBusMessage.MessageId} received with Properties: {attributes}");
-
-            using var scope = ServiceProvider.CreateScope();
-            _handler = scope.ServiceProvider.GetRequiredService<IMessageHandler<TMessage>>();
-
-            _logger.LogTrace($"Service Bus Message Handler #{_handler.GetHashCode()} {_handler.GetType().Name} started");
-            using (_logger.LogPerformance($"Handler #{_handler.GetHashCode()} {_handler.GetType().Name}"))
-            {
-                var message = MapMessage(serviceBusMessage);
-                await _handler.HandleAsync(message, CancellationToken.None);
-            }
+            await ProcessMessageAsync(message, context.CancellationToken);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Unhandled exception");
+            _logger.LogError(e, "Execution failed for message {MessageId}", message.MessageId);
             throw;
         }
     }
 
-    private static string GetLogMessageForAttributes(AzureServiceBus.ServiceBusReceivedMessage serviceBusMessage)
+    private async Task ProcessMessageAsync(AzureServiceBus.ServiceBusReceivedMessage serviceBusMessage, CancellationToken cancellationToken)
     {
-        var properties = serviceBusMessage.ApplicationProperties
+        _logger.LogTrace("Message {MessageId} received with Properties: {Properties}", serviceBusMessage.MessageId, GetAttributeLog(serviceBusMessage));
+
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var handler = scope.ServiceProvider.GetRequiredService<IMessageHandler<TMessage>>();
+
+        _logger.LogTrace("Handler #{Hash} {HandlerName} started", handler.GetHashCode(), handler.GetType().Name);
+        using (_logger.LogPerformance($"Handler #{handler.GetHashCode()} {handler.GetType().Name}"))
+        {
+            var message = MapMessage(serviceBusMessage);
+            await handler.HandleAsync(message, cancellationToken);
+        }
+    }
+
+    private static string GetAttributeLog(AzureServiceBus.ServiceBusReceivedMessage message)
+    {
+        var properties = message.ApplicationProperties
             .Select(x => $"{x.Key}={x.Value}")
             .ToList();
 
-        properties.Add($"DeliveryCount={serviceBusMessage.DeliveryCount}");
-        properties.Add($"EnqueuedTime={serviceBusMessage.EnqueuedTime}");
-        properties.Add($"SequenceNumber={serviceBusMessage.SequenceNumber}");
+        properties.Add($"DeliveryCount={message.DeliveryCount}");
+        properties.Add($"EnqueuedTime={message.EnqueuedTime}");
+        properties.Add($"SequenceNumber={message.SequenceNumber}");
 
-        if (!string.IsNullOrEmpty(serviceBusMessage.CorrelationId))
-            properties.Add($"CorrelationId={serviceBusMessage.CorrelationId}");
+        if (!string.IsNullOrEmpty(message.CorrelationId))
+            properties.Add($"CorrelationId={message.CorrelationId}");
 
-        if (!string.IsNullOrEmpty(serviceBusMessage.SessionId))
-            properties.Add($"SessionId={serviceBusMessage.SessionId}");
+        if (!string.IsNullOrEmpty(message.SessionId))
+            properties.Add($"SessionId={message.SessionId}");
 
         return string.Join(", ", properties);
     }
 
-    private TMessage MapMessage(AzureServiceBus.ServiceBusReceivedMessage serviceBusMessage)
+    private static TMessage MapMessage(AzureServiceBus.ServiceBusReceivedMessage serviceBusMessage)
     {
         var attributes = new Dictionary<string, string>();
 
-        // Map application properties
         foreach (var prop in serviceBusMessage.ApplicationProperties)
-        {
             attributes[prop.Key] = prop.Value?.ToString() ?? string.Empty;
-        }
 
-        // Map system properties
-        attributes["DeliveryCount"] = serviceBusMessage.DeliveryCount.ToString();
-        attributes["EnqueuedTimeUtc"] = serviceBusMessage.EnqueuedTime.UtcDateTime.ToString("O");
-        attributes["SequenceNumber"] = serviceBusMessage.SequenceNumber.ToString();
-        attributes["MessageId"] = serviceBusMessage.MessageId;
+        attributes["DeliveryCount"]    = serviceBusMessage.DeliveryCount.ToString();
+        attributes["EnqueuedTimeUtc"]  = serviceBusMessage.EnqueuedTime.UtcDateTime.ToString("O");
+        attributes["SequenceNumber"]   = serviceBusMessage.SequenceNumber.ToString();
+        attributes["MessageId"]        = serviceBusMessage.MessageId;
 
         if (!string.IsNullOrEmpty(serviceBusMessage.CorrelationId))
             attributes["CorrelationId"] = serviceBusMessage.CorrelationId;
@@ -185,15 +130,13 @@ public abstract class ServiceBusFunctionHandlerBase<TMessage> where TMessage : C
 
         attributes["Source"] = serviceBusMessage.Subject ?? "ServiceBus";
 
-        var message = new TMessage
+        return new TMessage
         {
-            Body = serviceBusMessage.Body.ToString(),
-            MessageId = serviceBusMessage.MessageId,
-            Properties = attributes,
-            EnqueuedTimeUtc = serviceBusMessage.EnqueuedTime.UtcDateTime,
-            DeliveryCount = (int)serviceBusMessage.DeliveryCount
+            Body             = serviceBusMessage.Body.ToString(),
+            MessageId        = serviceBusMessage.MessageId,
+            Properties       = attributes,
+            EnqueuedTimeUtc  = serviceBusMessage.EnqueuedTime.UtcDateTime,
+            DeliveryCount    = (int)serviceBusMessage.DeliveryCount
         };
-
-        return message;
     }
 }

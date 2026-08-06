@@ -187,30 +187,16 @@ public class SqsMessagePublisher : IMessagePublisher
     {
         var attributes = new Dictionary<string, MessageAttributeValue>
         {
-            ["MessageType"] = new MessageAttributeValue
-            {
-                DataType = "String",
-                StringValue = typeof(TMessage).Name
-            }
+            ["MessageType"] = new MessageAttributeValue { DataType = "String", StringValue = typeof(TMessage).Name }
         };
 
-        // Add correlation tracking if message implements IMessage
-        if (message is IMessage baseMessage)
+        if (message is ICorrelatedEnvelope envelope)
         {
-            attributes["MessageId"] = new MessageAttributeValue
-            {
-                DataType = "String",
-                StringValue = baseMessage.MessageId
-            };
+            if (envelope.CorrelationId is not null)
+                attributes["CorrelationId"] = new MessageAttributeValue { DataType = "String", StringValue = envelope.CorrelationId };
 
-            foreach (var prop in baseMessage.Properties)
-            {
-                attributes[prop.Key] = new MessageAttributeValue
-                {
-                    DataType = "String",
-                    StringValue = prop.Value
-                };
-            }
+            foreach (var (key, value) in envelope.GetEnvelopeProperties())
+                attributes[key] = new MessageAttributeValue { DataType = "String", StringValue = value };
         }
 
         return attributes;

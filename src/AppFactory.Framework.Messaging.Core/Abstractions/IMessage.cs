@@ -35,7 +35,7 @@ public interface IMessage
 /// <summary>
 /// Base message implementation
 /// </summary>
-public class Message : IMessage
+public class Message : IMessage, ICorrelatedEnvelope
 {
     public Message()
     {
@@ -74,4 +74,12 @@ public class Message : IMessage
     {
         Properties["UserId"] = userId;
     }
+
+    // ICorrelatedEnvelope — reads CorrelationId from the Properties bag (set via AddCorrelationId),
+    // and exposes the whole Properties dict as envelope metadata.
+    string? ICorrelatedEnvelope.CorrelationId
+        => Properties.TryGetValue("CorrelationId", out var c) ? c : null;
+
+    IReadOnlyDictionary<string, string> ICorrelatedEnvelope.GetEnvelopeProperties()
+        => new Dictionary<string, string>(Properties);
 }
