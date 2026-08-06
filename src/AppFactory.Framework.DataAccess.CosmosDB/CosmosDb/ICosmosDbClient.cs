@@ -9,6 +9,7 @@ public interface ICosmosDbClient : IDisposable
     Task<bool> UpsertItemAsync(CosmosDbDocument document, string containerName);
     Task<bool> CreateItemAsync(CosmosDbDocument document, string containerName);
     Task<bool> UpdateItemAsync(CosmosDbDocument document, string containerName);
+    Task<bool> UpdateItemAsync(CosmosDbDocument document, string containerName, PartitionKey partitionKey);
     Task<bool> DeleteItemAsync(DocumentKey documentKey, string containerName, CancellationToken cancellationToken = default);
     Task BatchUpsertItemsAsync(List<CosmosDbDocument> documents, string containerName);
     Task<List<CosmosDbDocument>> QueryAsync(QueryDefinition queryDefinition, string containerName, string partitionKey = null);

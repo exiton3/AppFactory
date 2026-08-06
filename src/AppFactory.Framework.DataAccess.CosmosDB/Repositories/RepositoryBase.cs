@@ -48,8 +48,9 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
     public async Task<bool> Update(TModel model)
     {
         var document = _mapper.MapToDocument(model);
+        var partitionKey = _config.GetDocumentKey(model).ToPartitionKey();
 
-        return await _cosmosDbClient.UpdateItemAsync(document, _containerName);
+        return await _cosmosDbClient.UpdateItemAsync(document, _containerName, partitionKey);
     }
 
     public async Task<bool> Upsert(TModel model)

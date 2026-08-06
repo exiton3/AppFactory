@@ -59,7 +59,7 @@ public class CosmosDbClient : ICosmosDbClient
 
     public async Task<bool> UpdateItemAsync(CosmosDbDocument document, string containerName)
     {
-        if (!document.TryGetValue(CosmosDbConstants.Id, out var id) || 
+        if (!document.TryGetValue(CosmosDbConstants.Id, out var id) ||
             !document.TryGetValue(CosmosDbConstants.PartitionKey, out var partitionKey))
         {
             throw new ArgumentException("Document must contain id and partitionKey properties");
@@ -70,7 +70,17 @@ public class CosmosDbClient : ICosmosDbClient
             document,
             id.ToString(),
             new PartitionKey(partitionKey.ToString()));
-        
+
+        return response.StatusCode == HttpStatusCode.OK;
+    }
+
+    public async Task<bool> UpdateItemAsync(CosmosDbDocument document, string containerName, PartitionKey partitionKey)
+    {
+        if (!document.TryGetValue(CosmosDbConstants.Id, out var id))
+            throw new ArgumentException("Document must contain id property");
+
+        var container = _cosmosClient.GetContainer(_databaseName, containerName);
+        var response = await container.ReplaceItemAsync(document, id.ToString(), partitionKey);
         return response.StatusCode == HttpStatusCode.OK;
     }
 
