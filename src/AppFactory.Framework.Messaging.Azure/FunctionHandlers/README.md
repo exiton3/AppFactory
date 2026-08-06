@@ -1,37 +1,95 @@
-# Azure Functions Message Handlers
+# FunctionHandlers
 
-Base classes for Azure Functions that handle messages from Azure Service Bus and Azure Storage Queues, following the same pattern as `LambdaMessageHandlerBase2` for AWS Lambda.
+Azure Functions handler base classes for Service Bus and Queue Storage.
 
-## 📋 Overview
+---
 
-These handler base classes provide:
-- **Dependency Injection** with `IStartup` pattern
-- **Message Processor Pattern** using `ILambdaMessageProcessor<TMessage>`
-- **Automatic Message Mapping** to custom `Message` types
-- **Error Handling** with proper exception propagation
-- **Performance Logging** for message processing
-- **Batch Processing Support**
+## ServiceBusEventRouterBase — multi-event topic routing (recommended)
 
-## 🚀 Usage
+Use when one subscription receives multiple event types distinguished by `ApplicationProperties["EventType"]`. This is the preferred pattern for topic consumers in the isolated worker model.
 
-### Service Bus Queue Handler
+**How it works:**
+1. Reads `ApplicationProperties["EventType"]` from the incoming message.
+2. Looks up the registered `EventHandlerRegistration` for that type.
+3. Deserializes the message body and hydrates matching properties from `ApplicationProperties`.
+4. Calls the handler in a DI scope.
+5. Completes the message on success; Abandons on handler exception; DeadLetters on missing or unknown EventType.
+
+**Register handlers in Program.cs:**
 
 ```csharp
-using AppFactory.Framework.Messaging.Azure.FunctionHandlers;
-using Microsoft.Azure.Functions.Worker;
-using Azure.Messaging.ServiceBus;
+services.AddServiceBusEventHandler<OrderCreatedEvent,  OrderCreatedEventHandler> ("OrderCreated");
+services.AddServiceBusEventHandler<OrderShippedEvent,  OrderShippedEventHandler> ("OrderShipped");
+```
 
-public class OrderMessageHandler : ServiceBusFunctionHandlerBase<OrderMessage>
+**Expose the trigger method:**
+
+```csharp
+public class OrderEventRouterFunction : ServiceBusEventRouterBase
 {
-    public OrderMessageHandler() : base(new Startup())
-    {
-    }
+    public OrderEventRouterFunction(
+        IServiceScopeFactory scopeFactory,
+        ILogger logger,
+        IEnumerable<EventHandlerRegistration> registrations)
+        : base(scopeFactory, logger, registrations) { }
 
-    protected override IStartup GetStartup() => new Startup();
-
-    [Function("ProcessOrderMessage")]
+    [Function(nameof(OrderEventRouterFunction))]
     public async Task Run(
-        [ServiceBusTrigger("%OrderQueueName%", Connection = "ServiceBusConnection")] 
+        [ServiceBusTrigger("%servicebus:topicname%", "%servicebus:subscriptionname%", Connection = "servicebus:connectionstring")]
+        ServiceBusReceivedMessage message,
+        ServiceBusMessageActions messageActions,
+        CancellationToken cancellationToken)
+    {
+        await RouteAsync(message, messageActions, cancellationToken);
+    }
+}
+```
+
+**Implement handlers:**
+
+```csharp
+public class OrderCreatedEventHandler : IServiceBusEventHandler<OrderCreatedEvent>
+{
+    private readonly ICommandDispatcher _dispatcher;
+
+    public OrderCreatedEventHandler(ICommandDispatcher dispatcher)
+        => _dispatcher = dispatcher;
+
+    public async Task HandleAsync(OrderCreatedEvent @event, CancellationToken cancellationToken)
+    {
+        // TenantId, OrderId, etc. are hydrated from ApplicationProperties by name
+        var result = await _dispatcher.Dispatch(
+            new HandleOrderCreatedCommand { OrderId = @event.OrderId, TenantId = @event.TenantId },
+            cancellationToken);
+
+        if (!result.IsSuccess)
+            throw new InvalidOperationException($"Handler failed: {string.Join(", ", result.Errors.Select(e => e.Message))}");
+        // Throw to trigger Abandon (retry). Router handles settlement — do not call Complete/Abandon here.
+    }
+}
+```
+
+**Hydration rules:**
+- `message.CorrelationId` → `@event.CorrelationId`
+- Each `ApplicationProperties` entry → writable `string` property on the event with matching name (case-insensitive)
+- `ApplicationProperties["EventType"]` is skipped (routing only)
+- Property lookup is cached per event type (O(1) after first message)
+
+---
+
+## ServiceBusFunctionHandlerBase — single-type queue handler
+
+Use for queues that carry a single message type. Simpler than the router — no event type dispatch needed.
+
+```csharp
+public class ProcessReportFunction : ServiceBusFunctionHandlerBase<ProcessReportMessage>
+{
+    public ProcessReportFunction(IServiceScopeFactory scopeFactory, ILogger logger)
+        : base(scopeFactory, logger) { }
+
+    [Function(nameof(ProcessReportFunction))]
+    public async Task Run(
+        [ServiceBusTrigger("%servicebus:queuename%", Connection = "servicebus:connectionstring")]
         ServiceBusReceivedMessage message,
         FunctionContext context)
     {
@@ -40,68 +98,37 @@ public class OrderMessageHandler : ServiceBusFunctionHandlerBase<OrderMessage>
 }
 ```
 
-### Service Bus Topic Handler
+Register `IMessageHandler<ProcessReportMessage>` in DI. The base class resolves it from the host scope per message.
+
+Batch variant:
 
 ```csharp
-public class OrderEventHandler : ServiceBusFunctionHandlerBase<OrderEvent>
+[Function("ProcessReportBatch")]
+public async Task RunBatch(
+    [ServiceBusTrigger("%servicebus:queuename%", Connection = "servicebus:connectionstring")]
+    ServiceBusReceivedMessage[] messages,
+    FunctionContext context)
 {
-    public OrderEventHandler() : base(new Startup())
-    {
-    }
-
-    protected override IStartup GetStartup() => new Startup();
-
-    [Function("ProcessOrderEvent")]
-    public async Task Run(
-        [ServiceBusTrigger("%OrderTopicName%", "%SubscriptionName%", Connection = "ServiceBusConnection")] 
-        ServiceBusReceivedMessage message,
-        FunctionContext context)
-    {
-        await HandleTopicMessage(message, context);
-    }
+    await HandleBatch(messages, context);
 }
 ```
 
-### Service Bus Batch Handler
+---
+
+## QueueStorageFunctionHandlerBase — Queue Storage handler
+
+Handles messages from Azure Queue Storage. Uses `IStartup` for dependency registration (legacy pattern — does not use the host DI container directly).
 
 ```csharp
-public class OrderBatchHandler : ServiceBusFunctionHandlerBase<OrderMessage>
+public class NotificationFunction : QueueStorageFunctionHandlerBase<NotificationMessage>
 {
-    public OrderBatchHandler() : base(new Startup())
-    {
-    }
+    public NotificationFunction() : base(new Startup()) { }
 
     protected override IStartup GetStartup() => new Startup();
 
-    [Function("ProcessOrderBatch")]
+    [Function(nameof(NotificationFunction))]
     public async Task Run(
-        [ServiceBusTrigger("%OrderQueueName%", Connection = "ServiceBusConnection")] 
-        ServiceBusReceivedMessage[] messages,
-        FunctionContext context)
-    {
-        await HandleBatch(messages, context);
-    }
-}
-```
-
-### Queue Storage Handler
-
-```csharp
-using AppFactory.Framework.Messaging.Azure.FunctionHandlers;
-using Microsoft.Azure.Functions.Worker;
-using Azure.Storage.Queues.Models;
-
-public class NotificationHandler : QueueStorageFunctionHandlerBase<NotificationMessage>
-{
-    public NotificationHandler() : base(new Startup())
-    {
-    }
-
-    protected override IStartup GetStartup() => new Startup();
-
-    [Function("ProcessNotification")]
-    public async Task Run(
-        [QueueTrigger("%NotificationQueueName%", Connection = "AzureWebJobsStorage")] 
+        [QueueTrigger("%queuestorage:queuename%", Connection = "queuestorage:connectionstring")]
         QueueMessage message,
         FunctionContext context)
     {
@@ -110,178 +137,35 @@ public class NotificationHandler : QueueStorageFunctionHandlerBase<NotificationM
 }
 ```
 
-### Queue Storage String Handler
+String body variant (skips Queue SDK deserialization):
 
 ```csharp
-public class SimpleMessageHandler : QueueStorageFunctionHandlerBase<SimpleMessage>
+[Function("ProcessSimpleMessage")]
+public async Task RunString(
+    [QueueTrigger("%queuestorage:queuename%", Connection = "queuestorage:connectionstring")]
+    string messageBody,
+    FunctionContext context)
 {
-    public SimpleMessageHandler() : base(new Startup())
-    {
-    }
-
-    protected override IStartup GetStartup() => new Startup();
-
-    [Function("ProcessSimpleMessage")]
-    public async Task Run(
-        [QueueTrigger("%QueueName%", Connection = "AzureWebJobsStorage")] 
-        string messageBody,
-        FunctionContext context)
-    {
-        await HandleString(messageBody, context);
-    }
+    await HandleString(messageBody, context);
 }
 ```
 
-## 📦 Message Type
-
-Your message class must inherit from `Message`:
+Message class must inherit from `Message`:
 
 ```csharp
-public class OrderMessage : Message
+public class NotificationMessage : Message
 {
-    public string OrderId { get; set; }
-    public decimal Amount { get; set; }
-    public string CustomerId { get; set; }
+    public string RecipientId { get; set; } = default!;
+    public string Template    { get; set; } = default!;
 }
 ```
 
-## 🔧 Message Processor
+---
 
-Implement `ILambdaMessageProcessor<TMessage>` to process your messages:
+## Choosing the right base class
 
-```csharp
-public class OrderMessageProcessor : ILambdaMessageProcessor<OrderMessage>
-{
-    private readonly IOrderService _orderService;
-    private readonly ILogger _logger;
-
-    public OrderMessageProcessor(IOrderService orderService, ILogger logger)
-    {
-        _orderService = orderService;
-        _logger = logger;
-    }
-
-    public async Task Process(OrderMessage message)
-    {
-        _logger.LogInfo($"Processing order {message.OrderId}");
-        
-        // Deserialize the body
-        var orderData = JsonSerializer.Deserialize<OrderData>(message.Body);
-        
-        // Process the order
-        await _orderService.ProcessOrderAsync(orderData);
-        
-        _logger.LogInfo($"Order {message.OrderId} processed successfully");
-    }
-}
-```
-
-## ⚙️ Startup Configuration
-
-Configure your dependencies using `IStartup`:
-
-```csharp
-public class Startup : IStartup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        // Register your message processor
-        services.AddScoped<ILambdaMessageProcessor<OrderMessage>, OrderMessageProcessor>();
-        
-        // Register your services
-        services.AddScoped<IOrderService, OrderService>();
-        services.AddScoped<IOrderRepository, OrderRepository>();
-        
-        // Add logging
-        services.AddSingleton<ILoggerFactory, MicrosoftExtensionsLoggerFactory>();
-        services.AddSingleton<ILogger>(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger());
-    }
-}
-```
-
-## 🔄 Error Handling
-
-### Service Bus
-- **Single Message**: Exceptions are thrown and the message is moved to the Dead Letter Queue (if configured)
-- **Batch**: Individual message failures are logged; aggregate exception is thrown if any message fails
-
-### Queue Storage
-- **Single Message**: Exceptions are thrown and the message is retried based on `MaxDequeueCount` setting
-- **After Max Retries**: Message is moved to poison queue (queuename-poison)
-- **Batch**: Individual message failures are logged; aggregate exception is thrown if any message fails
-
-## 📝 Configuration
-
-### local.settings.json
-
-```json
-{
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "ServiceBusConnection": "Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=your-key",
-    "OrderQueueName": "orders",
-    "OrderTopicName": "order-events",
-    "SubscriptionName": "order-processor",
-    "NotificationQueueName": "notifications"
-  }
-}
-```
-
-### host.json
-
-```json
-{
-  "version": "2.0",
-  "logging": {
-    "applicationInsights": {
-      "samplingSettings": {
-        "isEnabled": true
-      }
-    }
-  },
-  "extensions": {
-    "serviceBus": {
-      "prefetchCount": 100,
-      "messageHandlerOptions": {
-        "autoComplete": true,
-        "maxConcurrentCalls": 32,
-        "maxAutoRenewDuration": "00:05:00"
-      },
-      "sessionHandlerOptions": {
-        "autoComplete": false,
-        "messageWaitTimeout": "00:00:30",
-        "maxAutoRenewDuration": "00:55:00",
-        "maxConcurrentSessions": 16
-      }
-    },
-    "queues": {
-      "maxPollingInterval": "00:00:02",
-      "visibilityTimeout": "00:00:30",
-      "batchSize": 16,
-      "maxDequeueCount": 5,
-      "newBatchThreshold": 8
-    }
-  }
-}
-```
-
-## 🎯 Key Features
-
-### Correlation Tracking
-- Service Bus: Uses `CorrelationId` from message or function `InvocationId`
-- Queue Storage: Uses function `InvocationId`
-
-### Message Attributes
-- **Service Bus**: Captures `ApplicationProperties`, `CorrelationId`, `SessionId`, `DeliveryCount`, `EnqueuedTimeUtc`
-- **Queue Storage**: Captures `DequeueCount`, `InsertedOn`, `ExpiresOn`, `NextVisibleOn`, `PopReceipt`
-
-### Performance Logging
-All message processing is wrapped with performance logging to track execution time.
-
-## 🔗 Related
-
-- [AWS Lambda Handler](../../AppFactory.Framework.Messaging/LambdaHandlers/README.md)
-- [Service Bus Publisher](../ServiceBusMessagePublisher.cs)
-- [Queue Storage Publisher](../QueueStorageMessagePublisher.cs)
+| Scenario | Use |
+|---|---|
+| Topic with multiple event types | `ServiceBusEventRouterBase` + `IServiceBusEventHandler<TEvent>` |
+| Queue with a single message type | `ServiceBusFunctionHandlerBase<TMessage>` |
+| Azure Queue Storage | `QueueStorageFunctionHandlerBase<TMessage>` |

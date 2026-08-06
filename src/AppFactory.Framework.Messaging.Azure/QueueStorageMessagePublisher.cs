@@ -148,8 +148,13 @@ public class QueueStorageMessagePublisher : IMessagePublisher
             })
         };
 
-        // Add correlation tracking if message implements IMessage
-        if (message is IMessage baseMessage)
+        if (message is ICorrelatedEnvelope correlatedEnvelope)
+        {
+            if (correlatedEnvelope.CorrelationId is not null)
+                envelope.MessageId = correlatedEnvelope.CorrelationId;
+            envelope.Properties = correlatedEnvelope.GetEnvelopeProperties().ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        }
+        else if (message is IMessage baseMessage)
         {
             envelope.MessageId = baseMessage.MessageId;
             envelope.Properties = baseMessage.Properties.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);

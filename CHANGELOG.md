@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.7.0] - 2026-08-05
+
+### 🔗 Correlated Messaging — Topic Event Routing and Envelope Abstraction
+
+This release introduces a structured event/message hierarchy for correlated, multi-cloud messaging. Publishers now have a single code path via `ICorrelatedEnvelope`. Domain-specific envelope fields (e.g. `TenantId`, `UserId`) live in derived classes — not in the framework. Azure Service Bus topics get a new routing base class that eliminates per-event-type function boilerplate.
+
+### Added
+
+#### Messaging Abstractions (`AppFactory.Framework.Messaging.Core`)
+- **`ICorrelatedEnvelope`** — single interface implemented by `CorrelatedEvent`, `CorrelatedMessage`, and `Message`. Publishers check one type and have no dispatch chain.
+- **`CorrelatedEvent`** — abstract base for topic events (broadcast, past tense, multiple subscribers). Carries `CorrelationId` and `EventType`. Override `GetApplicationProperties()` in domain base classes to declare envelope fields; the framework writes them to transport metadata on publish and hydrates matching properties by name on consume.
+- **`CorrelatedMessage`** — abstract base for queue messages (directed intent, single consumer). Mirrors `CorrelatedEvent` but carries no `EventType` — the queue itself identifies the intent.
+
+#### Service Bus Event Routing (`AppFactory.Framework.Messaging.Azure`)
+- **`ServiceBusEventRouterBase`** — abstract base for single-subscription / multi-event-type Azure Functions. Reads `ApplicationProperties["EventType"]`, dispatches to the registered handler in a DI scope, and handles Complete / Abandon / DeadLetter settlement. Missing or unknown `EventType` → dead-lettered with a descriptive reason.
+- **`AddServiceBusEventHandler<TEvent, THandler>(string eventType)`** — DI extension that registers an event type string to a typed handler. Hydration uses a pre-compiled delegate (no reflection at message-processing time) and an `IReadOnlyDictionary<string, PropertyInfo>` cache per event type for O(1) property lookup.
+- **`IServiceBusEventHandler<TEvent>`** — typed handler contract for topic events. Settlement is managed by the router; handlers should throw on failure to trigger Abandon.
+- **`EventHandlerRegistration`** — sealed record binding an event type string to a pre-compiled `Func<ServiceBusReceivedMessage, IServiceProvider, CancellationToken, Task>` delegate.
+
+#### Data Access (`AppFactory.Framework.DataAccess.CosmosDB`)
+- **`AddCosmosRepository<TModel, TConfig>()`** — combines `RegisterCosmosDbPersistence()` + `RegisterModelConfig<TConfig, TModel>()` into a single idempotent call. Persistence infrastructure registers exactly once regardless of how many aggregate types are registered.
+
+### Changed
+
+#### `AppFactory.Framework.Messaging.Core`
+- **`ICorrelatedEvent`** — removed `TenantId` and `UserId`. These are isolved-specific domain concerns; derived classes in the consuming project declare them via `GetApplicationProperties()`.
+- **`Message`** — now explicitly implements `ICorrelatedEnvelope`. `CorrelationId` reads from `Properties["CorrelationId"]`; `GetEnvelopeProperties()` returns a copy of `Properties`. Backward-compatible: existing `IMessage` usage is unchanged.
+
+#### `AppFactory.Framework.Messaging.Azure`
+- **`ServiceBusMessagePublisher`** — replaced `if (message is CorrelatedEvent) else if (message is IMessage)` with a single `if (message is ICorrelatedEnvelope)` check. Both `CorrelatedEvent` and `CorrelatedMessage` are handled without branching.
+- **`QueueStorageMessagePublisher`** — same fix applied for multi-cloud parity. Falls back to `IMessage` for legacy implementations that do not yet implement `ICorrelatedEnvelope`.
+
+### Fixed
+
+#### `AppFactory.Framework.Messaging.Azure`
+- **`ServiceBusEventRouterBase`** — `DeadLetterMessageAsync` now uses the named parameter `deadLetterReason:` to avoid CS1503 (second positional parameter is `Dictionary<string, object>?`, not `string`).
+- **`ServiceBusEventHandlerExtensions.Hydrate`** — deserialization failure now throws `InvalidOperationException` wrapping the original `JsonException` instead of silently swallowing it. The router logs and abandons properly on bad payloads.
+- **`ServiceBusEventHandlerExtensions.Hydrate`** — property lookup replaced `Array.Find` O(n) scan with `IReadOnlyDictionary<string, PropertyInfo>` + `TryGetValue` O(1).
+
+### Example — topic event routing
+
+```csharp
+// Application layer — domain base class keeps framework free of tenant concerns
+public abstract class TenantEvent : CorrelatedEvent
+{
+    public string TenantId { get; set; } = default!;
+    public string UserId   { get; set; } = default!;
+
+    public override Dictionary<string, string> GetApplicationProperties()
+        => new() { ["TenantId"] = TenantId, ["UserId"] = UserId };
+}
+
+public class OrderCreatedEvent : TenantEvent
+{
+    public override string EventType => "OrderCreated";
+    public string OrderId { get; set; } = default!;
+}
+
+// Infrastructure — router function
+public class OrderEventRouterFunction : ServiceBusEventRouterBase
+{
+    public OrderEventRouterFunction(IServiceScopeFactory scopeFactory, ILogger logger,
+        IEnumerable<EventHandlerRegistration> registrations)
+        : base(scopeFactory, logger, registrations) { }
+
+    [Function(nameof(OrderEventRouterFunction))]
+    public async Task Run(
+        [ServiceBusTrigger("%servicebus:topicname%", "%servicebus:subscriptionname%",
+            Connection = "servicebus:connectionstring")]
+        ServiceBusReceivedMessage message,
+        ServiceBusMessageActions messageActions,
+        CancellationToken cancellationToken)
+        => await RouteAsync(message, messageActions, cancellationToken);
+}
+
+// Program.cs
+services.AddServiceBusEventHandler<OrderCreatedEvent, OrderCreatedEventHandler>("OrderCreated");
+services.AddServiceBusEventHandler<OrderShippedEvent, OrderShippedEventHandler>("OrderShipped");
+```
+
+### Example — CosmosDB registration
+
+```csharp
+// Before — two calls per aggregate, order-sensitive, persistence registered multiple times
+services.RegisterCosmosDbPersistence();
+services.RegisterModelConfig<ReportJobModelConfig, ReportJob>();
+
+// After — one call, idempotent
+services.AddCosmosRepository<ReportJob, ReportJobModelConfig>();
+```
+
 ## [10.6.0] - 2026-07-30
 
 ### 🎯 ASP.NET Core Endpoint Configuration Model

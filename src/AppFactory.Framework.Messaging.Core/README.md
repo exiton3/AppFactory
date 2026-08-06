@@ -7,105 +7,201 @@
 
 ---
 
-## 📋 Overview
+## Overview
 
-`AppFactory.Framework.Messaging.Core` provides **platform-agnostic abstractions** for queue-based messaging in distributed systems. Build reactive microservices that work seamlessly across **AWS SQS**, **Azure Service Bus**, **Azure Queue Storage**, and other message queues without vendor lock-in.
+`AppFactory.Framework.Messaging.Core` provides **platform-agnostic abstractions** for queue and topic messaging in distributed systems. Write once, deploy to **AWS SQS**, **Azure Service Bus**, **Azure Queue Storage**, or any other transport without changing business logic.
 
-### Key Features
+### What's New in 10.7.0
 
-✅ **Multi-Cloud Ready** - Write once, deploy anywhere (AWS, Azure, GCP)  
-✅ **Correlation Tracking** - Built-in support for distributed tracing  
-✅ **Type-Safe** - Strongly-typed messages and handlers  
-✅ **Batch Support** - Efficient batch publishing for high throughput  
-✅ **Context-Based Handling** - Complete/Abandon/DeadLetter message operations  
-✅ **Clean Architecture** - Platform-agnostic core with cloud-specific adapters  
+- **`CorrelatedEvent`** — base class for topic events (one publisher, multiple subscribers). Domain-specific envelope fields (`TenantId`, `UserId`, etc.) live in derived classes, not in the framework.
+- **`CorrelatedMessage`** — base class for queue messages (directed at a single consumer). Mirrors `CorrelatedEvent` but carries no `EventType` — the queue itself identifies the intent.
+- **`ICorrelatedEnvelope`** — single interface implemented by both `CorrelatedEvent` and `CorrelatedMessage`, giving publishers one code path with no type-dispatch chain.
+- **`ICorrelatedEvent`** — cleaned to framework-only fields (`CorrelationId`, `EventType`). Domain fields removed.
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ```bash
-dotnet add package AppFactory.Framework.Messaging.Core --version 10.5.0
+dotnet add package AppFactory.Framework.Messaging.Core --version 10.7.0
 ```
 
-**Cloud-Specific Implementations:**
+**Cloud-specific implementations:**
 ```bash
-# For AWS SQS
-dotnet add package AppFactory.Framework.Messaging.Aws --version 10.5.0
-
-# For Azure Service Bus
-dotnet add package AppFactory.Framework.Messaging.Azure --version 10.5.0
+dotnet add package AppFactory.Framework.Messaging.Azure --version 10.7.0
+dotnet add package AppFactory.Framework.Messaging.Aws   --version 10.7.0
 ```
 
 ---
 
-## 📦 Core Abstractions
+## Core Abstractions
 
-### `IMessage`
+### Topic Events — `CorrelatedEvent`
 
-Platform-agnostic message interface with correlation tracking:
+Use for events published to a topic (past tense, broadcast, multiple subscribers). Override `GetApplicationProperties()` to declare domain-specific envelope fields — the framework writes them to transport metadata on publish and hydrates them back by name on consume.
+
+```csharp
+// Framework base — only universal fields
+public abstract class CorrelatedEvent : ICorrelatedEvent, ICorrelatedEnvelope
+{
+    public string CorrelationId { get; set; }
+    public abstract string EventType { get; }
+    public virtual Dictionary<string, string> GetApplicationProperties() => new();
+}
+```
+
+**Domain base class (your project):**
+```csharp
+// Declare tenant-scoped envelope fields once — all tenant events inherit
+public abstract class TenantEvent : CorrelatedEvent
+{
+    public string TenantId { get; set; } = default!;
+    public string UserId   { get; set; } = default!;
+
+    public override Dictionary<string, string> GetApplicationProperties()
+        => new() { ["TenantId"] = TenantId, ["UserId"] = UserId };
+}
+```
+
+**Concrete event:**
+```csharp
+public class OrderCreatedEvent : TenantEvent
+{
+    public override string EventType => "OrderCreated";
+    public string OrderId { get; set; } = default!;
+}
+```
+
+**Publish:**
+```csharp
+await _publisher.PublishAsync(new OrderCreatedEvent
+{
+    CorrelationId = orderId,
+    TenantId      = context.TenantId,
+    UserId        = context.UserId,
+    OrderId       = orderId,
+});
+// Transport receives: CorrelationId, EventType="OrderCreated", TenantId, UserId, OrderId in ApplicationProperties
+```
+
+---
+
+### Queue Messages — `CorrelatedMessage`
+
+Use for messages sent to a queue (directed intent, single consumer). No `EventType` — the queue name identifies the intent.
+
+```csharp
+public abstract class CorrelatedMessage : ICorrelatedEnvelope
+{
+    public string CorrelationId { get; set; }
+    public virtual Dictionary<string, string> GetApplicationProperties() => new();
+}
+```
+
+**Example:**
+```csharp
+public class ProcessReportMessage : CorrelatedMessage
+{
+    public string TenantId { get; }
+    public string UserId   { get; }
+
+    public ProcessReportMessage(string jobId, string tenantId, string userId)
+    {
+        CorrelationId = jobId;
+        TenantId      = tenantId;
+        UserId        = userId;
+    }
+
+    public override Dictionary<string, string> GetApplicationProperties()
+        => new() { ["TenantId"] = TenantId, ["UserId"] = UserId };
+}
+```
+
+---
+
+### `ICorrelatedEnvelope`
+
+Single interface for publishers — eliminates the `if (is CorrelatedEvent) else if (is IMessage)` type-dispatch chain:
+
+```csharp
+public interface ICorrelatedEnvelope
+{
+    string? CorrelationId { get; }
+    IReadOnlyDictionary<string, string> GetEnvelopeProperties();
+}
+```
+
+Both `CorrelatedEvent` and `CorrelatedMessage` implement this. The cloud-specific publishers have one check:
+
+```csharp
+if (message is ICorrelatedEnvelope envelope)
+{
+    if (envelope.CorrelationId is not null)
+        transportMessage.CorrelationId = envelope.CorrelationId;
+    foreach (var (key, value) in envelope.GetEnvelopeProperties())
+        transportMessage.ApplicationProperties[key] = value;
+}
+```
+
+---
+
+### `IMessage` / `Message` — Received Messages
+
+`IMessage` represents a message received from a transport. Use it when you need the raw message envelope (body, metadata, delivery count). `Message` implements `ICorrelatedEnvelope` for backward compatibility.
 
 ```csharp
 public interface IMessage
 {
-    string MessageId { get; set; }
-    Dictionary<string, string> Properties { get; set; }
-    DateTime EnqueuedTimeUtc { get; set; }
-    int DeliveryCount { get; set; }
+    string MessageId { get; }
+    string Body { get; set; }
+    IDictionary<string, string> Properties { get; }
+    DateTime EnqueuedTimeUtc { get; }
+    int DeliveryCount { get; }
 }
 ```
 
-### `IMessagePublisher`
+> Prefer `CorrelatedEvent` / `CorrelatedMessage` for new publish-side code. `IMessage` / `Message` are the inbound abstraction used by `ServiceBusFunctionHandlerBase` and `QueueStorageFunctionHandlerBase`.
 
-Publisher abstraction for queue-based messaging:
+---
+
+### `IMessagePublisher`
 
 ```csharp
 public interface IMessagePublisher
 {
     Task<PublishResult> PublishAsync<TMessage>(
-        TMessage message, 
-        CancellationToken cancellationToken = default) 
-        where TMessage : class;
+        TMessage message,
+        CancellationToken cancellationToken = default) where TMessage : class;
 
     Task<BatchPublishResult> PublishBatchAsync<TMessage>(
-        IEnumerable<TMessage> messages, 
-        CancellationToken cancellationToken = default) 
-        where TMessage : class;
+        IEnumerable<TMessage> messages,
+        CancellationToken cancellationToken = default) where TMessage : class;
 }
 ```
 
-### `IMessageHandler<TMessage>`
+---
 
-Simple message handler for fire-and-forget scenarios:
+### `IMessageHandler<TMessage>` / `IMessageHandler<TMessage, TContext>`
+
+Simple handler for fire-and-forget scenarios:
 
 ```csharp
-public interface IMessageHandler<in TMessage> where TMessage : class
+public interface IMessageHandler<TMessage> where TMessage : class
 {
     Task HandleAsync(TMessage message, CancellationToken cancellationToken = default);
 }
 ```
 
-### `IMessageHandler<TMessage, TContext>`
-
-Context-based handler with Complete/Abandon/DeadLetter support:
+Context-based handler with explicit settlement (used by AWS Lambda where the runtime does not auto-complete):
 
 ```csharp
-public interface IMessageHandler<in TMessage, in TContext> 
+public interface IMessageHandler<TMessage, TContext>
     where TMessage : class
-    where TContext : IMessageContext
+    where TContext  : IMessageContext
 {
-    Task HandleAsync(
-        TMessage message, 
-        TContext context, 
-        CancellationToken cancellationToken = default);
+    Task HandleAsync(TMessage message, TContext context, CancellationToken cancellationToken = default);
 }
-```
 
-### `IMessageContext`
-
-Message processing context for explicit acknowledgment:
-
-```csharp
 public interface IMessageContext
 {
     Task CompleteAsync(CancellationToken cancellationToken = default);
@@ -116,352 +212,72 @@ public interface IMessageContext
 
 ---
 
-## 💡 Usage Examples
-
-### 1. Define a Message
+## Handler Registration
 
 ```csharp
-public class OrderCreatedMessage : Message
-{
-    public string OrderId { get; set; } = string.Empty;
-    public decimal TotalAmount { get; set; }
-    public string CustomerId { get; set; } = string.Empty;
-}
-```
+// Manual — single handler
+services.AddMessageHandler<SendConfirmationHandler, OrderCreatedMessage>();
 
-### 2. Publish a Message
-
-```csharp
-public class OrderService
-{
-    private readonly IMessagePublisher _publisher;
-
-    public OrderService(IMessagePublisher publisher)
-    {
-        _publisher = publisher;
-    }
-
-    public async Task CreateOrderAsync(CreateOrderRequest request)
-    {
-        // 1. Create order in database
-        var order = await _orderRepository.AddAsync(new Order { ... });
-
-        // 2. Publish message
-        var message = new OrderCreatedMessage
-        {
-            OrderId = order.Id,
-            TotalAmount = order.TotalAmount,
-            CustomerId = order.CustomerId
-        };
-
-        message.AddCorrelationId(request.CorrelationId);
-        message.AddUserId(request.UserId);
-
-        await _publisher.PublishAsync(message);
-    }
-}
-```
-
-### 3. Handle a Message (Simple)
-
-```csharp
-public class SendOrderConfirmationHandler : IMessageHandler<OrderCreatedMessage>
-{
-    private readonly IEmailService _emailService;
-    private readonly ILogger _logger;
-
-    public SendOrderConfirmationHandler(IEmailService emailService, ILogger logger)
-    {
-        _emailService = emailService;
-        _logger = logger;
-    }
-
-    public async Task HandleAsync(OrderCreatedMessage message, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation($"Sending order confirmation for {message.OrderId}");
-        await _emailService.SendOrderConfirmationAsync(message.OrderId);
-    }
-}
-```
-
-### 4. Handle a Message (Context-Based)
-
-```csharp
-public class ProcessPaymentHandler : IMessageHandler<OrderCreatedMessage, IMessageContext>
-{
-    private readonly IPaymentService _paymentService;
-    private readonly ILogger _logger;
-
-    public async Task HandleAsync(
-        OrderCreatedMessage message, 
-        IMessageContext context, 
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _paymentService.ProcessPaymentAsync(message.OrderId, message.TotalAmount);
-            await context.CompleteAsync(cancellationToken);
-        }
-        catch (PaymentDeclinedException ex)
-        {
-            _logger.LogWarning($"Payment declined for order {message.OrderId}");
-            await context.DeadLetterAsync("Payment declined", cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error processing payment for order {message.OrderId}");
-            await context.AbandonAsync(cancellationToken); // Retry later
-        }
-    }
-}
-```
-
-### 5. Register Message Handlers
-
-```csharp
-// Manual registration
-services.AddMessageHandler<SendOrderConfirmationHandler, OrderCreatedMessage>();
-services.AddMessageHandler<ProcessPaymentHandler, OrderCreatedMessage>();
-
-// Automatic assembly scanning
+// Assembly scan
 services.AddMessageHandlers(typeof(Program).Assembly);
-```
-
-### 6. Batch Publishing
-
-```csharp
-public class BulkOrderService
-{
-    private readonly IMessagePublisher _publisher;
-
-    public async Task ProcessBulkOrdersAsync(List<Order> orders)
-    {
-        var messages = orders.Select(o => new OrderCreatedMessage
-        {
-            OrderId = o.Id,
-            TotalAmount = o.TotalAmount,
-            CustomerId = o.CustomerId
-        }).ToList();
-
-        var result = await _publisher.PublishBatchAsync(messages);
-
-        if (!result.IsSuccess)
-        {
-            // Handle failed messages
-            foreach (var failure in result.FailedMessages)
-            {
-                _logger.LogError($"Failed to publish message {failure.MessageId}: {failure.ErrorMessage}");
-            }
-        }
-    }
-}
 ```
 
 ---
 
-## 🏗️ Architecture
+## Messaging vs Events
 
-### Platform-Agnostic Design
+| | **Queue message** (`CorrelatedMessage`) | **Topic event** (`CorrelatedEvent`) |
+|---|---|---|
+| Delivery | Single consumer | Multiple subscribers |
+| Routing | Queue name | `EventType` application property |
+| Use case | Commands, background jobs | Domain events, integration |
+| Azure | Service Bus queue | Service Bus topic/subscription |
+| AWS | SQS | SNS / EventBridge |
+
+---
+
+## Architecture
 
 ```
 ┌─────────────────────────────────────────┐
-│   Business Logic (Your Code)           │
-│   - OrderService                        │
-│   - SendOrderConfirmationHandler        │
-└─────────────────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────┐
-│   Messaging.Core (Abstractions)         │
-│   - IMessage                            │
+│   Domain / Application Layer            │
+│   - CorrelatedEvent subclasses          │
+│   - CorrelatedMessage subclasses        │
 │   - IMessagePublisher                   │
 │   - IMessageHandler<T>                  │
 └─────────────────────────────────────────┘
                   │
-        ┌─────────┴─────────┐
-        ▼                   ▼
+                  ▼
+┌─────────────────────────────────────────┐
+│   Messaging.Core (this package)         │
+│   - ICorrelatedEnvelope                 │
+│   - CorrelatedEvent / CorrelatedMessage │
+│   - IMessagePublisher / IMessageHandler │
+│   - IMessage / Message                  │
+└─────────────────────────────────────────┘
+                  │
+        ┌─────────┴──────────┐
+        ▼                    ▼
 ┌──────────────────┐  ┌──────────────────┐
-│  Messaging.Aws   │  │  Messaging.Azure │
-│  - SqsPublisher  │  │  - ServiceBus    │
-│  - Lambda        │  │  - Functions     │
+│  Messaging.Aws   │  │  Messaging.Azure  │
+│  SqsPublisher    │  │  ServiceBus       │
+│  Lambda handlers │  │  Functions        │
 └──────────────────┘  └──────────────────┘
 ```
 
-### Benefits
-
-1. **Vendor Independence** - Switch cloud providers without changing business logic
-2. **Testability** - Mock `IMessagePublisher` and `IMessageHandler` in unit tests
-3. **Consistency** - Same patterns across all cloud platforms
-4. **Flexibility** - Add new cloud providers without modifying core logic
-
 ---
 
-## 🔄 Messaging vs Events
-
-| Feature | **Messaging** (Queue) | **Events** (Pub/Sub) |
-|---------|----------------------|---------------------|
-| **Pattern** | Point-to-point | Publish-Subscribe |
-| **Delivery** | Single consumer | Multiple subscribers |
-| **Ordering** | FIFO (optional) | No guarantees |
-| **Retry** | Built-in | Manual |
-| **Use Case** | Commands, Tasks | Notifications, Integration |
-| **AWS** | SQS | EventBridge |
-| **Azure** | Service Bus, Queue Storage | Event Grid |
-| **AppFactory** | `Messaging.Core` | `EventBus` |
-
-**When to use Messaging:**
-- Task processing (send emails, generate reports)
-- Command handling (create order, update inventory)
-- Work queue patterns (background jobs)
-- Load leveling and buffering
-
-**When to use Events:**
-- Domain events (user created, order shipped)
-- Cross-service integration
-- Event-driven workflows
-- Audit logging
-
----
-
-## 🧪 Testing
-
-### Mock Publisher in Unit Tests
-
-```csharp
-[Fact]
-public async Task CreateOrder_ShouldPublishOrderCreatedMessage()
-{
-    // Arrange
-    var mockPublisher = new Mock<IMessagePublisher>();
-    var service = new OrderService(mockPublisher.Object);
-
-    // Act
-    await service.CreateOrderAsync(new CreateOrderRequest { ... });
-
-    // Assert
-    mockPublisher.Verify(p => p.PublishAsync(
-        It.Is<OrderCreatedMessage>(m => m.OrderId == "123"),
-        It.IsAny<CancellationToken>()), Times.Once);
-}
-```
-
-### Test Handlers
-
-```csharp
-[Fact]
-public async Task Handler_ShouldSendEmailForOrderCreatedMessage()
-{
-    // Arrange
-    var mockEmailService = new Mock<IEmailService>();
-    var handler = new SendOrderConfirmationHandler(mockEmailService.Object);
-    var message = new OrderCreatedMessage { OrderId = "123" };
-
-    // Act
-    await handler.HandleAsync(message, CancellationToken.None);
-
-    // Assert
-    mockEmailService.Verify(s => s.SendOrderConfirmationAsync("123"), Times.Once);
-}
-```
-
----
-
-## 📊 Correlation Tracking
-
-Track requests across distributed services:
-
-```csharp
-// Service A: Publish message with correlation ID
-var message = new OrderCreatedMessage { ... };
-message.AddCorrelationId(Guid.NewGuid().ToString());
-message.AddUserId(currentUserId);
-await _publisher.PublishAsync(message);
-
-// Service B: Extract correlation ID for logging
-public async Task HandleAsync(OrderCreatedMessage message, CancellationToken ct)
-{
-    var correlationId = message.Properties["CorrelationId"];
-    _logger.LogInformation($"[{correlationId}] Processing order {message.OrderId}");
-    
-    // Pass to downstream services
-    var nextMessage = new PaymentProcessedMessage { ... };
-    nextMessage.AddCorrelationId(correlationId);
-    nextMessage.AddCausationId(message.MessageId); // Track message chain
-    await _publisher.PublishAsync(nextMessage);
-}
-```
-
----
-
-## 🌐 Multi-Cloud Examples
-
-### AWS SQS (using Messaging.Aws)
-
-```csharp
-services.AddAwsMessaging(options =>
-{
-    options.QueueUrl = Configuration["AWS:SQS:QueueUrl"];
-});
-```
-
-### Azure Service Bus (using Messaging.Azure)
-
-```csharp
-services.AddAzureServiceBus(options =>
-{
-    options.ConnectionString = Configuration["Azure:ServiceBus:ConnectionString"];
-    options.QueueName = "orders";
-});
-```
-
-### Same Business Logic Works Everywhere
-
-```csharp
-// This code works on AWS Lambda, Azure Functions, or ASP.NET Core
-public class OrderService
-{
-    private readonly IMessagePublisher _publisher; // Platform-agnostic
-
-    public async Task CreateOrderAsync(CreateOrderRequest request)
-    {
-        var message = new OrderCreatedMessage { ... };
-        await _publisher.PublishAsync(message); // Works everywhere!
-    }
-}
-```
-
----
-
-## 📚 Related Packages
+## Related Packages
 
 | Package | Purpose |
 |---------|---------|
 | **AppFactory.Framework.Messaging.Core** | Platform-agnostic abstractions (this package) |
-| **AppFactory.Framework.Messaging.Aws** | AWS SQS implementation + Lambda handlers |
+| **AppFactory.Framework.Messaging.Aws** | AWS SQS publisher + Lambda handlers |
 | **AppFactory.Framework.Messaging.Azure** | Azure Service Bus + Queue Storage + Functions |
-| **AppFactory.Framework.EventBus** | Event-driven pub/sub (EventBridge, Event Grid) |
-| **AppFactory.Framework.EventSourcing** | Event sourcing and aggregate roots |
-| **AppFactory.Framework.Sagas** | Distributed transaction coordination |
 
 ---
 
-## 🔗 Resources
+## Resources
 
-- [Multi-Cloud Messaging Guide](../../docs/MULTI_CLOUD_MESSAGING.md)
-- [Event-Driven Architecture Guide](../../EVENT_DRIVEN_ARCHITECTURE_GUIDE.md)
-- [Messaging vs Events Comparison](../../docs/MESSAGING_VS_EVENTS.md)
 - [GitHub Repository](https://github.com/exiton3/AppFactory)
-
----
-
-## 📞 Support
-
-- 🐛 [Report Issues](https://github.com/exiton3/AppFactory/issues)
-- 💡 [Request Features](https://github.com/exiton3/AppFactory/issues/new?labels=enhancement)
-- ⭐ [Star on GitHub](https://github.com/exiton3/AppFactory)
-
----
-
-**AppFactory.Framework.Messaging.Core** - Build Reactive Microservices, Deploy Anywhere! 🚀
-
-*Write once, message everywhere!*
+- [Report Issues](https://github.com/exiton3/AppFactory/issues)
