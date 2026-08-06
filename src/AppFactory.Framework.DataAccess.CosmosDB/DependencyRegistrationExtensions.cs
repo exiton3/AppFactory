@@ -99,6 +99,22 @@ public static class DependencyRegistrationExtensions
     }
 
     /// <summary>
+    /// Registers CosmosDB persistence (idempotent) and the model config for TModel in a single call,
+    /// replacing the two-call RegisterCosmosDbPersistence + RegisterModelConfig pattern.
+    /// </summary>
+    public static IServiceCollection AddCosmosRepository<TModel, TConfig>(
+        this IServiceCollection services)
+        where TModel  : class
+        where TConfig : class, IModelConfig<TModel>
+    {
+        if (!services.Any(s => s.ServiceType == typeof(ICosmosDbClientFactory)))
+            services.RegisterCosmosDbPersistence();
+
+        services.RegisterModelConfig<TConfig, TModel>();
+        return services;
+    }
+
+    /// <summary>
     /// Registers all Model Configs and Repositories from the specified assemblies using assembly scanning
     /// </summary>
     /// <param name="services">The service collection</param>

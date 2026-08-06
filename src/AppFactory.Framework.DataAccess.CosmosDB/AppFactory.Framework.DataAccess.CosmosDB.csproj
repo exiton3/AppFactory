@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <Version>10.7.0</Version>
         <Description>AppFactory Framework Data Access Repository CosmosDB</Description>
         <PackageTags>AppFactory;Framework;CosmosDB;Azure</PackageTags>
         <Title>AppFactory Framework Data Access CosmosDB</Title>
