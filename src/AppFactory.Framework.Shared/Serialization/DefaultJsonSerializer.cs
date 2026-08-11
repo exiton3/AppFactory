@@ -16,7 +16,8 @@ public class DefaultJsonSerializer : IJsonSerializer
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Converters =
             {
-                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+                new ObjectJsonConverter()
             },
             NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
