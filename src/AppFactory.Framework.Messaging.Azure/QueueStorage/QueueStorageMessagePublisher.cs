@@ -1,12 +1,11 @@
 using Azure.Storage.Queues;
-using AppFactory.Framework.Messaging.Azure.Configuration;
 using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
 using AppFactory.Framework.Logging;
 using AppFactory.Framework.Messaging.Abstractions;
 
-namespace AppFactory.Framework.Messaging.Azure;
+namespace AppFactory.Framework.Messaging.Azure.QueueStorage;
 
 /// <summary>
 /// Azure Queue Storage implementation of IMessagePublisher for simple queue-based messaging.

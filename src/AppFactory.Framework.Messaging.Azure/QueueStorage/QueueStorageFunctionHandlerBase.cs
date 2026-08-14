@@ -7,7 +7,7 @@ using AppFactory.Framework.Messaging.Abstractions;
 using Azure.Storage.Queues.Models;
 using CoreMessage = AppFactory.Framework.Messaging.Abstractions.Message;
 
-namespace AppFactory.Framework.Messaging.Azure.FunctionHandlers;
+namespace AppFactory.Framework.Messaging.Azure.QueueStorage;
 
 /// <summary>
 /// Base class for Azure Function handler to handle messages from Azure Storage Queue.

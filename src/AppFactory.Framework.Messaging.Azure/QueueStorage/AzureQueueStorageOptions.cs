@@ -1,4 +1,4 @@
-namespace AppFactory.Framework.Messaging.Azure.Configuration;
+namespace AppFactory.Framework.Messaging.Azure.QueueStorage;
 
 /// <summary>
 /// Configuration options for Azure Queue Storage messaging.
