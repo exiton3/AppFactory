@@ -18,16 +18,30 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         params System.Reflection.Assembly[] assemblies)
     {
+        return services.AddAppFactoryApi(null, assemblies);
+    }
+
+    /// <summary>
+    /// Add AppFactory API services for ASP.NET Core with options
+    /// </summary>
+    public static IServiceCollection AddAppFactoryApi(
+        this IServiceCollection services,
+        Action<AppFactoryApiOptions>? configureOptions,
+        params System.Reflection.Assembly[] assemblies)
+    {
+        if (configureOptions != null)
+            services.Configure(configureOptions);
+        else
+            services.AddOptions<AppFactoryApiOptions>();
+
         services.AddRequestParsing();
         services.AddScoped(typeof(IEndpointRequestHandler<,>), typeof(EndpointRequestHandler<,>));
         services.AddScoped(typeof(IEndpointResponseMapper<>), typeof(EndpointResponseMapper<>));
 
-        // Add CQRS and Processors if assemblies provided
         if (assemblies?.Length > 0)
         {
             services.AddCqrs(assemblies);
 
-            // Register all IFunctionProcessor implementations
             services.Scan(scan => scan
                 .FromAssemblies(assemblies)
                 .AddClasses(classes => classes.AssignableTo(typeof(IFunctionProcessor<,>)), publicOnly: false)

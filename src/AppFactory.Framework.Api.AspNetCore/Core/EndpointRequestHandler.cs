@@ -1,7 +1,10 @@
 using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.Api.Parsing;
+using AppFactory.Framework.Api.Responses;
+using AppFactory.Framework.Domain.ServiceResult;
 using AppFactory.Framework.Logging;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace AppFactory.Framework.Api.AspNetCore.Core;
 
@@ -12,17 +15,20 @@ public class EndpointRequestHandler<TRequest, TResponse> : IEndpointRequestHandl
     private readonly IRequestParser _requestParser;
     private readonly IFunctionProcessor<TRequest, TResponse> _processor;
     private readonly IEndpointResponseMapper<TResponse> _responseMapper;
+    private readonly AppFactoryApiOptions _options;
     private readonly ILogger? _logger;
 
     public EndpointRequestHandler(
         IRequestParser requestParser,
         IFunctionProcessor<TRequest, TResponse> processor,
         IEndpointResponseMapper<TResponse> responseMapper,
+        IOptions<AppFactoryApiOptions> options,
         ILogger? logger = null)
     {
         _requestParser = requestParser;
         _processor = processor;
         _responseMapper = responseMapper;
+        _options = options.Value;
         _logger = logger;
     }
 
@@ -50,8 +56,24 @@ public class EndpointRequestHandler<TRequest, TResponse> : IEndpointRequestHandl
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error processing request: {Message}", ex.Message);
-            context.Response.StatusCode = 500;
-            await context.Response.WriteAsJsonAsync(new { error = "Internal server error", exception = ex });
+
+            var errorMessage = _options.IncludeExceptionDetails
+                ? ex.ToString()
+                : "An unexpected error occurred";
+
+            var errors = new List<Error> { new("INTERNAL_ERROR", errorMessage) };
+
+            responseBuilder
+                .StatusCode(HttpStatusCode.InternalServerError)
+                .ErrorType("InternalServerError")
+                .Errors(errors)
+                .Body(new ProblemResponse
+                {
+                    Problem = "Unexpected error",
+                    Errors = errors
+                });
+
+            responseBuilder.Build();
         }
     }
 }
