@@ -24,7 +24,7 @@ builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
 
 // API Documentation
 builder.Services.AddOpenApi();
-
+builder.Services.AddCors();
 // Health Checks
 builder.Services.AddHealthChecks();
 
@@ -33,8 +33,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    
 }
-
+app.UseCors(options =>
+{
+    options.AllowAnyHeader();
+    options.AllowAnyOrigin();
+    options.AllowAnyMethod();
+});
 // Middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();

@@ -1,15 +1,11 @@
 using Amazon.Lambda.APIGatewayEvents;
-using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.Domain.ServiceResult;
 using AppFactory.Framework.Shared.Serialization;
 
 namespace AppFactory.Framework.Api.Aws;
 
-/// <summary>
-/// AWS Lambda API Gateway response builder
-/// Implements IHttpResponseBuilder for API Gateway proxy responses
-/// </summary>
-public class ApiGatewayResponseBuilder : IHttpResponseBuilder
+[Obsolete("Use HttpResponseBuilder instead. This class will be removed in a future version.")]
+public class ApiGatewayResponseBuilder
 {
     private readonly APIGatewayProxyResponse _response;
     private readonly IJsonSerializer _jsonSerializer;
@@ -30,19 +26,19 @@ public class ApiGatewayResponseBuilder : IHttpResponseBuilder
         };
     }
 
-    public IHttpResponseBuilder StatusCode(int statusCode)
+    public ApiGatewayResponseBuilder StatusCode(int statusCode)
     {
         _response.StatusCode = statusCode;
         return this;
     }
 
-    public IHttpResponseBuilder Header(string key, string value)
+    public ApiGatewayResponseBuilder Header(string key, string value)
     {
         _response.Headers[key] = value;
         return this;
     }
 
-    public IHttpResponseBuilder Headers(IDictionary<string, string> headers)
+    public ApiGatewayResponseBuilder Headers(IDictionary<string, string> headers)
     {
         foreach (var header in headers)
         {
@@ -51,37 +47,37 @@ public class ApiGatewayResponseBuilder : IHttpResponseBuilder
         return this;
     }
 
-    public IHttpResponseBuilder Body(string body)
+    public ApiGatewayResponseBuilder Body(string body)
     {
         _response.Body = body;
         return this;
     }
 
-    public IHttpResponseBuilder Body<T>(T data)
+    public ApiGatewayResponseBuilder Body<T>(T data)
     {
         _response.Body = _jsonSerializer.Serialize(data);
         return this;
     }
 
-    public IHttpResponseBuilder ContentType(string contentType)
+    public ApiGatewayResponseBuilder ContentType(string contentType)
     {
         _response.Headers["Content-Type"] = contentType;
         return this;
     }
 
-    public IHttpResponseBuilder ErrorType(string errorType)
+    public ApiGatewayResponseBuilder ErrorType(string errorType)
     {
         _response.Headers["x-amzn-ErrorType"] = errorType;
         return this;
     }
 
-    public IHttpResponseBuilder ProblemTitle(string title)
+    public ApiGatewayResponseBuilder ProblemTitle(string title)
     {
         _problemTitle = title;
         return this;
     }
 
-    public IHttpResponseBuilder Errors(IEnumerable<Error> errors)
+    public ApiGatewayResponseBuilder Errors(IEnumerable<Error> errors)
     {
         _errors = errors;
         return this;

@@ -5,6 +5,7 @@ using AppFactory.Framework.Domain.ServiceResult;
 using AppFactory.Framework.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using HttpResponse = AppFactory.Framework.Api.Responses.HttpResponse;
 
 namespace AppFactory.Framework.Api.AspNetCore.Core;
 
@@ -35,7 +36,7 @@ public class EndpointRequestHandler<TRequest, TResponse> : IEndpointRequestHandl
     public async Task HandleAsync(HttpContext context)
     {
         var requestContext = new AspNetCoreRequestContext(context);
-        var responseBuilder = new AspNetCoreResponseBuilder(context);
+        HttpResponse response;
 
         try
         {
@@ -51,7 +52,7 @@ public class EndpointRequestHandler<TRequest, TResponse> : IEndpointRequestHandl
             _logger?.LogTrace($"Processing {typeof(TRequest).Name}");
             var result = await _processor.Process(parsedRequest, context.RequestAborted);
 
-            _responseMapper.Map(result, responseBuilder, context);
+            response = _responseMapper.Map(result);
         }
         catch (Exception ex)
         {
@@ -63,7 +64,7 @@ public class EndpointRequestHandler<TRequest, TResponse> : IEndpointRequestHandl
 
             var errors = new List<Error> { new("INTERNAL_ERROR", errorMessage) };
 
-            responseBuilder
+            response = new HttpResponseBuilder()
                 .StatusCode(HttpStatusCode.InternalServerError)
                 .ErrorType("InternalServerError")
                 .Errors(errors)
@@ -71,9 +72,25 @@ public class EndpointRequestHandler<TRequest, TResponse> : IEndpointRequestHandl
                 {
                     Problem = "Unexpected error",
                     Errors = errors
-                });
-
-            responseBuilder.Build();
+                })
+                .Build();
         }
+
+        await WriteResponse(context, response);
+    }
+
+    private static async Task WriteResponse(HttpContext context, HttpResponse response)
+    {
+        context.Response.StatusCode = response.StatusCode;
+        context.Response.ContentType = response.ContentType;
+
+        foreach (var header in response.Headers)
+            context.Response.Headers[header.Key] = header.Value;
+
+        if (!string.IsNullOrEmpty(response.ErrorType))
+            context.Response.Headers["x-error-type"] = response.ErrorType;
+
+        if (!string.IsNullOrEmpty(response.Body))
+            await context.Response.WriteAsync(response.Body);
     }
 }

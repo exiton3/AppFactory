@@ -1,19 +1,14 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using AppFactory.Framework.Api.Core;
+using AppFactory.Framework.Api.Responses;
 using AppFactory.Framework.DependencyInjection;
+using SystemHttpStatusCode = System.Net.HttpStatusCode;
 
 namespace AppFactory.Framework.Api.Azure;
 
-/// <summary>
-/// Base class for Azure Functions with HTTP trigger
-/// Provides CQRS-based request handling with automatic parsing and response building
-/// Uses Azure Functions isolated worker model (v4)
-/// </summary>
-/// <typeparam name="TRequest">Command or Query request model</typeparam>
-/// <typeparam name="TResponse">Response DTO model</typeparam>
-public abstract class AzureFunctionHandlerBase<TRequest, TResponse> 
-    where TRequest : class, new() 
+public abstract class AzureFunctionHandlerBase<TRequest, TResponse>
+    where TRequest : class, new()
     where TResponse : class
 {
     private readonly FunctionHandlerCore<TRequest, TResponse> _core;
@@ -23,26 +18,39 @@ public abstract class AzureFunctionHandlerBase<TRequest, TResponse>
         _core = new FunctionHandlerCore<TRequest, TResponse>(startup ?? GetStartup());
     }
 
-    /// <summary>
-    /// Handle HTTP request from Azure Functions
-    /// </summary>
-    /// <param name="req">HTTP request data</param>
-    /// <param name="executionContext">Function execution context</param>
-    /// <returns>HTTP response data</returns>
     protected async Task<HttpResponseData> Handle(
         HttpRequestData req,
         FunctionContext executionContext)
     {
         var requestContext = new HttpRequestDataContext(req, executionContext);
-        var responseBuilder = new HttpResponseDataBuilder(req);
-
-        await _core.HandleRequest(requestContext, responseBuilder);
-
-        return (HttpResponseData)responseBuilder.Build();
+        var response = await _core.HandleRequest(requestContext);
+        return ToHttpResponseData(req, response);
     }
 
-    /// <summary>
-    /// Override to provide custom startup configuration
-    /// </summary>
     protected abstract IStartup GetStartup();
+
+    private static HttpResponseData ToHttpResponseData(HttpRequestData request, HttpResponse response)
+    {
+        var httpResponse = request.CreateResponse();
+        httpResponse.StatusCode = (SystemHttpStatusCode)response.StatusCode;
+
+        httpResponse.Headers.Add("Content-Type", response.ContentType);
+        httpResponse.Headers.Add("Access-Control-Allow-Origin", "*");
+        httpResponse.Headers.Add("Access-Control-Allow-Methods", "OPTIONS, POST, PUT, DELETE, GET, HEAD");
+
+        foreach (var header in response.Headers)
+        {
+            if (httpResponse.Headers.Contains(header.Key))
+                httpResponse.Headers.Remove(header.Key);
+            httpResponse.Headers.Add(header.Key, header.Value);
+        }
+
+        if (!string.IsNullOrEmpty(response.ErrorType))
+            httpResponse.Headers.Add("x-error-type", response.ErrorType);
+
+        if (!string.IsNullOrEmpty(response.Body))
+            httpResponse.WriteString(response.Body);
+
+        return httpResponse;
+    }
 }

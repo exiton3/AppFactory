@@ -1,15 +1,11 @@
 using Microsoft.AspNetCore.Http;
-using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.Domain.ServiceResult;
 using AppFactory.Framework.Shared.Serialization;
 
 namespace AppFactory.Framework.Api.AspNetCore;
 
-/// <summary>
-/// ASP.NET Core HTTP response builder
-/// Implements IHttpResponseBuilder for ASP.NET Core IResult
-/// </summary>
-public class AspNetCoreResponseBuilder : IHttpResponseBuilder
+[Obsolete("Use HttpResponseBuilder instead. This class will be removed in a future version.")]
+public class AspNetCoreResponseBuilder
 {
     private readonly HttpContext _httpContext;
     private readonly IJsonSerializer _jsonSerializer;
@@ -30,19 +26,19 @@ public class AspNetCoreResponseBuilder : IHttpResponseBuilder
         _headers["Access-Control-Allow-Methods"] = "OPTIONS, POST, PUT, DELETE, GET, HEAD";
     }
 
-    public IHttpResponseBuilder StatusCode(int statusCode)
+    public AspNetCoreResponseBuilder StatusCode(int statusCode)
     {
         _statusCode = statusCode;
         return this;
     }
 
-    public IHttpResponseBuilder Header(string key, string value)
+    public AspNetCoreResponseBuilder Header(string key, string value)
     {
         _headers[key] = value;
         return this;
     }
 
-    public IHttpResponseBuilder Headers(IDictionary<string, string> headers)
+    public AspNetCoreResponseBuilder Headers(IDictionary<string, string> headers)
     {
         foreach (var header in headers)
         {
@@ -51,37 +47,37 @@ public class AspNetCoreResponseBuilder : IHttpResponseBuilder
         return this;
     }
 
-    public IHttpResponseBuilder Body(string body)
+    public AspNetCoreResponseBuilder Body(string body)
     {
         _body = body;
         return this;
     }
 
-    public IHttpResponseBuilder Body<T>(T data)
+    public AspNetCoreResponseBuilder Body<T>(T data)
     {
         _body = _jsonSerializer.Serialize(data);
         return this;
     }
 
-    public IHttpResponseBuilder ContentType(string contentType)
+    public AspNetCoreResponseBuilder ContentType(string contentType)
     {
         _contentType = contentType;
         return this;
     }
 
-    public IHttpResponseBuilder ErrorType(string errorType)
+    public AspNetCoreResponseBuilder ErrorType(string errorType)
     {
         _headers["x-error-type"] = errorType;
         return this;
     }
 
-    public IHttpResponseBuilder ProblemTitle(string title)
+    public AspNetCoreResponseBuilder ProblemTitle(string title)
     {
         _problemTitle = title;
         return this;
     }
 
-    public IHttpResponseBuilder Errors(IEnumerable<Error> errors)
+    public AspNetCoreResponseBuilder Errors(IEnumerable<Error> errors)
     {
         _errors = errors;
         return this;

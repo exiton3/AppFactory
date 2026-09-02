@@ -2,7 +2,6 @@ using AppFactory.Framework.Api.Abstractions;
 using AppFactory.Framework.Api.Responses;
 using AppFactory.Framework.Domain.ServiceResult;
 using AppFactory.Framework.Shared.Serialization;
-using Microsoft.AspNetCore.Http;
 
 namespace AppFactory.Framework.Api.AspNetCore.Core;
 
@@ -16,24 +15,26 @@ public class EndpointResponseMapper<TResponse> : IEndpointResponseMapper<TRespon
         _jsonSerializer = jsonSerializer;
     }
 
-    public void Map(Result<TResponse> result, AspNetCoreResponseBuilder responseBuilder, HttpContext context)
+    public HttpResponse Map(Result<TResponse> result)
     {
+        var builder = new HttpResponseBuilder(_jsonSerializer);
+
         switch (result.ResultType)
         {
             case ResultType.Ok:
-                responseBuilder
+                return builder
                     .StatusCode(HttpStatusCode.OK)
-                    .Body(_jsonSerializer.Serialize(result.Data));
-                break;
+                    .Body(_jsonSerializer.Serialize(result.Data))
+                    .Build();
 
             case ResultType.Accepted:
-                responseBuilder
+                return builder
                     .StatusCode(HttpStatusCode.Accepted)
-                    .Body(_jsonSerializer.Serialize(result.Data));
-                break;
+                    .Body(_jsonSerializer.Serialize(result.Data))
+                    .Build();
 
             case ResultType.Invalid:
-                responseBuilder
+                return builder
                     .StatusCode(HttpStatusCode.BadRequest)
                     .ErrorType("ValidationException")
                     .Errors(result.Errors)
@@ -41,25 +42,33 @@ public class EndpointResponseMapper<TResponse> : IEndpointResponseMapper<TRespon
                     {
                         Problem = "Validation failed",
                         Errors = result.Errors.ToList()
-                    });
-                break;
+                    })
+                    .Build();
 
             case ResultType.NotFound:
-                responseBuilder
+                return builder
                     .StatusCode(HttpStatusCode.NotFound)
                     .ErrorType("NotFoundException")
-                    .Body(new { message = string.Join(", ", result.Errors.Select(e => e.Message)) });
-                break;
+                    .Body(new ProblemResponse
+                    {
+                        Problem = "Resource not found",
+                        Errors = result.Errors.ToList()
+                    })
+                    .Build();
 
             case ResultType.Unauthorized:
-                responseBuilder
+                return builder
                     .StatusCode(HttpStatusCode.Unauthorized)
                     .ErrorType("UnauthorizedException")
-                    .Body(new { message = "Unauthorized" });
-                break;
+                    .Body(new ProblemResponse
+                    {
+                        Problem = "Unauthorized",
+                        Errors = result.Errors.ToList()
+                    })
+                    .Build();
 
             case ResultType.External:
-                responseBuilder
+                return builder
                     .StatusCode(HttpStatusCode.ServiceUnavailable)
                     .ErrorType("ExternalSystemError")
                     .Errors(result.Errors)
@@ -67,11 +76,11 @@ public class EndpointResponseMapper<TResponse> : IEndpointResponseMapper<TRespon
                     {
                         Problem = "External system error",
                         Errors = result.Errors.ToList()
-                    });
-                break;
+                    })
+                    .Build();
 
             case ResultType.Unexpected:
-                responseBuilder
+                return builder
                     .StatusCode(HttpStatusCode.InternalServerError)
                     .ErrorType("InternalServerError")
                     .Errors(result.Errors)
@@ -79,13 +88,11 @@ public class EndpointResponseMapper<TResponse> : IEndpointResponseMapper<TRespon
                     {
                         Problem = "Unexpected error",
                         Errors = result.Errors.ToList()
-                    });
-                break;
+                    })
+                    .Build();
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(result.ResultType), result.ResultType, "Unknown result type");
         }
-
-        responseBuilder.Build();
     }
 }

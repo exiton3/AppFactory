@@ -1,18 +1,13 @@
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using AppFactory.Framework.Api.Core;
+using AppFactory.Framework.Api.Responses;
 using AppFactory.Framework.DependencyInjection;
 
 namespace AppFactory.Framework.Api.Aws;
 
-/// <summary>
-/// Base class for AWS Lambda functions with API Gateway integration
-/// Provides CQRS-based request handling with automatic parsing and response building
-/// </summary>
-/// <typeparam name="TRequest">Command or Query request model</typeparam>
-/// <typeparam name="TResponse">Response DTO model</typeparam>
-public abstract class LambdaFunctionHandlerBase<TRequest, TResponse> 
-    where TRequest : class, new() 
+public abstract class LambdaFunctionHandlerBase<TRequest, TResponse>
+    where TRequest : class, new()
     where TResponse : class
 {
     private readonly FunctionHandlerCore<TRequest, TResponse> _core;
@@ -22,26 +17,37 @@ public abstract class LambdaFunctionHandlerBase<TRequest, TResponse>
         _core = new FunctionHandlerCore<TRequest, TResponse>(startup ?? GetStartup());
     }
 
-    /// <summary>
-    /// Handle API Gateway proxy request
-    /// </summary>
-    /// <param name="request">API Gateway proxy request</param>
-    /// <param name="context">Lambda context</param>
-    /// <returns>API Gateway proxy response</returns>
     public async Task<APIGatewayProxyResponse> Handle(
-        APIGatewayProxyRequest request, 
+        APIGatewayProxyRequest request,
         ILambdaContext context)
     {
         var requestContext = new ApiGatewayRequestContext(request, context);
-        var responseBuilder = new ApiGatewayResponseBuilder();
-
-        await _core.HandleRequest(requestContext, responseBuilder);
-
-        return (APIGatewayProxyResponse)responseBuilder.Build();
+        var response = await _core.HandleRequest(requestContext);
+        return ToApiGatewayResponse(response);
     }
 
-    /// <summary>
-    /// Override to provide custom startup configuration
-    /// </summary>
     protected abstract IStartup GetStartup();
+
+    private static APIGatewayProxyResponse ToApiGatewayResponse(HttpResponse response)
+    {
+        var headers = new Dictionary<string, string>
+        {
+            { "Content-Type", response.ContentType },
+            { "Access-Control-Allow-Origin", "*" },
+            { "Access-Control-Allow-Methods", "OPTIONS, POST, PUT, DELETE, GET, HEAD" }
+        };
+
+        foreach (var header in response.Headers)
+            headers[header.Key] = header.Value;
+
+        if (!string.IsNullOrEmpty(response.ErrorType))
+            headers["x-amzn-ErrorType"] = response.ErrorType;
+
+        return new APIGatewayProxyResponse
+        {
+            StatusCode = response.StatusCode,
+            Headers = headers,
+            Body = response.Body
+        };
+    }
 }
