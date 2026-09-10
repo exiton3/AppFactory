@@ -72,4 +72,24 @@ class APIGatewayProxyReponseFactory
             .StatusCode(HttpStatusCode.Accepted)
             .Build();
     }
+
+    public static APIGatewayProxyResponse Unauthorized(IList<Error> errors)
+    {
+        return ResponseBuilder.Response
+            .ProblemTitle("Unauthorized")
+            .Body(errors)
+            .StatusCode(HttpStatusCode.Unauthorized)
+            .ErrorType("UnauthorizedException")
+            .Build();
+    }
+
+    public static APIGatewayProxyResponse Forbidden(IList<Error> errors)
+    {
+        return ResponseBuilder.Response
+            .ProblemTitle("Forbidden")
+            .Body(errors)
+            .StatusCode(HttpStatusCode.Forbidden)
+            .ErrorType("ForbiddenException")
+            .Build();
+    }
 }

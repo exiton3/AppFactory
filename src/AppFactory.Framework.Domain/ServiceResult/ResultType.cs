@@ -6,6 +6,7 @@ public enum ResultType
     Unexpected,
     NotFound,
     Unauthorized,
+    Forbidden,
     Invalid,
     External,
     Accepted

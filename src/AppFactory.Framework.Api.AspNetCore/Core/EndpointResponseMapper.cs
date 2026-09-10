@@ -67,6 +67,17 @@ public class EndpointResponseMapper<TResponse> : IEndpointResponseMapper<TRespon
                     })
                     .Build();
 
+            case ResultType.Forbidden:
+                return builder
+                    .StatusCode(HttpStatusCode.Forbidden)
+                    .ErrorType("ForbiddenException")
+                    .Body(new ProblemResponse
+                    {
+                        Problem = "Forbidden",
+                        Errors = result.Errors.ToList()
+                    })
+                    .Build();
+
             case ResultType.External:
                 return builder
                     .StatusCode(HttpStatusCode.ServiceUnavailable)

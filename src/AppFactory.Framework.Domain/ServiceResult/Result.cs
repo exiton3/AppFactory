@@ -9,4 +9,6 @@ public abstract class Result<T>
     public static Result<T> Ok(T data) => new SuccessResult<T>(data);
     public static Result<T> Invalid(List<Error> errors) => new InvalidResult<T>(errors);
     public static Result<T> NotFound(string message = "Not found") => new NotFoundResult<T>(message);
+    public static Result<T> Unauthorized(string message = "Unauthorized") => new UnauthorizedResult<T>(message);
+    public static Result<T> Forbidden(string message = "Forbidden") => new ForbiddenResult<T>(message);
 }

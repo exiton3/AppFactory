@@ -112,7 +112,9 @@ public abstract class LambdaFunctionHandlerBase<TRequest, TResponse> where TRequ
             case ResultType.NotFound:
                 return APIGatewayProxyReponseFactory.NotFound(result.Errors);
             case ResultType.Unauthorized:
-                return APIGatewayProxyReponseFactory.NotFound(result.Errors);
+                return APIGatewayProxyReponseFactory.Unauthorized(result.Errors);
+            case ResultType.Forbidden:
+                return APIGatewayProxyReponseFactory.Forbidden(result.Errors);
             case ResultType.Invalid:
                 return APIGatewayProxyReponseFactory.BadRequest(result.Errors);
             case ResultType.External:
