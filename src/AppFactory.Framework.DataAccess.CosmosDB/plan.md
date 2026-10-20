@@ -123,27 +123,26 @@ If storing a different `Id` value is ever needed, add an explicit rename via the
 
 ---
 
-## Step 3 – Instance-cached contract resolver  `[ ]`
+## Step 3 – Instance-cached contract resolver  `[x]`
 
-**Why:** removes the hidden dependency on `CamelCasePropertyNamesContractResolver`'s static cache
-(keyed by resolver CLR type). Only safe **after Step 2**: before it, every request would rebuild contracts.
+**Implemented** (together with Step 4, which needs per-model resolver configuration)
+- `Mapping/CosmosDbContractResolver` replaces the private `PrivateSetterCamelCaseContractResolver`.
+  It derives from `DefaultContractResolver` (contracts cached per instance) with
+  `CamelCaseNamingStrategy { ProcessDictionaryKeys = true, OverrideSpecifiedNames = true }`,
+  the same naming as `CamelCasePropertyNamesContractResolver`. Private setter support is unchanged.
+- One resolver per `ModelMapper`, which `ModelMapRegistry` builds once per model, so contracts are built once.
+  (With the obsolete `RepositoryBase` constructor they are rebuilt per repository instance.)
 
-**Note after Step 1:** the only remaining resolver (`PrivateSetterCamelCaseContractResolver`) holds no
-per-model configuration, so sharing its static cache is harmless today. This step becomes required
-once Step 4 puts per-model polymorphism config into the resolver – implement it together with Step 4.
-
-**Changes**
-- `PrivateSetterCamelCaseContractResolver` derives from
-  `DefaultContractResolver` with `NamingStrategy = new CamelCaseNamingStrategy()`
-  (must also camel-case dictionary keys to match current output).
-
-**Tests**
-- Existing serialization output unchanged (golden JSON comparison).
-- Two configs of the same `TModel` with different ignore lists produce different output.
+**Tests** – `ContractResolverCompatibilityTests`
+- Golden comparison against a copy of the previous resolver (enums, dates, decimals, dictionary keys,
+  `[JsonProperty]` names, nested objects): identical JSON. Verified that it fails when the naming settings differ.
+- Private setters still restored.
+- `PolymorphicMappingTests.SameModelConfiguredDifferently_EachMapperUsesItsOwnConfiguration`: two configs of the
+  same model no longer share contracts.
 
 ---
 
-## Step 4 – Polymorphism support (F1, F2)  `[ ]`
+## Step 4 – Polymorphism support (F1, F2)  `[x]`
 
 **Decisions**
 - Discriminator is a normal property chosen by the config (e.g. `"type"`), **not** `$type`.
@@ -152,39 +151,52 @@ once Step 4 puts per-model polymorphism config into the resolver – implement i
 - Configured only in `IModelConfig<TModel>`. No attributes on domain classes
   (`AppFactory.Framework.Domain` has no Newtonsoft dependency).
 - **Type-level registration is the default**: a hierarchy is declared once and applies everywhere it
-  appears in the model graph (single property, `List<T>`, nested at any depth).
+  appears in the model graph (single property, array, collection, dictionary value, nested at any depth).
 - **Property-level mapping is an optional override** for a specific property.
+- The converter is attached to **properties** (`JsonProperty.Converter` / `ItemConverter`), also for type-level
+  registration, never to a type contract. A contract converter on a concrete base type (`Person` registered as
+  `"person"`) would call itself again when deserializing into `Person`.
 
-**API (proposed)**
+**API (implemented)**
 ```csharp
-// Type-level – applies to every Person in the Department graph
-config.Polymorphic<Person>("type")
-      .WithValue<Person>("person")     // concrete base types need a value too
+config.Polymorphic<Person>()
+      .DiscriminateOn("type")
+      .WithValue<Person>("person")
       .WithValue<Manager>("manager")
-      .DefaultTo<Person>();            // documents stored before the discriminator existed
+      .DefaultTo<Person>();
 
-// Property-level override
 config.Map(x => x.Persons)
       .DiscriminateOn("personType")
       .WithValue<Person>("person")
       .WithValue<Manager>("manager");
 ```
 
-**Implementation**
-- Write: contract resolver adds the discriminator property with a constant value to each
-  registered subtype's contract (for property-level: converter on `JsonProperty.Converter` /
-  `ItemConverter` writes it).
-- Read: `JsonConverter` per registered base type, `CanConvert(t) => t == baseType`,
-  `CanWrite = false`. Loads `JObject`, reads the discriminator and deserializes into the subtype.
-  Property-level uses `JsonProperty.Converter` (single value) / `ItemConverter` (collections, dictionaries).
-- Property-level matching by `MemberInfo`, not name (same rule as Step 1).
-- Unknown discriminator value or unregistered runtime type → clear exception naming the model, property and value.
+**Implemented**
+- `IModelConfigOptions<TModel>`: `Polymorphic<TBase>()` and `Map(expression)` (also on `PartitionKeyConfigBuilder`).
+  Adding members to this public interface breaks external implementations of it (none known).
+- `Configuration/IPolymorphicConfigOptions.cs`: `IPolymorphicConfigOptions<TBase>.DiscriminateOn(name)` →
+  `IDiscriminatorConfigOptions<TBase>.WithValue<T>(value)` / `DefaultTo<T>()`.
+  `Map(...)` uses `TBase = object` and checks registered types against the property (item) type at configuration time.
+- `Configuration/DiscriminatorConfig` + `DiscriminatorConfigBuilder`; `Configuration/TypeHelper` (collection item type, inheritance depth).
+- `Mapping/DiscriminatorConverter`: write adds the discriminator as the first property; read picks the type,
+  removes the discriminator and deserializes into the concrete type.
+- Lookup per property: property-level (by declaring type + member name) → most specific type-level base type.
+- Missing discriminator on read: `DefaultTo<T>()`, else the declared property type if concrete, else exception.
+- Validation when the mapper is built: `DiscriminateOn` required, at least one `WithValue`, discriminator name must
+  not clash with a property of a registered type. At configuration time: concrete types only, assignable to the base,
+  no duplicate values/types, `Polymorphic<T>()` / `Map(x)` once each.
+- README: new "Polymorphic Properties" section.
+- Not supported: polymorphic root model (`RepositoryBase<Payment>`), nested collections (`List<List<Person>>`),
+  properties typed `object`.
 
-**Tests**
-- Abstract property, concrete-base property, `List<Base>`, nested hierarchy (`Manager.Reports`).
-- Property-level override wins over type-level.
-- Old documents without a discriminator load via `DefaultTo<T>()`.
-- Unknown discriminator / unregistered subtype → descriptive exception.
+**Tests** – `PolymorphicMappingTests` (19 tests, round trips go through JSON text like Cosmos)
+- Abstract property, concrete base property, `List<T>`, array, dictionary values, `IList<T>`.
+- Nested hierarchy (`Manager.Reports`, `Person.Mentor`) at several levels.
+- Property-level override wins for that property only; property-level without type-level.
+- Stored without discriminator: `DefaultTo<T>()`, concrete property type, abstract without default throws.
+- Unknown value, unregistered runtime type, value mapping to a type not assignable to the property: descriptive exceptions.
+- Nested `Id`/partition-key-named properties kept inside polymorphic objects (Step 1 still applies).
+- Configuration validation errors.
 
 ---
 
@@ -210,13 +222,19 @@ they can't read back.
 
 ## Release
 
-The package is published once Step 4 (polymorphism) is done, not per step.
+The package is published once Step 4 (polymorphism) is done, not per step. **Steps 1–4 are done – ready to release.**
 At that point: bump `<Version>` in the csproj (minor, e.g. `10.7.0` → `10.8.0`; the old `RepositoryBase`
 constructor stays `[Obsolete]`, so nothing breaks), and add one `CHANGELOG.md` entry that covers all steps, including these behaviour changes:
 - Nested properties named like the Id or a partition key are now stored (Step 1).
 - The Cosmos `id` is restored into the property configured with `Id(...)`. A write throws when another property
   sharing `id` has a different value (Step 1b).
 - Partition key setters assign `default` for `null` into value types instead of throwing (Step 1b).
+- New: `IModelMapRegistry` and the `RepositoryBase` constructor taking it; the `IModelConfig<TModel>` constructor is obsolete (Step 2).
+- New: `Polymorphic<TBase>()` and `Map(...)` on `IModelConfigOptions<TModel>` (Step 4). Custom implementations
+  of that interface, if any exist, must add them.
+
+Before releasing, also do the Step 5 interim item: mark `UseResolver` in the README/XML docs as not supported
+for `GetById`/`Delete`.
 
 ---
 
@@ -227,6 +245,6 @@ constructor stays `[Obsolete]`, so nothing breaks), and add one `CHANGELOG.md` e
 | 1. Nested ignore fix | Done | |
 | 1b. Id belongs to the configured property | Done | |
 | 2. ModelMapRegistry | Done | |
-| 3. Instance-cached resolvers | Not started | |
-| 4. Polymorphism | Not started | |
+| 3. Instance-cached resolver | Done | |
+| 4. Polymorphism | Done | |
 | 5. Partition key resolvers | Deferred | |

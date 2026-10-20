@@ -15,6 +15,7 @@ This package provides a complete abstraction over Azure Cosmos DB, enabling you 
 - **⚡ Batch Operations** - Transactional batches with automatic partition grouping
 - **🔍 SQL Query Support** - Parameterized SQL queries
 - **⏱️ TTL Support** - Document-level Time-To-Live
+- **🧬 Polymorphic Properties** - Class hierarchies stored with a configurable discriminator
 - **🔄 Automatic Serialization** - camelCase JSON conventions
 - **♻️ Singleton Client** - Optimized CosmosClient pattern
 - **📊 Performance Logging** - Built-in tracking
@@ -244,6 +245,73 @@ options
 // id: "USER#123"
 // partitionKey: "TENANT#tenant-abc"
 ```
+
+### Polymorphic Properties (Class Hierarchies)
+
+Properties typed as a base class (abstract or concrete) can hold derived types. A discriminator
+property is written into each stored object and used to restore the concrete type.
+
+```csharp
+public class Department
+{
+    public string Id { get; set; }
+    public string TenantId { get; set; }
+    public Person Head { get; set; }
+    public List<Person> Persons { get; set; } = new();
+    public Payment Budget { get; set; }   // abstract
+}
+
+public class Person { public string Name { get; set; } }
+public class Manager : Person { public List<Person> Reports { get; set; } = new(); }
+
+public class DepartmentModelConfig : IModelConfig<Department>
+{
+    public void Configure(IModelConfigOptions<Department> config)
+    {
+        config.ContainerName("departments").Id(d => d.Id).PartitionKey(d => d.TenantId);
+
+        // Type level: applies wherever Person is used – single properties, collections,
+        // dictionary values and nested objects (e.g. Manager.Reports) at any depth
+        config.Polymorphic<Person>()
+              .DiscriminateOn("type")
+              .WithValue<Person>("person")      // a concrete base type needs a value too
+              .WithValue<Manager>("manager")
+              .DefaultTo<Person>();             // for objects stored before the discriminator existed
+
+        config.Polymorphic<Payment>()
+              .DiscriminateOn("kind")
+              .WithValue<Card>("card")
+              .WithValue<BankTransfer>("ach");
+
+        // Property level: overrides the type-level configuration for this property only
+        config.Map(d => d.Persons)
+              .DiscriminateOn("personType")
+              .WithValue<Person>("person")
+              .WithValue<Manager>("manager");
+    }
+}
+```
+
+Stored document:
+
+```json
+{
+  "id": "D1",
+  "tenantId": "T1",
+  "head": { "type": "manager", "name": "Ann", "reports": [{ "type": "person", "name": "Bob" }] },
+  "persons": [{ "personType": "manager", "name": "Kate", "reports": [] }],
+  "budget": { "kind": "card", "number": "4111" }
+}
+```
+
+- Discriminators are ordinary properties, so they can be queried: `SELECT * FROM c WHERE c.head.type = 'manager'`.
+- No CLR type names are stored, so classes can be renamed or moved without breaking stored data.
+- Errors are reported with the configuration and the path: an unregistered type on write, an unknown
+  value on read, or a missing discriminator on an abstract property without `DefaultTo<T>()`.
+- The configuration is validated when the mapping is built: `DiscriminateOn` is required, at least one
+  `WithValue` is required, registered types must be concrete, and the discriminator name must not clash
+  with a property of a registered type.
+- Not supported: a polymorphic root model (`RepositoryBase<Payment>`), and nested collections such as `List<List<Person>>`.
 
 ## Document Structure
 

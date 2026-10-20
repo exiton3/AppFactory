@@ -18,7 +18,7 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
     public ModelMapper(CosmosDbModelConfig<TModel> config)
     {
         _config = config;
-        _serializerSettings = GetJsonSerializerSettings();
+        _serializerSettings = GetJsonSerializerSettings(config);
         _idKeyMapper = new IdKeyMapper<TModel>(_config);
         _ignoredRootProperties = new HashSet<string>(config.PropertiesToIgnoreDuringSerialization, StringComparer.OrdinalIgnoreCase);
         _sharedIdProperty = FindSharedIdProperty();
@@ -186,11 +186,11 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
         return modelId;
     }
 
-    private static JsonSerializerSettings GetJsonSerializerSettings()
+    private static JsonSerializerSettings GetJsonSerializerSettings(CosmosDbModelConfig<TModel> config)
     {
         return new JsonSerializerSettings
         {
-            ContractResolver = new PrivateSetterCamelCaseContractResolver(),
+            ContractResolver = new CosmosDbContractResolver(config.TypeDiscriminators, config.PropertyDiscriminators),
             NullValueHandling = NullValueHandling.Ignore,
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
             Converters =
@@ -199,24 +199,4 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
             }
         };
     }
-
-    // Enables deserialization of properties with private setters — the standard DDD pattern
-    // where aggregates expose state via public getters but restrict mutation to domain methods.
-    private class PrivateSetterCamelCaseContractResolver : CamelCasePropertyNamesContractResolver
-    {
-        protected override JsonProperty CreateProperty(System.Reflection.MemberInfo member, MemberSerialization memberSerialization)
-        {
-            var property = base.CreateProperty(member, memberSerialization);
-
-            if (!property.Writable && member is System.Reflection.PropertyInfo prop)
-            {
-                var setter = prop.GetSetMethod(nonPublic: true);
-                if (setter != null)
-                    property.Writable = true;
-            }
-
-            return property;
-        }
-    }
 }
-

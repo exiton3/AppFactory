@@ -32,5 +32,29 @@ public interface IModelConfigOptions<TModel> where TModel : class
     /// Sets the Time-To-Live in seconds
     /// </summary>
     IModelConfigOptions<TModel> TimeToLive(int? ttlInSeconds);
+
+    /// <summary>
+    /// Stores and restores a class hierarchy wherever <typeparamref name="TBase"/> (or a derived type) is used
+    /// in the model: single properties, collections and dictionary values, at any depth.
+    /// <code>
+    /// config.Polymorphic&lt;Person&gt;()
+    ///       .DiscriminateOn("type")
+    ///       .WithValue&lt;Person&gt;("person")
+    ///       .WithValue&lt;Manager&gt;("manager");
+    /// </code>
+    /// </summary>
+    IPolymorphicConfigOptions<TBase> Polymorphic<TBase>() where TBase : class;
+
+    /// <summary>
+    /// Configures a single property of the model. Polymorphism configured here overrides
+    /// <see cref="Polymorphic{TBase}"/> for this property only.
+    /// <code>
+    /// config.Map(d => d.Persons)
+    ///       .DiscriminateOn("personType")
+    ///       .WithValue&lt;Person&gt;("person")
+    ///       .WithValue&lt;Manager&gt;("manager");
+    /// </code>
+    /// </summary>
+    IPolymorphicConfigOptions<object> Map<TProperty>(Expression<Func<TModel, TProperty>> propertyExpression);
 }
 

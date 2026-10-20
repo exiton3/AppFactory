@@ -29,6 +29,17 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
 
     private HashSet<string> ignoredPropertyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+    private readonly List<DiscriminatorConfig> _typeDiscriminators = new List<DiscriminatorConfig>();
+    private readonly Dictionary<(Type DeclaringType, string Name), DiscriminatorConfig> _propertyDiscriminators =
+        new Dictionary<(Type DeclaringType, string Name), DiscriminatorConfig>();
+
+    internal IReadOnlyList<DiscriminatorConfig> TypeDiscriminators => _typeDiscriminators;
+
+    /// <summary>
+    /// Property-level discriminators, keyed by the declaring type and name of the configured member.
+    /// </summary>
+    internal IReadOnlyDictionary<(Type DeclaringType, string Name), DiscriminatorConfig> PropertyDiscriminators => _propertyDiscriminators;
+
     public string Container => _containerName;
 
     public List<string> PartitionKeyPaths => _partitionKeyConfig.IsHierarchical 
@@ -194,6 +205,41 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     {
         _ttlInSeconds = ttlInSeconds;
         return this;
+    }
+
+    public IPolymorphicConfigOptions<TBase> Polymorphic<TBase>() where TBase : class
+    {
+        if (_typeDiscriminators.Any(d => d.BaseType == typeof(TBase)))
+        {
+            throw new InvalidOperationException($"Polymorphic<{typeof(TBase).Name}>() is already configured for {typeof(TModel).Name}");
+        }
+
+        var config = new DiscriminatorConfig(typeof(TBase), $"{typeof(TModel).Name}: Polymorphic<{typeof(TBase).Name}>()");
+        _typeDiscriminators.Add(config);
+
+        return new DiscriminatorConfigBuilder<TBase>(config);
+    }
+
+    public IPolymorphicConfigOptions<object> Map<TProperty>(Expression<Func<TModel, TProperty>> propertyExpression)
+    {
+        if (propertyExpression.Body is not MemberExpression { Expression: ParameterExpression } memberExpression)
+        {
+            throw new ArgumentException($"Map expression must select a property of {typeof(TModel).Name}, e.g. x => x.Persons", nameof(propertyExpression));
+        }
+
+        var member = memberExpression.Member;
+        var key = (member.DeclaringType!, member.Name);
+        if (_propertyDiscriminators.ContainsKey(key))
+        {
+            throw new InvalidOperationException($"Map({member.Name}) is already configured for {typeof(TModel).Name}");
+        }
+
+        // Collections and dictionaries discriminate their items, other properties their own value
+        var valueType = TypeHelper.GetCollectionItemType(typeof(TProperty)) ?? typeof(TProperty);
+        var config = new DiscriminatorConfig(valueType, $"{typeof(TModel).Name}: Map({member.Name})");
+        _propertyDiscriminators.Add(key, config);
+
+        return new DiscriminatorConfigBuilder<object>(config);
     }
 
     internal void AddToIgnoreProperties(string propertyName)

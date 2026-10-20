@@ -72,4 +72,14 @@ internal class PartitionKeyConfigBuilder<TModel> : IPartitionKeyConfigOptions<TM
     {
         return _parentConfig.TimeToLive(ttlInSeconds);
     }
+
+    public IPolymorphicConfigOptions<TBase> Polymorphic<TBase>() where TBase : class
+    {
+        return _parentConfig.Polymorphic<TBase>();
+    }
+
+    public IPolymorphicConfigOptions<object> Map<TProperty>(Expression<Func<TModel, TProperty>> propertyExpression)
+    {
+        return _parentConfig.Map(propertyExpression);
+    }
 }
