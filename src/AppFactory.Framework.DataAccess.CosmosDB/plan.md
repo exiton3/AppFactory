@@ -202,9 +202,14 @@ config.Map(x => x.Persons)
 
 ## Step 5 – Partition key resolvers (F5, F6) – deferred until the tenant feature  `[ ]`
 
-`UseResolver` is not used in the codebase today. Until this step is done, mark it in the
-README/XML docs as not supported for `GetById`/`Delete` (or `[Obsolete]`), so nobody writes data
-they can't read back.
+`UseResolver` is not used anywhere (only two mapper unit tests) and is not documented in the README.
+Decision: leave it as is and do this whole step together with the tenant feature (no interim warning).
+
+**Why reads need the resolver:** the resolver never populates the entity (the entity has no `TenantId`;
+`MapBackPartitionKeys` skips resolver parts). It is needed to *locate* the document: Cosmos point reads and
+deletes require `id` + full partition key, and for `GetById(id)` / `Delete(id)` the only source of the tenant
+partition key value is the resolver. This also gives tenant isolation: a `GetById` from tenant `T2` looks in
+partition `T2` and cannot read `T1`'s documents.
 
 **Changes**
 - `UseResolver<TResolver>()` stores the resolver **type**. `ModelMapRegistry` creates it via
@@ -222,8 +227,8 @@ they can't read back.
 
 ## Release
 
-The package is published once Step 4 (polymorphism) is done, not per step. **Steps 1–4 are done – ready to release.**
-At that point: bump `<Version>` in the csproj (minor, e.g. `10.7.0` → `10.8.0`; the old `RepositoryBase`
+The package is published once Step 4 (polymorphism) is done, not per step. **Done: CHANGELOG `[10.8.0]` entry added (2026-10-19). The package version comes from the release tag (`v10.8.0`), the csproj `<Version>` is not changed.**
+At that point: release as a minor version via the tag (e.g. `v10.8.0`; the old `RepositoryBase`
 constructor stays `[Obsolete]`, so nothing breaks), and add one `CHANGELOG.md` entry that covers all steps, including these behaviour changes:
 - Nested properties named like the Id or a partition key are now stored (Step 1).
 - The Cosmos `id` is restored into the property configured with `Id(...)`. A write throws when another property
@@ -232,9 +237,6 @@ constructor stays `[Obsolete]`, so nothing breaks), and add one `CHANGELOG.md` e
 - New: `IModelMapRegistry` and the `RepositoryBase` constructor taking it; the `IModelConfig<TModel>` constructor is obsolete (Step 2).
 - New: `Polymorphic<TBase>()` and `Map(...)` on `IModelConfigOptions<TModel>` (Step 4). Custom implementations
   of that interface, if any exist, must add them.
-
-Before releasing, also do the Step 5 interim item: mark `UseResolver` in the README/XML docs as not supported
-for `GetById`/`Delete`.
 
 ---
 

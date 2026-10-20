@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.8.0] - 2026-10-19
+
+### 🧬 CosmosDB — Polymorphic Properties and Mapping Fixes
+
+Entities can now hold class hierarchies (abstract or concrete base types) in their properties. The hierarchy is configured once in `IModelConfig<TModel>`; a discriminator property you name is stored with each object and used to restore the concrete type. No CLR type names are stored. This release also fixes data loss in nested objects and in the configured Id property, and builds each model mapping only once.
+
+### Added
+
+#### Data Access (`AppFactory.Framework.DataAccess.CosmosDB`)
+- **`Polymorphic<TBase>()`** — registers a class hierarchy for the whole model: single properties, arrays, collections, dictionary values and nested objects at any depth. `DiscriminateOn("type")` names the discriminator property, `WithValue<T>("value")` registers each concrete type (a concrete base type needs a value too), `DefaultTo<T>()` is used for objects stored without a discriminator.
+- **`Map(x => x.Property)`** — overrides the discriminator configuration for a single property.
+- Descriptive errors with configuration and JSON path: unregistered type on write, unknown discriminator value on read, missing discriminator on an abstract property without `DefaultTo<T>()`. Configuration is validated when the mapping is built (missing `DiscriminateOn`/`WithValue`, abstract or non-assignable types, duplicate values, discriminator name clashing with a property).
+- **`IModelMapRegistry`** — singleton registered by `RegisterCosmosDbPersistence()` that runs each `IModelConfig<TModel>` exactly once and shares the resulting mapping with all repository instances.
+- **`RepositoryBase(ICosmosDbClientFactory, ILogger, IModelMapRegistry)`** — new constructor using the shared mapping.
+
+### Changed
+
+#### `AppFactory.Framework.DataAccess.CosmosDB`
+- **`IModelConfigOptions<TModel>`** — new members `Polymorphic<TBase>()` and `Map(...)`. Custom implementations of this interface must add them.
+- **Contract resolver** — the `CamelCasePropertyNamesContractResolver` subclass is replaced by a `DefaultContractResolver` with the same camelCase naming and private-setter support, caching contracts per model mapping instead of in a process-wide static cache. Documents without polymorphism are written exactly as before.
+- **Partition key setters** — `null` read into a value-type property now assigns `default` instead of throwing. Partition key and Id values share one conversion (`Guid`, enums, `Nullable<T>`, invariant culture).
+
+### Deprecated
+
+#### `AppFactory.Framework.DataAccess.CosmosDB`
+- **`RepositoryBase(ICosmosDbClientFactory, ILogger, IModelConfig<TModel>)`** — rebuilds the model mapping for every repository instance (every request for scoped repositories). Use the constructor taking `IModelMapRegistry`:
+  ```csharp
+  public UserRepository(ICosmosDbClientFactory factory, ILogger logger, IModelMapRegistry modelMapRegistry)
+      : base(factory, logger, modelMapRegistry) { }
+  ```
+
+### Fixed
+
+#### `AppFactory.Framework.DataAccess.CosmosDB`
+- **Nested properties were not stored** — properties ignored because they are written as `id` / partition key (e.g. `Id`, `TenantId`) were removed by name across the whole object graph, so nested objects lost same-named properties (`Department.Persons[i].Id` was stored without `id`). They are now removed from the document root only.
+- **Configured Id property not restored** — with `Id(e => e.EmployeeNumber)`, the document `id` was read back into the model's `Id` property only and `EmployeeNumber` came back `null` (unless it was also a partition key). The `id` now belongs to the property configured with `Id(...)` and is restored into it; a model `Id` holding the same value is restored too.
+- **Silent Id data loss on write** — when another property serialized as `id` holds a different value than the configured Id, it was overwritten and never stored. `MapToDocument` now throws `InvalidOperationException` naming both properties and values.
+
+### Example — polymorphic properties
+
+```csharp
+public void Configure(IModelConfigOptions<Department> config)
+{
+    config.ContainerName("departments").Id(d => d.Id).PartitionKey(d => d.TenantId);
+
+    config.Polymorphic<Person>()
+          .DiscriminateOn("type")
+          .WithValue<Person>("person")
+          .WithValue<Manager>("manager")
+          .DefaultTo<Person>();
+}
+// Stored: { "id": "D1", "tenantId": "T1", "head": { "type": "manager", "name": "Ann", "reports": [ ... ] } }
+```
+
 ## [10.7.0] - 2026-08-05
 
 ### 🔗 Correlated Messaging — Topic Event Routing and Envelope Abstraction
