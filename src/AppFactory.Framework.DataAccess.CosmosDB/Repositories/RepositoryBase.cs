@@ -15,16 +15,32 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
     private readonly IModelMapper<TModel> _mapper;
     private readonly string _containerName;
 
+    /// <summary>
+    /// Uses the model mapping built once by <see cref="IModelMapRegistry"/> and shared by all repository instances.
+    /// </summary>
+    protected RepositoryBase(ICosmosDbClientFactory cosmosDbFactory, ILogger logger, IModelMapRegistry modelMapRegistry)
+        : this(cosmosDbFactory, logger, modelMapRegistry.Get<TModel>())
+    {
+    }
+
+    /// <summary>
+    /// Builds the model mapping on every repository instance (i.e. on every request for scoped repositories).
+    /// </summary>
+    [Obsolete("Use the constructor taking IModelMapRegistry. It builds the model mapping once instead of on every repository instance.")]
     protected RepositoryBase(ICosmosDbClientFactory cosmosDbFactory, ILogger logger, IModelConfig<TModel> modelConfig)
+        : this(cosmosDbFactory, logger, CosmosDbModelMap<TModel>.Create(modelConfig))
+    {
+    }
+
+    private RepositoryBase(ICosmosDbClientFactory cosmosDbFactory, ILogger logger, CosmosDbModelMap<TModel> modelMap)
     {
         Logger = logger;
         _cosmosDbClient = cosmosDbFactory.CreateClient();
         Logger.LogTrace($"Repository {GetType().Name} #{GetHashCode()} created");
 
-        _config = new CosmosDbModelConfig<TModel>();
-        modelConfig.Configure(_config);
+        _config = modelMap.Config;
         _containerName = _config.Container;
-        _mapper = new ModelMapper<TModel>(_config);
+        _mapper = modelMap.Mapper;
     }
 
     protected async Task<TModel> GetByDocumentKey(DocumentKey documentKey)

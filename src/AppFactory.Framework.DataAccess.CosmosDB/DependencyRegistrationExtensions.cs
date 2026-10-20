@@ -1,9 +1,11 @@
 using AppFactory.Framework.DataAccess.CosmosDB.Configuration;
 using AppFactory.Framework.DataAccess.CosmosDB.CosmosDb;
+using AppFactory.Framework.DataAccess.CosmosDB.Mapping;
 using AppFactory.Framework.DataAccess.CosmosDB.Settings;
 using AppFactory.Framework.DependencyInjection;
 using AppFactory.Framework.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace AppFactory.Framework.DataAccess.CosmosDB;
@@ -24,6 +26,9 @@ public static class DependencyRegistrationExtensions
         // Use ConfigurationCosmosDbSettings which reads from IConfiguration
         // Singleton is safe - IConfiguration is thread-safe and settings don't change at runtime
         services.AddSingleton<ICosmosDbSettings, ConfigurationCosmosDbSettings>();
+
+        // Model mappings are built once per model and shared by all repositories
+        services.TryAddSingleton<IModelMapRegistry, ModelMapRegistry>();
     }
 
     /// <summary>

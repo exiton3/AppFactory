@@ -93,27 +93,33 @@ If storing a different `Id` value is ever needed, add an explicit rename via the
 
 ---
 
-## Step 2 – `ModelMapRegistry`: build config and mapper once per model (F4)  `[ ]`
+## Step 2 – `ModelMapRegistry`: build config and mapper once per model (F4)  `[x]`
 
-**Changes**
-- New `CosmosDbModelMap<TModel>` holding `Config` and `Mapper` (internal members).
-- New `IModelMapRegistry` / `ModelMapRegistry` (singleton):
+**Implemented**
+- `Mapping/CosmosDbModelMap<TModel>` (public, sealed): holds the built `Config` and `Mapper` (internal members).
+  `Create(IModelConfig<TModel>)` runs `Configure()` and creates the `ModelMapper`.
+- `Mapping/IModelMapRegistry` (public) / `ModelMapRegistry` (internal, singleton):
   - `Get<TModel>()` builds lazily from `IModelConfig<TModel>` resolved from `IServiceProvider`.
-  - `ConcurrentDictionary<Type, Lazy<object>>` so `Configure()` runs exactly once even under concurrency.
-- Register it in `RegisterCosmosDbPersistence`.
+  - `ConcurrentDictionary<Type, Lazy<object>>`, so `Configure()` runs exactly once even under concurrency.
+  - Missing `IModelConfig<TModel>` registration → `InvalidOperationException` from DI on first use.
+- `RegisterCosmosDbPersistence` registers it with `TryAddSingleton` (safe to call twice).
+  Covers `RegisterCosmosDbDataAccess` and `AddCosmosRepository` too.
 - `RepositoryBase<TModel>`:
   - New constructor `(ICosmosDbClientFactory, ILogger, IModelMapRegistry)`.
-  - Existing constructor `(…, IModelConfig<TModel>)` kept and marked `[Obsolete]` for one version.
-- Document that the config and mapper are shared across requests and threads, so anything
-  plugged into them (resolvers, converters) must be stateless and thread-safe.
-- Optional: eager validation of all registered configs at startup.
+  - Old constructor `(…, IModelConfig<TModel>)` is `[Obsolete]`; it still works and builds the map per instance.
+  - Both delegate to one private constructor taking `CosmosDbModelMap<TModel>`.
+- README: repository examples use the new constructor; documents that the mapping is shared across
+  requests/threads and plugged-in resolvers must be stateless. The `GetByEmail` example now uses a parameterized query.
+- Not done: eager validation of all configs at startup (optional, can be added later).
 
-**Tests**
-- `Get<TModel>()` returns the same instance on repeated and concurrent calls.
-- `Configure()` is invoked once.
-- Repository via new constructor behaves identically to the old one.
+**Tests** – `ModelMapRegistryTests` (7 tests)
+- Same map instance on repeated and concurrent (64 parallel) calls; `Configure()` called once.
+- Missing model config throws.
+- Repository resolved in 3 scopes → `Configure()` called once; obsolete constructor → once per instance.
+- New and obsolete constructors write identical documents.
+- `RegisterCosmosDbPersistence` called twice → one singleton registration.
 
-**Versioning:** non-breaking (old constructor still works). Note in `CHANGELOG.md`.
+**Versioning:** non-breaking (old constructor still works, compiler warning CS0618 guides migration).
 
 ---
 
@@ -202,13 +208,25 @@ they can't read back.
 
 ---
 
+## Release
+
+The package is published once Step 4 (polymorphism) is done, not per step.
+At that point: bump `<Version>` in the csproj (minor, e.g. `10.7.0` → `10.8.0`; the old `RepositoryBase`
+constructor stays `[Obsolete]`, so nothing breaks), and add one `CHANGELOG.md` entry that covers all steps, including these behaviour changes:
+- Nested properties named like the Id or a partition key are now stored (Step 1).
+- The Cosmos `id` is restored into the property configured with `Id(...)`. A write throws when another property
+  sharing `id` has a different value (Step 1b).
+- Partition key setters assign `default` for `null` into value types instead of throwing (Step 1b).
+
+---
+
 ## Progress
 
 | Step | Status | PR |
 |------|--------|----|
 | 1. Nested ignore fix | Done | |
 | 1b. Id belongs to the configured property | Done | |
-| 2. ModelMapRegistry | Not started | |
+| 2. ModelMapRegistry | Done | |
 | 3. Instance-cached resolvers | Not started | |
 | 4. Polymorphism | Not started | |
 | 5. Partition key resolvers | Deferred | |

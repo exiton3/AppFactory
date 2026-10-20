@@ -80,18 +80,26 @@ public class UserRepository : RepositoryBase<User>
     public UserRepository(
         ICosmosDbClientFactory cosmosDbFactory,
         ILogger logger,
-        IModelConfig<User> modelConfig)
-        : base(cosmosDbFactory, logger, modelConfig)
+        IModelMapRegistry modelMapRegistry)
+        : base(cosmosDbFactory, logger, modelMapRegistry)
     {
     }
 
     public async Task<User> GetByEmail(string email)
     {
-        var query = $"SELECT * FROM c WHERE c.email = '{email}'";
+        var query = CreateQuery("SELECT * FROM c WHERE c.email = @email")
+            .WithParameter("@email", email);
         return await QuerySingle(query);
     }
 }
 ```
+
+`IModelMapRegistry` (registered by `RegisterCosmosDbPersistence`) runs each `IModelConfig<TModel>` once and shares
+the resulting mapping with all repository instances, so nothing is rebuilt per request.
+Because the mapping is shared across requests and threads, anything plugged into it
+(for example a partition key resolver) must be stateless and read per-request values on each call.
+
+> The constructor taking `IModelConfig<TModel>` is obsolete: it rebuilds the mapping for every repository instance.
 
 ## Usage Examples
 
@@ -340,8 +348,8 @@ public class OrderRepository : RepositoryBase<Order>
     public OrderRepository(
         ICosmosDbClientFactory factory,
         ILogger logger,
-        IModelConfig<Order> config)
-        : base(factory, logger, config)
+        IModelMapRegistry modelMapRegistry)
+        : base(factory, logger, modelMapRegistry)
     {
     }
 
