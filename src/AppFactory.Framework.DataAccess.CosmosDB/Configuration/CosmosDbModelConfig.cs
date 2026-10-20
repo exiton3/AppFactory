@@ -14,6 +14,8 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     private string _partitionKeyPath = "/partitionKey";
     private string _idPrefix;
     private Func<TModel, object?> _idSelector;
+    private Action<TModel, object>? _idSetter;
+    private string _idPropertyName;
     private int? _ttlInSeconds;
 
     // Unified partition key configuration (handles both single and hierarchical)
@@ -136,31 +138,13 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     public IPartitionKeyConfigOptions<TModel> PartitionKey<TKey>(Expression<Func<TModel, TKey>> propertyExpression)
     {
         var getter = PropertyExpressionHelper.InitializeGetter(propertyExpression);
-        var setter = PropertyExpressionHelper.InitializeSetter(propertyExpression);
+        var setter = PropertyExpressionHelper.InitializeConvertingSetter(propertyExpression);
         var propertyName = PropertyExpressionHelper.GetPropertyName(propertyExpression).ToCamelCase();
 
         var part = new PartitionKeyPart<TModel>
         {
             Getter = o => getter(o),
-            Setter = (o, v) => 
-            {
-                // Handle type conversion for Newtonsoft.Json deserialization
-                TKey typedValue;
-                if (v is TKey directValue)
-                {
-                    typedValue = directValue;
-                }
-                else if (typeof(TKey) == typeof(Guid) && v is string guidString)
-                {
-                    typedValue = (TKey)(object)Guid.Parse(guidString);
-                }
-                else
-                {
-                    // Try Convert.ChangeType for other types
-                    typedValue = (TKey)Convert.ChangeType(v, typeof(TKey));
-                }
-                setter(o, typedValue);
-            },
+            Setter = setter,
             DestinationPropertyName = propertyName
         };
 
@@ -186,12 +170,25 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     public IModelConfigOptions<TModel> Id<TKey>(Expression<Func<TModel, TKey>> propertyExpression)
     {
         var getter = PropertyExpressionHelper.InitializeGetter(propertyExpression);
-        var propertyName = PropertyExpressionHelper.GetPropertyName(propertyExpression).ToCamelCase();
-        ignoredPropertyNames.Add(propertyName);
+        _idPropertyName = PropertyExpressionHelper.GetPropertyName(propertyExpression);
+        ignoredPropertyNames.Add(_idPropertyName.ToCamelCase());
         _idSelector = o => getter(o);
+        _idSetter = PropertyExpressionHelper.TryInitializeConvertingSetter(propertyExpression);
 
         return this;
     }
+
+    /// <summary>
+    /// CLR name of the property configured with <see cref="Id{TKey}"/>. The Cosmos 'id' belongs to this property.
+    /// </summary>
+    internal string IdPropertyName => _idPropertyName;
+
+    internal object? GetIdPropertyValue(TModel model) => _idSelector?.Invoke(model);
+
+    /// <summary>
+    /// Restores the document id (without prefix) into the property configured with <see cref="Id{TKey}"/>.
+    /// </summary>
+    internal void SetIdPropertyValue(TModel model, object value) => _idSetter?.Invoke(model, value);
 
     public IModelConfigOptions<TModel> TimeToLive(int? ttlInSeconds)
     {

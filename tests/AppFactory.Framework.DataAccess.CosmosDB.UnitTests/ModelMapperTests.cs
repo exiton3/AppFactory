@@ -224,7 +224,7 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             {
                 Email = "some@mail.com",
                 Name = "John Doe",
-                Id = "123",
+                Id = "userID1", // shares the Cosmos "id" field with UserId, so it must hold the same value
                 UserId = "userID1",
                 TenantId = "tenantID1"
             };
@@ -253,7 +253,7 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             {
                 Email = "some@mail.com",
                 Name = "John Doe",
-                Id = "123",
+                Id = "userID1", // shares the Cosmos "id" field with UserId, so it must hold the same value
                 UserId = "userID1",
                 TenantId = "tenantID1"
             };
@@ -263,8 +263,7 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             var mappedModel = mapper.MapFromDocument(document);
 
             mappedModel.UserId.ShouldBeEqualTo("userID1");
-
-
+            mappedModel.Id.ShouldBeEqualTo("userID1");
         }
 
         [Fact]
@@ -283,7 +282,7 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             {
                 Email = "some@mail.com",
                 Name = "John Doe",
-                Id = "123",
+                Id = "userID1", // shares the Cosmos "id" field with UserId, so it must hold the same value
                 UserId = "userID1",
             };
 
