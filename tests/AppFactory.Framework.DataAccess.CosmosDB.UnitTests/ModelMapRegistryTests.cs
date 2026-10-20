@@ -17,7 +17,7 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             var services = new ServiceCollection();
             services.AddSingleton<IModelConfig<Customer>>(config);
             services.AddSingleton<IModelMapRegistry, ModelMapRegistry>();
-            services.AddSingleton<ICosmosDbClientFactory, FakeCosmosDbClientFactory>();
+            services.AddSingleton<ICosmosDbClientFactory, InMemoryCosmosDbClientFactory>();
             services.AddSingleton<ILogger, NullLogger>();
             services.AddScoped<CustomerRepository>();
 
@@ -79,7 +79,7 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
         public void ObsoleteRepositoryConstructor_ConfiguresModelOnEveryInstance()
         {
             var config = new CountingCustomerConfig();
-            var factory = new FakeCosmosDbClientFactory();
+            var factory = new InMemoryCosmosDbClientFactory();
 
             _ = new LegacyCustomerRepository(factory, new NullLogger(), config);
             _ = new LegacyCustomerRepository(factory, new NullLogger(), config);
@@ -93,10 +93,10 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             var (provider, _) = CreateServices();
             var customer = new Customer { Id = "C1", TenantId = "T1", Name = "Ann" };
 
-            var registryFactory = new FakeCosmosDbClientFactory();
+            var registryFactory = new InMemoryCosmosDbClientFactory();
             await new CustomerRepository(registryFactory, new NullLogger(), provider.GetRequiredService<IModelMapRegistry>()).Add(customer);
 
-            var legacyFactory = new FakeCosmosDbClientFactory();
+            var legacyFactory = new InMemoryCosmosDbClientFactory();
             await new LegacyCustomerRepository(legacyFactory, new NullLogger(), new CountingCustomerConfig()).Add(customer);
 
             var document = Assert.Single(registryFactory.Client.Created);
@@ -163,57 +163,6 @@ namespace AppFactory.Framework.DataAccess.CosmosDB.UnitTests
             {
             }
 #pragma warning restore CS0618
-        }
-
-        private class FakeCosmosDbClientFactory : ICosmosDbClientFactory
-        {
-            public FakeCosmosDbClient Client { get; } = new FakeCosmosDbClient();
-
-            public ICosmosDbClient CreateClient() => Client;
-
-            public CosmosClient GetCosmosClient() => throw new NotSupportedException();
-        }
-
-        private class FakeCosmosDbClient : ICosmosDbClient
-        {
-            public List<CosmosDbDocument> Created { get; } = new List<CosmosDbDocument>();
-            public string? LastContainer { get; private set; }
-
-            public Task<bool> CreateItemAsync(CosmosDbDocument document, string containerName)
-            {
-                Created.Add(document);
-                LastContainer = containerName;
-                return Task.FromResult(true);
-            }
-
-            public Task<CosmosDbDocument> GetByIdAsync(DocumentKey documentKey, string containerName) => throw new NotSupportedException();
-            public Task<bool> UpsertItemAsync(CosmosDbDocument document, string containerName) => throw new NotSupportedException();
-            public Task<bool> UpdateItemAsync(CosmosDbDocument document, string containerName) => throw new NotSupportedException();
-            public Task<bool> UpdateItemAsync(CosmosDbDocument document, string containerName, PartitionKey partitionKey) => throw new NotSupportedException();
-            public Task<bool> DeleteItemAsync(DocumentKey documentKey, string containerName, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-            public Task BatchUpsertItemsAsync(List<CosmosDbDocument> documents, string containerName) => throw new NotSupportedException();
-            public Task<List<CosmosDbDocument>> QueryAsync(QueryDefinition queryDefinition, string containerName, string? partitionKey = null) => throw new NotSupportedException();
-            public Task<List<CosmosDbDocument>> QueryAsync(string query, string containerName, string? partitionKey = null) => throw new NotSupportedException();
-            public Task<List<CosmosDbDocument>> QueryAsync(QueryDefinition queryDefinition, string containerName, PartitionKey partitionKey) => throw new NotSupportedException();
-            public Task<List<CosmosDbDocument>> QueryAsync(string query, string containerName, PartitionKey partitionKey) => throw new NotSupportedException();
-            public void Dispose() { }
-        }
-
-        private class NullLogger : ILogger
-        {
-            public void AddTraceId(string traceId) { }
-            public void LogInfo(string message) { }
-            public void LogTrace(string message) { }
-            public ITimeLogger LogPerformance(string message) => throw new NotSupportedException();
-            public void LogError(Exception exception, string messageTemplate) { }
-            public void LogInfo(string messageTemplate, params object[] propertyValues) { }
-            public void LogDebug(string context, object value, string message, params object[] propertyValues) { }
-            public void LogDebug(string context, object value, string message) { }
-            public void SetContext(string context) { }
-            public void LogDebug(string messageTemplate, params object[] values) { }
-            public void LogTrace(string message, params object[] propertyValues) { }
-            public void LogError(Exception exception, string messageTemplate, params object[] values) { }
-            public void LogError(string messageTemplate, params object[] values) { }
         }
     }
 }

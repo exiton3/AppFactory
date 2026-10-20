@@ -34,6 +34,14 @@ public interface IModelConfigOptions<TModel> where TModel : class
     IModelConfigOptions<TModel> TimeToLive(int? ttlInSeconds);
 
     /// <summary>
+    /// Enables optimistic concurrency. The document's ETag is read into this property and is never stored as a
+    /// data field. Update and Upsert only succeed when the stored document still has that ETag, otherwise they throw
+    /// <see cref="AppFactory.Framework.Domain.Repositories.ConcurrencyConflictException"/>. After a successful
+    /// write the property holds the new ETag. The property needs a setter (private is fine).
+    /// </summary>
+    IModelConfigOptions<TModel> ConcurrencyToken(Expression<Func<TModel, string?>> propertyExpression);
+
+    /// <summary>
     /// Stores and restores a class hierarchy wherever <typeparamref name="TBase"/> (or a derived type) is used
     /// in the model: single properties, collections and dictionary values, at any depth.
     /// <code>

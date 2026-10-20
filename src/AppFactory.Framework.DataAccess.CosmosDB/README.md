@@ -16,6 +16,7 @@ This package provides a complete abstraction over Azure Cosmos DB, enabling you 
 - **🔍 SQL Query Support** - Parameterized SQL queries
 - **⏱️ TTL Support** - Document-level Time-To-Live
 - **🧬 Polymorphic Properties** - Class hierarchies stored with a configurable discriminator
+- **🔒 Optimistic Concurrency** - Opt-in ETag checks on Update and Upsert
 - **🔄 Automatic Serialization** - camelCase JSON conventions
 - **♻️ Singleton Client** - Optimized CosmosClient pattern
 - **📊 Performance Logging** - Built-in tracking
@@ -312,6 +313,45 @@ Stored document:
   `WithValue` is required, registered types must be concrete, and the discriminator name must not clash
   with a property of a registered type.
 - Not supported: a polymorphic root model (`RepositoryBase<Payment>`), and nested collections such as `List<List<Person>>`.
+
+### Optimistic Concurrency (ETag)
+
+Opt in per model with a `string` property that holds the document's ETag:
+
+```csharp
+public class Account
+{
+    public string Id { get; set; }
+    public string TenantId { get; set; }
+    public decimal Balance { get; set; }
+    public string ConcurrencyToken { get; private set; }   // private setter is fine
+}
+
+config.ContainerName("accounts")
+      .Id(a => a.Id)
+      .PartitionKey(a => a.TenantId)
+      .ConcurrencyToken(a => a.ConcurrencyToken);
+```
+
+- **Read** (`GetById`, `Query`): the document's `_etag` is set into the property.
+- **`Update` / `Upsert`**: only succeed if the stored document still has that ETag. Otherwise they throw
+  `ConcurrencyConflictException` (from `AppFactory.Framework.Domain.Repositories`): reload and retry.
+  A model without a token (e.g. a new one) is written unconditionally.
+- **After a successful `Add`, `Update` or `Upsert`** the property holds the new ETag, so the same instance can be updated again.
+- The token is never stored as a data field. Models without `ConcurrencyToken(...)` behave as before (last write wins).
+- Not checked: `BatchAddItems` and `Delete(key)`.
+
+```csharp
+try
+{
+    account.Balance -= amount;
+    await accountRepository.Update(account);
+}
+catch (ConcurrencyConflictException)
+{
+    // someone else changed the account since it was loaded: reload and apply the change again
+}
+```
 
 ## Document Structure
 

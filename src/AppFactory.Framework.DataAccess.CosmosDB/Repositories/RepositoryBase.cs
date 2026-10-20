@@ -57,25 +57,54 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
     public async Task<bool> Add(TModel model)
     {
         var document = _mapper.MapToDocument(model);
+        var response = await _cosmosDbClient.CreateItemAsync(document, _containerName);
 
-        return await _cosmosDbClient.CreateItemAsync(document, _containerName);
+        RefreshConcurrencyToken(model, response);
+        return response.IsSuccess;
     }
 
+    /// <exception cref="ConcurrencyConflictException">The model has a concurrency token and the stored document was changed since it was loaded.</exception>
     public async Task<bool> Update(TModel model)
     {
         var document = _mapper.MapToDocument(model);
         var partitionKey = _config.GetDocumentKey(model).ToPartitionKey();
+        var response = await _cosmosDbClient.UpdateItemAsync(document, _containerName, partitionKey, _config.GetConcurrencyToken(model));
 
-        return await _cosmosDbClient.UpdateItemAsync(document, _containerName, partitionKey);
+        EnsureNoConcurrencyConflict(document, response);
+        RefreshConcurrencyToken(model, response);
+        return response.IsSuccess;
     }
 
+    /// <exception cref="ConcurrencyConflictException">The model has a concurrency token and the stored document was changed since it was loaded.
+    /// A model without a token (e.g. a new one) is written unconditionally.</exception>
     public async Task<bool> Upsert(TModel model)
     {
         var document = _mapper.MapToDocument(model);
+        var response = await _cosmosDbClient.UpsertItemAsync(document, _containerName, _config.GetConcurrencyToken(model));
 
-        return await _cosmosDbClient.UpsertItemAsync(document, _containerName);
+        EnsureNoConcurrencyConflict(document, response);
+        RefreshConcurrencyToken(model, response);
+        return response.IsSuccess;
     }
 
+    private void EnsureNoConcurrencyConflict(CosmosDbDocument document, CosmosDbClientResponse response)
+    {
+        if (response.IsPreconditionFailed)
+        {
+            throw new ConcurrencyConflictException(typeof(TModel).Name, document[CosmosDbConstants.Id]?.ToString() ?? string.Empty);
+        }
+    }
+
+    // Keeps the instance usable for a further update after a successful write
+    private void RefreshConcurrencyToken(TModel model, CosmosDbClientResponse response)
+    {
+        if (_config.HasConcurrencyToken && response.IsSuccess && response.ETag != null)
+        {
+            _config.SetConcurrencyToken(model, response.ETag);
+        }
+    }
+
+    /// <remarks>Concurrency tokens are not checked for batch writes.</remarks>
     public async Task BatchAddItems(IEnumerable<TModel> models)
     {
         var documents = new List<CosmosDbDocument>();
@@ -99,7 +128,9 @@ public abstract class RepositoryBase<TModel> : IDisposable, IRepository<TModel> 
     {
         var documentKey = _config.GetDocumentKey(key);
 
-        return await _cosmosDbClient.DeleteItemAsync(documentKey, _containerName, cancellationToken);
+        var response = await _cosmosDbClient.DeleteItemAsync(documentKey, _containerName, cancellationToken);
+
+        return response.IsSuccess;
     }
 
     protected async Task<IEnumerable<TModel>> Query(string query, string partitionKey = null)

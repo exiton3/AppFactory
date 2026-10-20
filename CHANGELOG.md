@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.9.0] - 2026-10-20
+
+### 🔒 CosmosDB — Optimistic Concurrency with ETags
+
+Repositories can now detect lost updates. Configure a concurrency token property on the model; `Update` and `Upsert` only succeed when the stored document has not changed since it was loaded. Opt-in, models without it behave exactly as before.
+
+### Added
+
+#### Data Access (`AppFactory.Framework.DataAccess.CosmosDB`)
+- **`ConcurrencyToken(m => m.ConcurrencyToken)`** — on `IModelConfigOptions<TModel>`. The document's `_etag` is read into this `string` property (private setter supported) on `GetById` and `Query`, and it is never stored as a data field.
+  - `Update` and `Upsert` send `IfMatchEtag` when the token is set; on HTTP 412 they throw `ConcurrencyConflictException`. A model without a token (e.g. new) is written unconditionally.
+  - After a successful `Add`, `Update` or `Upsert` the token is refreshed from the response ETag, so a second update on the same instance works.
+  - Not checked: `BatchAddItems` and `Delete(key)`.
+- **`CosmosDbClientResponse`** — result of client write operations: `IsSuccess`, `StatusCode`, `ETag`, `RequestCharge`, `IsPreconditionFailed`.
+
+#### Domain (`AppFactory.Framework.Domain`)
+- **`ConcurrencyConflictException`** (`AppFactory.Framework.Domain.Repositories`) — thrown when an entity was modified since it was loaded; carries `EntityType` and `Id`. Lives in Domain so the application layer can catch it without a Cosmos reference.
+
+### Changed
+
+#### `AppFactory.Framework.DataAccess.CosmosDB`
+- **`ICosmosDbClient`** (breaking for implementers and direct callers) — `CreateItemAsync`, `UpsertItemAsync`, both `UpdateItemAsync` and `DeleteItemAsync` return `CosmosDbClientResponse` instead of `bool` (use `.IsSuccess`). `UpsertItemAsync` and `UpdateItemAsync` take an optional `ifMatchEtag`; a failed condition is returned as `StatusCode = PreconditionFailed`, not thrown. Repository methods (`IRepository<TModel>`) still return `bool`.
+- **`IModelConfigOptions<TModel>`** — new member `ConcurrencyToken(...)`. Custom implementations of this interface must add it.
+
 ## [10.8.0] - 2026-10-19
 
 ### 🧬 CosmosDB — Polymorphic Properties and Mapping Fixes

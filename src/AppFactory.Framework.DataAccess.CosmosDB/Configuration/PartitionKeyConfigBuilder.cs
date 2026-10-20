@@ -73,6 +73,11 @@ internal class PartitionKeyConfigBuilder<TModel> : IPartitionKeyConfigOptions<TM
         return _parentConfig.TimeToLive(ttlInSeconds);
     }
 
+    public IModelConfigOptions<TModel> ConcurrencyToken(Expression<Func<TModel, string?>> propertyExpression)
+    {
+        return _parentConfig.ConcurrencyToken(propertyExpression);
+    }
+
     public IPolymorphicConfigOptions<TBase> Polymorphic<TBase>() where TBase : class
     {
         return _parentConfig.Polymorphic<TBase>();

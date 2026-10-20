@@ -142,6 +142,11 @@ internal class ModelMapper<TModel> : IModelMapper<TModel> where TModel : class
             _config.SetIdPropertyValue(model, modelId);
         }
 
+        if (_config.HasConcurrencyToken && document.TryGetValue(CosmosDbConstants.ETag, out var eTag))
+        {
+            _config.SetConcurrencyToken(model, eTag?.ToString());
+        }
+
         MapBackPartitionKeys(document, model);
 
         return model;

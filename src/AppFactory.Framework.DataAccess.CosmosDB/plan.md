@@ -28,6 +28,8 @@ Findings that shaped this plan:
 | F4 | `RepositoryBase` is Scoped, so the constructor runs `Configure()`, recompiles expressions and creates a new `ModelMapper` on every request. | Wasted work per request. Contracts are only built once because of `CamelCasePropertyNamesContractResolver`'s hidden static cache. |
 | F5 | `GetDocumentKey(object id)` ignores `UseResolver` partition key parts. | `GetById`/`Delete` cannot find documents written with a resolver partition key. **`UseResolver` is currently not used in the codebase** – latent only. |
 | F6 | `UseResolver<T>() where T : new()` – resolvers cannot receive DI services. | A real tenant resolver can't inject a tenant accessor. |
+| F8 | `IdPrefix` uses `#` as separator (`USER#123`). Cosmos DB does not allow `/ \ ? #` in `id`. | Found by the integration tests: `Add` stores the document, but point operations put the id in the request URL, so `GetById`, `Update` and `Delete` return 404 for prefixed ids (verified in Gateway mode on the emulator; Direct mode not verified). |
+| F9 | `GetById(id)` / `Delete(id)` use the id as the value of **every** partition key part (`GetDocumentKey(object id)`). | Only works when the partition key is derived from the id. With `PartitionKey(x => x.TenantId)` a point read looks in partition `<id>` and finds nothing. The unit tests' in-memory client ignores partition keys, the integration tests showed it. |
 | F7 | `MapBackId` writes the document `id` back into the model's `Id` property, not into the property configured with `Id(...)`. | With `Id(u => u.UserId)`, `UserId` is `null` after reading (unless it is also a partition key), and a separate `Id` property is overwritten with the `UserId` value. |
 
 ---
@@ -225,6 +227,60 @@ partition `T2` and cannot read `T1`'s documents.
 
 ---
 
+## Step 6 – Optimistic concurrency with ETags (10.9.0)  `[x]`
+
+**Configuration (opt-in):** `options.ConcurrencyToken(m => m.ConcurrencyToken)` – a `string` property of the model
+with a setter (private is fine). Models without it behave exactly as today.
+
+**Changes**
+- `ICosmosDbClient`: `CreateItemAsync`, `UpsertItemAsync`, `UpdateItemAsync` (both) and `DeleteItemAsync` return
+  `CosmosDbClientResponse` (`IsSuccess`, `StatusCode`, `ETag`, `RequestCharge`) instead of `bool`.
+  `UpsertItemAsync` / `UpdateItemAsync` take an optional `ifMatchEtag`. HTTP 412 is returned as a response
+  (`IsSuccess = false`, `StatusCode = PreconditionFailed`), not thrown. **Breaking** for implementers and direct callers of `ICosmosDbClient`.
+- `AppFactory.Framework.Domain.Repositories.ConcurrencyConflictException` (model type, id) – in Domain so the
+  application layer can catch it without referencing Cosmos.
+- Read: `_etag` from the document is set into the configured property (`GetById` and all `Query` methods).
+- Write: the token property is removed from the document root (never stored as a data field).
+  - `Update`: sends `IfMatchEtag` when the token is non-null; 412 → `ConcurrencyConflictException`.
+  - `Upsert`: same; a null token sends no condition, so new models are still created.
+  - After a successful `Add`, `Update` or `Upsert` the token is refreshed from the response ETag.
+- Not covered: `BatchAddItems` (no per-item condition; batch failures are only logged – existing behaviour,
+  separate follow-up) and `Delete(key)` (takes a key, not a model – unconditional).
+
+**Tests** – unit tests with a fake client (no emulator setup exists in the repo; emulator tests are a separate decision)
+- Two loads of the same document: first update succeeds, second throws `ConcurrencyConflictException`.
+- Token read on `GetById`, refreshed after `Add`, `Update` and `Upsert`; a second update on the same instance works.
+- `IfMatchEtag` sent only when configured and non-null; token not stored in the document.
+- Models without the setting unchanged; configuration errors (get-only property).
+
+**Release:** CHANGELOG entry `[10.9.0]`; version from the `v10.9.0` tag (csproj unchanged).
+**Implemented** as described above, plus:
+- `CosmosDb/CosmosDbClientResponse`, `Domain/Repositories/ConcurrencyConflictException` (`EntityType`, document `Id` with prefix).
+- `CosmosDbModelConfig.ConcurrencyToken(...)` requires a direct property with a setter; configuring it twice throws.
+- Tests: `ConcurrencyTokenTests` (13) against `TestDoubles.InMemoryCosmosDbClient`, which assigns a new `_etag` per write
+  and fails If-Match with 412 like Cosmos. `ModelMapRegistryTests` uses the shared test doubles.
+- **Verified against the Cosmos DB vNext emulator** (`AppFactory.Framework.DataAccess.CosmosDB.IntegrationTests`,
+  Testcontainers): the SDK throws `CosmosException` 412 for `ReplaceItemAsync` / `UpsertItemAsync` with `IfMatchEtag`,
+  `ExecuteWriteAsync` turns it into a response, and the repository throws `ConcurrencyConflictException`;
+  tokens equal the stored `_etag` after `GetById`, `Add` and `Update`.
+- Observed on the vNext emulator, not asserted: `Upsert` with a stale token **re-creates** a document deleted in the
+  meantime (no 412). Unverified on the real service; the classic emulator image does not work with the
+  Testcontainers module (HTTPS, slow start).
+
+---
+
+## Step 7 – Point operations: id separator and partition key (F8, F9) – after 10.9.0  `[ ]`
+
+Found by the integration tests; existing behaviour, deferred so 10.9.0 can ship.
+- **F8:** `IdPrefix` separator `#` is not allowed in Cosmos ids, so `GetById` / `Update` / `Delete` return 404 for
+  prefixed ids. First check Direct mode against a real account. The fix changes the separator for ids, so stored
+  prefixed ids need a migration (or a read fallback).
+- **F9:** `GetById(id)` / `Delete(id)` use the id for every partition key part. Needs an API that takes the partition
+  key values (e.g. `GetById(id, partitionKeyValues)`), or resolver values (Step 5) for resolver parts.
+- Add integration tests for both (the emulator project is in place).
+
+---
+
 ## Release
 
 The package is published once Step 4 (polymorphism) is done, not per step. **Done: CHANGELOG `[10.8.0]` entry added (2026-10-19). The package version comes from the release tag (`v10.8.0`), the csproj `<Version>` is not changed.**
@@ -250,3 +306,5 @@ constructor stays `[Obsolete]`, so nothing breaks), and add one `CHANGELOG.md` e
 | 3. Instance-cached resolver | Done | |
 | 4. Polymorphism | Done | |
 | 5. Partition key resolvers | Deferred | |
+| 6. Optimistic concurrency (ETag) | Done | |
+| 7. Id separator and partition key for point operations | After 10.9.0 | |

@@ -28,4 +28,4 @@ jobs:
         dotnet build ${{ env.SolutionFilePath}} --configuration Release --no-restore
     - name: Unit Tests
       run: |
-          dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance"
+          dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance&Category!=Integration"

@@ -5,4 +5,5 @@ public static class CosmosDbConstants
     public const string Id = "id";
     public const string PartitionKey = "partitionKey";
     public const string Separator = "#";
+    public const string ETag = "_etag";
 }

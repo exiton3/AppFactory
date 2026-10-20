@@ -22,7 +22,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Unit Tests
-        run: dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance"
+        run: dotnet test --no-restore --verbosity normal --filter "Category!=Acceptance&Category!=Integration"
 
   discover_projects:
     runs-on: ubuntu-22.04

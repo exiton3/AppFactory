@@ -16,6 +16,8 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
     private Func<TModel, object?> _idSelector;
     private Action<TModel, object>? _idSetter;
     private string _idPropertyName;
+    private Func<TModel, string?>? _concurrencyTokenGetter;
+    private Action<TModel, object>? _concurrencyTokenSetter;
     private int? _ttlInSeconds;
 
     // Unified partition key configuration (handles both single and hierarchical)
@@ -206,6 +208,33 @@ public class CosmosDbModelConfig<TModel> : IModelConfigOptions<TModel> where TMo
         _ttlInSeconds = ttlInSeconds;
         return this;
     }
+
+    public IModelConfigOptions<TModel> ConcurrencyToken(Expression<Func<TModel, string?>> propertyExpression)
+    {
+        if (_concurrencyTokenGetter != null)
+        {
+            throw new InvalidOperationException($"ConcurrencyToken is already configured for {typeof(TModel).Name}");
+        }
+
+        var setter = PropertyExpressionHelper.TryInitializeConvertingSetter(propertyExpression)
+            ?? throw new ArgumentException(
+                $"ConcurrencyToken must select a property of {typeof(TModel).Name} with a setter (private is fine), e.g. x => x.ConcurrencyToken",
+                nameof(propertyExpression));
+
+        _concurrencyTokenGetter = PropertyExpressionHelper.InitializeGetter(propertyExpression);
+        _concurrencyTokenSetter = setter;
+
+        // The token comes from the document's _etag, it is never stored as a data field
+        AddToIgnoreProperties(PropertyExpressionHelper.GetPropertyName(propertyExpression).ToCamelCase());
+
+        return this;
+    }
+
+    internal bool HasConcurrencyToken => _concurrencyTokenGetter != null;
+
+    internal string? GetConcurrencyToken(TModel model) => _concurrencyTokenGetter?.Invoke(model);
+
+    internal void SetConcurrencyToken(TModel model, string? eTag) => _concurrencyTokenSetter?.Invoke(model, eTag!);
 
     public IPolymorphicConfigOptions<TBase> Polymorphic<TBase>() where TBase : class
     {

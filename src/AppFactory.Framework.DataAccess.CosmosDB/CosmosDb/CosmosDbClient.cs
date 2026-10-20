@@ -41,23 +41,22 @@ public class CosmosDbClient : ICosmosDbClient
         }
     }
 
-    public async Task<bool> UpsertItemAsync(CosmosDbDocument document, string containerName)
+    public async Task<CosmosDbClientResponse> UpsertItemAsync(CosmosDbDocument document, string containerName, string? ifMatchEtag = null)
     {
         var container = _cosmosClient.GetContainer(_databaseName, containerName);
-        var response = await container.UpsertItemAsync(document);
-        
-        return response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Created;
+
+        return await ExecuteWriteAsync(() => container.UpsertItemAsync(document, requestOptions: CreateRequestOptions(ifMatchEtag)));
     }
 
-    public async Task<bool> CreateItemAsync(CosmosDbDocument document, string containerName)
+    public async Task<CosmosDbClientResponse> CreateItemAsync(CosmosDbDocument document, string containerName)
     {
         var container = _cosmosClient.GetContainer(_databaseName, containerName);
         var response = await container.CreateItemAsync(document);
-        
-        return response.StatusCode == HttpStatusCode.Created;
+
+        return ToResponse(response);
     }
 
-    public async Task<bool> UpdateItemAsync(CosmosDbDocument document, string containerName)
+    public async Task<CosmosDbClientResponse> UpdateItemAsync(CosmosDbDocument document, string containerName, string? ifMatchEtag = null)
     {
         if (!document.TryGetValue(CosmosDbConstants.Id, out var id) ||
             !document.TryGetValue(CosmosDbConstants.PartitionKey, out var partitionKey))
@@ -65,34 +64,51 @@ public class CosmosDbClient : ICosmosDbClient
             throw new ArgumentException("Document must contain id and partitionKey properties");
         }
 
-        var container = _cosmosClient.GetContainer(_databaseName, containerName);
-        var response = await container.ReplaceItemAsync(
-            document,
-            id.ToString(),
-            new PartitionKey(partitionKey.ToString()));
-
-        return response.StatusCode == HttpStatusCode.OK;
+        return await UpdateItemAsync(document, containerName, new PartitionKey(partitionKey.ToString()), ifMatchEtag);
     }
 
-    public async Task<bool> UpdateItemAsync(CosmosDbDocument document, string containerName, PartitionKey partitionKey)
+    public async Task<CosmosDbClientResponse> UpdateItemAsync(CosmosDbDocument document, string containerName, PartitionKey partitionKey, string? ifMatchEtag = null)
     {
         if (!document.TryGetValue(CosmosDbConstants.Id, out var id))
             throw new ArgumentException("Document must contain id property");
 
         var container = _cosmosClient.GetContainer(_databaseName, containerName);
-        var response = await container.ReplaceItemAsync(document, id.ToString(), partitionKey);
-        return response.StatusCode == HttpStatusCode.OK;
+
+        return await ExecuteWriteAsync(() => container.ReplaceItemAsync(document, id.ToString(), partitionKey, CreateRequestOptions(ifMatchEtag)));
     }
 
-    public async Task<bool> DeleteItemAsync(DocumentKey documentKey, string containerName, CancellationToken cancellationToken = default)
+    public async Task<CosmosDbClientResponse> DeleteItemAsync(DocumentKey documentKey, string containerName, CancellationToken cancellationToken = default)
     {
         var container = _cosmosClient.GetContainer(_databaseName, containerName);
         var response = await container.DeleteItemAsync<Dictionary<string, object>>(
             documentKey.Id,
             documentKey.ToPartitionKey(),
             cancellationToken: cancellationToken);
-        
-        return response.StatusCode == HttpStatusCode.NoContent;
+
+        return new CosmosDbClientResponse(response.StatusCode, requestCharge: response.RequestCharge);
+    }
+
+    private static ItemRequestOptions? CreateRequestOptions(string? ifMatchEtag)
+    {
+        return string.IsNullOrEmpty(ifMatchEtag) ? null : new ItemRequestOptions { IfMatchEtag = ifMatchEtag };
+    }
+
+    // A failed If-Match condition is an expected outcome of optimistic concurrency, so it is returned, not thrown
+    private static async Task<CosmosDbClientResponse> ExecuteWriteAsync(Func<Task<ItemResponse<CosmosDbDocument>>> write)
+    {
+        try
+        {
+            return ToResponse(await write());
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
+        {
+            return new CosmosDbClientResponse(ex.StatusCode, requestCharge: ex.RequestCharge);
+        }
+    }
+
+    private static CosmosDbClientResponse ToResponse(ItemResponse<CosmosDbDocument> response)
+    {
+        return new CosmosDbClientResponse(response.StatusCode, response.ETag, response.RequestCharge);
     }
 
     public async Task BatchUpsertItemsAsync(List<CosmosDbDocument> documents, string containerName)
